@@ -6,7 +6,7 @@ from pathlib import Path
 
 import ollama
 from juturna.components import Node, Message
-from juturna.payloads import ObjectPayload
+from juturna.payloads import ObjectPayload, ControlPayload
 
 
 _OUTPUT_SCHEMA = {
@@ -28,7 +28,7 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
     """Summarizes transcript windows using a local LLM via Ollama."""
 
     def __init__(self, endpoint: str = "http://127.0.0.1:11434",
-                 model_name: str = "qwen2.5:7b-instruct",
+                 model_name: str = "qwen3:8b",
                  prompt_template_file: str = "summarize_prompt.txt",
                  **kwargs):
         super().__init__(**kwargs)
@@ -63,7 +63,18 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
 
     def set_on_config(self, prop: str, value: typing.Any): pass
     def start(self): super().start()
-    def stop(self): super().stop()
+
+    def stop(self):
+        # Drain any pending messages before stopping (handles flush-during-stop race)
+        import queue as _q
+        while True:
+            try:
+                msg = self._queue.get_nowait()
+            except _q.Empty:
+                break
+            if msg is not None and not isinstance(msg.payload, ControlPayload):
+                self.update(msg)
+        super().stop()
     def destroy(self): pass
 
     def _ensure_three_keywords(self, keywords: list) -> list[str]:

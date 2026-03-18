@@ -1,7 +1,7 @@
 """Integration test: run full pipeline with audio file source.
 
 Requires:
-- Ollama running with qwen2.5:7b-instruct pulled
+- Ollama running with qwen3:8b pulled
 - faster-whisper tiny.en model available
 
 Mark as integration so unit tests remain fast.

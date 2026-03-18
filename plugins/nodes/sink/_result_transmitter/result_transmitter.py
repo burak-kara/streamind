@@ -5,7 +5,7 @@ from pathlib import Path
 
 import httpx
 from juturna.components import Node, Message
-from juturna.payloads import ObjectPayload
+from juturna.payloads import ObjectPayload, ControlPayload
 
 
 class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
@@ -26,7 +26,17 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
 
     def set_on_config(self, prop: str, value: typing.Any): pass
     def start(self): super().start()
-    def stop(self): super().stop()
+
+    def stop(self):
+        import queue as _q
+        while True:
+            try:
+                msg = self._queue.get_nowait()
+            except _q.Empty:
+                break
+            if msg is not None and not isinstance(msg.payload, ControlPayload):
+                self.update(msg)
+        super().stop()
     def destroy(self): pass
 
     def update(self, message: Message[ObjectPayload]):

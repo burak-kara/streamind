@@ -48,7 +48,7 @@ steps:
 6. Transmission: summary objects are stored locally on the filesystem and
    transmitted to a destination endpoint through `POST` requests.
 
-![Overview](/images/challenge_overview.png)
+![Overview](/docs/images/challenge_overview.png)
 
 ### Evaluation metrics
 
@@ -71,6 +71,8 @@ C_{i} = S_i - {\text{latency}_i}
 $$
 
 The final score for an audio source is the average of all scores of its chunks.
+
+![Scoring](/docs/images/challenge_scoring.png)
 
 ### References and Resources
 

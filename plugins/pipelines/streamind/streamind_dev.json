@@ -51,7 +51,7 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 300.0
+          "window_duration": 15.0
         }
       },
       {
@@ -60,7 +60,7 @@
         "mark": "summarizer_llm",
         "configuration": {
           "endpoint": "http://127.0.0.1:11434",
-          "model_name": "qwen2.5:7b-instruct",
+          "model_name": "qwen3:8b",
           "prompt_template_file": "summarize_prompt.txt"
         }
       },

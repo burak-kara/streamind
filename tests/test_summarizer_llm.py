@@ -40,7 +40,7 @@ class TestSummarizerLLM:
 
         node = SummarizerLLM(
             endpoint="http://localhost:11434",
-            model_name="qwen2.5:7b-instruct",
+            model_name="qwen3:8b",
         )
         node._name = "test_summarizer"
         node.transmit = MagicMock()
@@ -72,7 +72,7 @@ class TestSummarizerLLM:
 
         node = SummarizerLLM(
             endpoint="http://localhost:11434",
-            model_name="qwen2.5:7b-instruct",
+            model_name="qwen3:8b",
         )
         node._name = "test_summarizer"
         node.transmit = MagicMock()
