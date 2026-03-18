@@ -1,0 +1,92 @@
+{
+  "version": "0.1.0",
+  "plugins": ["./plugins"],
+  "pipeline": {
+    "name": "streamind",
+    "id": "streamind_001",
+    "folder": "./pipelines",
+    "nodes": [
+      {
+        "name": "audio_src",
+        "type": "source",
+        "mark": "audio_rtp",
+        "configuration": {
+          "rec_host": "127.0.0.1",
+          "rec_port": 8888,
+          "audio_rate": 16000,
+          "block_size": 1,
+          "channels": 1,
+          "process_log_level": "quiet",
+          "payload_type": 97,
+          "encoding_clock_chan": "opus/48000/2"
+        }
+      },
+      {
+        "name": "chunker",
+        "type": "proc",
+        "mark": "audio_chunker",
+        "configuration": {
+          "chunk_duration": 5.0,
+          "overlap_duration": 1.0,
+          "sample_rate": 16000
+        }
+      },
+      {
+        "name": "transcriber",
+        "type": "proc",
+        "mark": "transcriber_whisper",
+        "configuration": {
+          "model_name": "small.en",
+          "language": "en",
+          "device": "auto",
+          "compute_type": "int8"
+        }
+      },
+      {
+        "name": "deduplicator",
+        "type": "proc",
+        "mark": "novel_extractor",
+        "configuration": {
+          "max_overlap_words": 10,
+          "similarity_threshold": 0.8
+        }
+      },
+      {
+        "name": "aggregator",
+        "type": "proc",
+        "mark": "window_aggregator",
+        "configuration": {
+          "window_duration": 300.0
+        }
+      },
+      {
+        "name": "summarizer",
+        "type": "proc",
+        "mark": "summarizer_llm",
+        "configuration": {
+          "endpoint": "http://127.0.0.1:11434",
+          "model_name": "qwen2.5:7b-instruct",
+          "prompt_template_file": "summarize_prompt.txt"
+        }
+      },
+      {
+        "name": "transmitter",
+        "type": "sink",
+        "mark": "result_transmitter",
+        "configuration": {
+          "destination_endpoint": "",
+          "results_dir": "./results",
+          "timeout": 10
+        }
+      }
+    ],
+    "links": [
+      { "from": "audio_src", "to": "chunker" },
+      { "from": "chunker", "to": "transcriber" },
+      { "from": "transcriber", "to": "deduplicator" },
+      { "from": "deduplicator", "to": "aggregator" },
+      { "from": "aggregator", "to": "summarizer" },
+      { "from": "summarizer", "to": "transmitter" }
+    ]
+  }
+}
