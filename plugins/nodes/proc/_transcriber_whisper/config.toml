@@ -1,0 +1,7 @@
+[arguments]
+model_name = "small.en"
+language = "en"
+device = "auto"
+compute_type = "int8"
+
+[meta]
