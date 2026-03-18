@@ -1,0 +1,41 @@
+# AI assistants – local overrides only
+.claude/**/*.local.*
+.cursor
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local configuration files
+*.local.*
+
+# Git worktrees
+.worktrees/
+
+# SSL certificates
+**/*.pem
+
+# IDE / Editor
+.idea
+.vscode
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+docs/plans/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+streamind.egg-info/
