@@ -1,0 +1,4 @@
+[arguments]
+endpoint = "http://127.0.0.1:11434"
+model_name = "qwen2.5:7b-instruct"
+prompt_template_file = "summarize_prompt.txt"
