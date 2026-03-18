@@ -1,0 +1,4 @@
+[arguments]
+destination_endpoint = ""
+results_dir = "./results"
+timeout = 10
