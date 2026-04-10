@@ -13,12 +13,14 @@ class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
         self._texts: list[str] = []
         self._window_id: int = 0
         self._window_start: float = 0.0
+        self._last_message: Message | None = None
 
     def configure(self): pass
     def warmup(self):
         self._texts = []
         self._window_id = 0
         self._window_start = 0.0
+        self._last_message = None
     def set_on_config(self, prop: str, value: typing.Any): pass
     def start(self): super().start()
 
@@ -39,13 +41,19 @@ class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
             "full_transcript": " ".join(self._texts),
             "trigger_time": wall_time,
         })
-        out = Message[ObjectPayload](creator=self.name, version=1, payload=payload)
+        out = Message[ObjectPayload](
+            creator=self.name,
+            version=self._last_message.version if self._last_message else 1,
+            payload=payload,
+            timers_from=self._last_message,
+        )
         self.transmit(out)
         self._texts = []
         self._window_id += 1
         self._window_start = window_end
 
     def update(self, message: Message[ObjectPayload]):
+        self._last_message = message
         novel_text = message.payload.get("novel_text", "")
         chunk_end = message.payload.get("chunk_end", 0.0)
 

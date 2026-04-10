@@ -1,4 +1,4 @@
 [arguments]
 endpoint = "http://127.0.0.1:11434"
-model_name = "qwen3:8b"
+model_name = "qwen3.5:9b-16k"
 prompt_template_file = "summarize_prompt.txt"

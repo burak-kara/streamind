@@ -1,0 +1,26 @@
+# Janus core configuration for STREAMIND local development.
+# Minimal setup: HTTP only, ICE advertises 127.0.0.1 so aiortc on the Mac host
+# can reach Janus via Docker's port mapping (10000-10050 UDP).
+
+general: {
+    configs_folder = "/opt/janus/etc/janus"
+    plugins_folder = "/opt/janus/lib/janus/plugins"
+    transports_folder = "/opt/janus/lib/janus/transports"
+    events_folder = "/opt/janus/lib/janus/events"
+    log_timestamps = true
+    log_colors = true
+    debug_level = 4
+    ignore_unreachable_extensions = true
+}
+
+media: {
+    rtp_port_range = "10000-10050"
+}
+
+nat: {
+    # Advertise the Mac host's loopback IP as the ICE candidate address.
+    # Docker exposes 10000-10050 UDP on 0.0.0.0 so 127.0.0.1 is reachable from
+    # aiortc running on the same machine.
+    nat_1_1 = "127.0.0.1"
+    ice_enforce_list = "eth0"
+}

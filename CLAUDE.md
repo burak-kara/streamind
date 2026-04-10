@@ -92,37 +92,47 @@ docs/                 # Challenge spec, TODO, plans
 
 ```bash
 # Install (requires uv + Python 3.12)
-uv sync
+uv sync --extra dev
 
-# Run tests (unit tests only — no Janus or Ollama required)
-uv run pytest tests/
+# Start Janus (first run builds the Docker image — takes ~15 min)
+docker compose up -d
 
-# Run pipeline (requires Janus gateway + Ollama on localhost:11434)
-uv run python -m juturna run pipelines/config.json
+# Run unit tests (no Janus or Ollama required)
+.venv/bin/pytest tests/
+
+# Run pipeline (requires Janus + Ollama)
+uv run python -m juturna launch --config pipelines/config.json
+
+# Inject test audio through Janus (in a separate terminal while pipeline is running)
+# Use the 10-min fixture so the 300s production window fires at least once
+uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 ```
 
 ## Runtime Requirements
 
-- **Janus** gateway must be running and streaming RTP audio to `127.0.0.1:8888`
-- **Ollama** must be running locally on `http://127.0.0.1:11434`
-- Pull the LLM model before first run: `ollama pull qwen3:8b`
+- **Janus** running via Docker: `docker compose up -d` (builds from source on first run)
+- **Ollama** running locally on `http://127.0.0.1:11434`
+- Pull the LLM model before first run: `ollama pull qwen3.5:9b-16k`
 - ASR model (`small.en` via faster-whisper) downloads automatically on first run
 - `pipelines/config.json` is the single production config — edit it directly
+- The `audio_rtp` node listens on `0.0.0.0:8888`; Janus forwards RTP to that port
 
 ## Current Model Choices
 
 | Stage         | Model                     | Notes                                      |
 |---------------|---------------------------|--------------------------------------------|
 | ASR           | `faster-whisper small.en` | `device: auto`, int8, English-only         |
-| Summarization | `qwen3:8b` via Ollama     | Structured JSON output, stop-drain logic   |
+| Summarization | `qwen3.5:9b-16k` via Ollama     | Structured JSON output, stop-drain logic   |
 
 ## Gotchas
 
 - `destination_endpoint` in `pipelines/config.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty)
 - Prompt template for summarizer lives at `plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt`
 - Results are written to `results/window_N.json` and optionally POSTed to `destination_endpoint`
-- `_transcriber_whispy` is an alternate ASR node in `proc/` (same faster-whisper backend, different implementation by Meetecho) — not currently wired into `config.json` but available as a drop-in swap
-- For local file-based testing (no Janus), swap `audio_rtp` source node with `audio_file` node temporarily in `config.json`
+- `transcriber_whispy_disabled/` in `proc/` is a Meetecho-provided ASR node that is **not a drop-in swap** — it outputs a word-level list, not plain text; `novel_extractor` would crash if it were wired in. Folder renamed to disable Juturna discovery (no `_` prefix).
+- `encoding_clock_chan: "opus/48000/2"` in `config.json` declares stereo Opus; verify against actual Janus stream before submission — change to `opus/48000/1` if Janus sends mono
+- Local and production use the same environment: both go through Janus → `audio_rtp`. Do not swap to `audio_file` for testing.
+- To inject a WAV file into the pipeline locally: `uv run python tools/send_audio.py <file.wav>`
 
 ## Skills
 
@@ -133,3 +143,12 @@ uv run python -m juturna run pipelines/config.json
 | `/tune-prompt` | Test the summarization prompt against a sample transcript via Ollama |
 | `/swap-model` | Switch ASR or LLM model in `config.json` and verify availability |
 | `/add-node` | Scaffold a new Juturna node with correct structure |
+
+## Constraints and Disallowed Approaches
+
+- **Do not introduce workarounds**: The challenge is designed to test real-time processing. Avoid any approaches that would circumvent the latency requirement, such as pre-processing the entire audio or using non-streaming models.
+- **All processing must be done in real-time**: The system should process audio as it is received, without waiting for the entire audio to be available.
+- **Do not introduce environment-specific dependencies**: The solution should be portable and not rely on specific hardware or software configurations that are not commonly available.
+- **Do not introduce environemnts**: No Local or Production environments — the same code and config should run in both contexts without modification. The pipeline must be designed to handle real-time audio input in both local testing and production deployment seamlessly.
+- **Do not write local file paths**: All file paths should be relative and not hardcoded to specific local directories. The system should be designed to work in any environment without requiring changes to file paths.
+- Use ./tmp folder located in this project instead of /tmp for temporary files to avoid permission issues in some environments.

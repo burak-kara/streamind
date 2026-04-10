@@ -5,15 +5,18 @@ disable-model-invocation: true
 ---
 
 Ask the user:
+
 1. Which stage to update: **ASR** (transcriber_whisper) or **LLM** (summarizer_llm)?
 2. Which model name to use?
 
 **ASR model options** (faster-whisper): `tiny.en`, `base.en`, `small.en`, `medium.en`
+
 - `tiny.en` = fastest, lowest quality (~32x realtime on CPU)
 - `base.en` = good balance (~16x realtime on CPU)
 - `small.en` = better quality, ~3–4x slower than tiny on CPU
 
-**LLM model options** (Ollama): `qwen3:4b`, `qwen3:8b`, `llama3.2:3b`, `llama3.2:1b`
+**LLM model options** (Ollama): `qwen3:4b`, `qwen3.5:9b-16k`, `llama3.2:3b`, `llama3.2:1b`
+
 - Smaller = faster latency, lower quality
 - For this challenge, latency matters: prefer smaller models unless quality is suffering
 
@@ -77,6 +80,7 @@ else:
 ```
 
 If the model is not found, run:
+
 ```bash
 ollama pull NEW_MODEL_HERE
 ```
@@ -84,6 +88,7 @@ ollama pull NEW_MODEL_HERE
 ## After any swap
 
 Print a summary:
+
 ```
 Model swapped:
   Stage: [ASR|LLM]

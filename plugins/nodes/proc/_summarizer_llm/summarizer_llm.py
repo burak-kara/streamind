@@ -28,7 +28,7 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
     """Summarizes transcript windows using a local LLM via Ollama."""
 
     def __init__(self, endpoint: str = "http://127.0.0.1:11434",
-                 model_name: str = "qwen3:8b",
+                 model_name: str = "qwen3.5:9b-16k",
                  prompt_template_file: str = "summarize_prompt.txt",
                  **kwargs):
         super().__init__(**kwargs)
@@ -94,6 +94,7 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
                 model=self._model_name,
                 messages=[{"role": "user", "content": prompt}],
                 format=_OUTPUT_SCHEMA,
+                options={"num_predict": 256, "num_ctx": 4096},
             )
             content = response["message"]["content"]
             parsed = json.loads(content)

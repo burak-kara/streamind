@@ -36,10 +36,10 @@ EOF
 Use this hardcoded sample transcript for testing (representative of meeting content):
 
 ```
-SAMPLE_TRANSCRIPT="The team discussed migrating the authentication service to OAuth 2.0. 
-John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients. 
-Sarah confirmed that the API gateway already supports PKCE flow. 
-The group agreed to start with a staged rollout affecting 10 percent of users next Tuesday. 
+SAMPLE_TRANSCRIPT="The team discussed migrating the authentication service to OAuth 2.0.
+John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients.
+Sarah confirmed that the API gateway already supports PKCE flow.
+The group agreed to start with a staged rollout affecting 10 percent of users next Tuesday.
 Action item: John to update the migration runbook by end of week."
 ```
 
@@ -56,10 +56,10 @@ uv run python - <<'PYEOF'
 import json, urllib.request, os
 
 prompt_tmpl = open("plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt").read()
-sample = """The team discussed migrating the authentication service to OAuth 2.0. 
-John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients. 
-Sarah confirmed that the API gateway already supports PKCE flow. 
-The group agreed to start with a staged rollout affecting 10 percent of users next Tuesday. 
+sample = """The team discussed migrating the authentication service to OAuth 2.0.
+John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients.
+Sarah confirmed that the API gateway already supports PKCE flow.
+The group agreed to start with a staged rollout affecting 10 percent of users next Tuesday.
 Action item: John to update the migration runbook by end of week."""
 
 prompt = prompt_tmpl.replace("{transcript}", sample)
@@ -68,7 +68,7 @@ prompt = prompt_tmpl.replace("{transcript}", sample)
 cfg = json.load(open("pipelines/config.json"))
 model = next(
     (n["configuration"]["model_name"] for n in cfg["pipeline"]["nodes"] if n["mark"] == "summarizer_llm"),
-    "qwen3:8b"
+    "qwen3.5:9b-16k"
 )
 
 print(f"Model: {model}")

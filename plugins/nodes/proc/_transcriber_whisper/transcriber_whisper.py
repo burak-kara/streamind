@@ -65,7 +65,7 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
             language=self._language,
             task="transcribe",
             condition_on_previous_text=False,
-            vad_filter=False,
+            vad_filter=True,
         )
 
         transcript = " ".join(seg.text.strip() for seg in segments)

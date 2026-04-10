@@ -2,6 +2,7 @@
 .claude/**/*.local.*
 .cursor
 .remember/
+tmp/
 
 # Logs
 *.log
@@ -40,3 +41,5 @@ build/
 .venv/
 .pytest_cache/
 streamind.egg-info/
+
+**/*_raw.wav

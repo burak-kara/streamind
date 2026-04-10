@@ -1,0 +1,20 @@
+# VideoRoom plugin configuration for STREAMIND.
+# Room 1234 is pre-created; send_audio.py joins it as publisher and triggers
+# rtp_forward to deliver audio to the pipeline's audio_rtp node.
+
+general: {
+    admin_key = ""
+    # Allow any publisher to call rtp_forward without a separate admin key.
+    lock_rtp_forward = false
+}
+
+# Pre-created room — send_audio.py does not need to call create.
+room-1234: {
+    description = "STREAMIND Audio Room"
+    is_private = false
+    publishers = 2
+    audiocodec = "opus"
+    bitrate = 128000
+    record = false
+    notify_joining = false
+}

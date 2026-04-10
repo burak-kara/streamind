@@ -7,15 +7,17 @@ disable-model-invocation: true
 Run the following checks before launching, stopping on first failure with a clear message:
 
 1. Verify Ollama is reachable:
+
    ```
    curl -s http://127.0.0.1:11434/api/tags
    ```
+
    If it fails, print: "Ollama is not running. Start it with: ollama serve"
 
-2. Confirm `qwen3:8b` is in the model list. If not, print:
-   "Model not found. Pull it with: ollama pull qwen3:8b"
+2. Confirm `qwen3.5:9b-16k` is in the model list. If not, print:
+   "Model not found. Pull it with: ollama pull qwen3.5:9b-16k"
 
 3. Launch the pipeline:
    ```
-   uv run python -m juturna run pipelines/config.json
+   uv run python -m juturna launch --config pipelines/config.json
    ```

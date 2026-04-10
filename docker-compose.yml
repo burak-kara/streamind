@@ -1,0 +1,10 @@
+services:
+  janus:
+    build: ./docker/janus
+    ports:
+      - "8088:8088"
+      - "10000-10050:10000-10050/udp"
+    # host.docker.internal:host-gateway is required on Linux;
+    # Docker Desktop on Mac/Windows resolves it automatically.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,6 +1,8 @@
 {
   "version": "0.1.0",
-  "plugins": ["./plugins"],
+  "plugins": [
+    "./plugins"
+  ],
   "pipeline": {
     "name": "streamind",
     "id": "streamind_001",
@@ -11,11 +13,11 @@
         "type": "source",
         "mark": "audio_rtp",
         "configuration": {
-          "rec_host": "127.0.0.1",
+          "rec_host": "0.0.0.0",
           "rec_port": 8888,
           "audio_rate": 16000,
-          "block_size": 1,
-          "channels": 1,
+          "block_size": 3,
+          "channels": 2,
           "process_log_level": "quiet",
           "payload_type": 97,
           "encoding_clock_chan": "opus/48000/2"
@@ -56,7 +58,7 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 300.0
+          "window_duration": 30.0
         }
       },
       {
@@ -65,7 +67,7 @@
         "mark": "summarizer_llm",
         "configuration": {
           "endpoint": "http://127.0.0.1:11434",
-          "model_name": "qwen3:8b",
+          "model_name": "qwen3.5:9b-16k",
           "prompt_template_file": "summarize_prompt.txt"
         }
       },
@@ -81,12 +83,30 @@
       }
     ],
     "links": [
-      { "from": "audio_src", "to": "chunker" },
-      { "from": "chunker", "to": "transcriber" },
-      { "from": "transcriber", "to": "deduplicator" },
-      { "from": "deduplicator", "to": "aggregator" },
-      { "from": "aggregator", "to": "summarizer" },
-      { "from": "summarizer", "to": "transmitter" }
+      {
+        "from": "audio_src",
+        "to": "chunker"
+      },
+      {
+        "from": "chunker",
+        "to": "transcriber"
+      },
+      {
+        "from": "transcriber",
+        "to": "deduplicator"
+      },
+      {
+        "from": "deduplicator",
+        "to": "aggregator"
+      },
+      {
+        "from": "aggregator",
+        "to": "summarizer"
+      },
+      {
+        "from": "summarizer",
+        "to": "transmitter"
+      }
     ]
   }
 }
