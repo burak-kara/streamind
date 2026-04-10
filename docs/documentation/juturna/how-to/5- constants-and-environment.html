@@ -1,0 +1,168 @@
+<section id="constants-and-environment">
+<h1>Constants and environment<a class="headerlink" href="#constants-and-environment" title="Link to this heading">¶</a></h1>
+<p>Juturna uses a set of global constants to manage internal configurations, such
+as plugin locations, hub repositories, and threading timeouts. While these
+constants have sensible defaults, you can override them using environment
+variables to suit your deployment needs.</p>
+<p>This guide explains how to modify these configurations and ensures your
+environment variables are typed correctly.</p>
+<section id="using-constants">
+<h2>Using constants<a class="headerlink" href="#using-constants" title="Link to this heading">¶</a></h2>
+<p>You can access Juturna constants using the <cite>meta</cite> module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">juturna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">jt</span><span class="o">.</span><span class="n">meta</span><span class="p">)</span>
+<span class="go">['JUTURNA_BASE_REPO',</span>
+<span class="go"> 'JUTURNA_CACHE_DIR',</span>
+<span class="go"> 'JUTURNA_HUB_TOKEN',</span>
+<span class="go"> 'JUTURNA_HUB_URL',</span>
+<span class="go"> 'JUTURNA_LOCAL_PLUGIN_DIR',</span>
+<span class="go"> 'JUTURNA_MAX_QUEUE_SIZE',</span>
+<span class="go"> 'JUTURNA_THREAD_JOIN_TIMEOUT',</span>
+<span class="go"> ...</span>
+<span class="go">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jt</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">JUTURNA_BASE_REPO</span>
+<span class="go">https://github.com/meetecho/juturna</span>
+</pre></div>
+</div>
+</section>
+<section id="overriding-defaults">
+<h2>Overriding defaults<a class="headerlink" href="#overriding-defaults" title="Link to this heading">¶</a></h2>
+<p>To change a configuration, export the variable in your shell before running
+Juturna.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># changing the cache directory and increasing the queue size</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">JUTURNA_CACHE_DIR</span><span class="o">=</span><span class="s2">"/tmp/juturna_cache"</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">JUTURNA_MAX_QUEUE_SIZE</span><span class="o">=</span><span class="s2">"2000"</span>
+
+<span class="c1"># launch your pipeline</span>
+python<span class="w"> </span>-m<span class="w"> </span>juturna<span class="w"> </span>launch<span class="w"> </span>--config<span class="w"> </span>my_pipeline.json
+</pre></div>
+</div>
+<div class="warning admonition">
+<p class="admonition-title">Type validation (1.0.1-beta)</p>
+<p>Juturna enforces strict type checking on environment variables. The system
+attempts to cast your environment variable to the type of the default
+value.</p>
+<p>If you provide a value that cannot be converted (for example, providing a
+string “fast” for the integer <code class="docutils literal notranslate"><span class="pre">JUTURNA_THREAD_JOIN_TIMEOUT</span></code>), the system
+will log an error and raise a <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code>.</p>
+</div>
+</section>
+<section id="handling-boolean-variables">
+<h2>Handling boolean variables<a class="headerlink" href="#handling-boolean-variables" title="Link to this heading">¶</a></h2>
+<p>When setting configuration flags that are boolean, Juturna parses specific
+string values to determine truthiness.</p>
+<p>To set a boolean variable to <strong>True</strong>, use one of the following case-insensitive
+values: <code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code>, and <code class="docutils literal notranslate"><span class="pre">yes</span></code>. Any other value will be interpreted as
+<strong>False</strong> (unless it fails type conversion).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># enabling a hypothetical boolean flag</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">JUTURNA_BOOL_FLAG</span><span class="o">=</span><span class="s2">"yes"</span>
+</pre></div>
+</div>
+</section>
+<section id="available-configuration-variables">
+<h2>Available configuration variables<a class="headerlink" href="#available-configuration-variables" title="Link to this heading">¶</a></h2>
+<p>If a variable is not set, Juturna falls back to the default values defined in
+<code class="docutils literal notranslate"><span class="pre">juturna.meta._constants</span></code>.</p>
+<p>You can customize the following variables in your environment.</p>
+<p><strong>Repository and Hub Settings</strong></p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_BASE_REPO</span></code>: The base URL for the Juturna repository.</dt><dd><ul>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">https://github.com/meetecho/juturna</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_HUB_URL</span></code>: The API URL used to query and download plugins.</dt><dd><ul>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">https://api.github.com/repos/meetecho/juturna/contents/plugins/</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_HUB_TOKEN</span></code>: An authentication token for the Hub.</dt><dd><ul>
+<li><p><strong>Default</strong>: Empty string</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>File System Paths</strong></p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_CACHE_DIR</span></code>: The directory where downloaded plugins are cached.</dt><dd><ul>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">~/.cache/juturna</span></code> (user’s home directory)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_LOCAL_PLUGIN_DIR</span></code>: The directory used for local plugin discovery.</dt><dd><ul>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">./plugins</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>Performance Tuning</strong></p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_MAX_QUEUE_SIZE</span></code>: The maximum size of the internal queues used by nodes.</dt><dd><ul>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">999</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">JUTURNA_THREAD_JOIN_TIMEOUT</span></code>: The time (in seconds) to wait for threads to join during a stop procedure.</dt><dd><ul>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="error admonition">
+<p class="admonition-title">Hub-related constants and hub features are not ready for use (1.0.1-beta)</p>
+<p>Hub features are still in development, so you should expect breaking changes
+and bugs. If you find any of the latter, please report them on GitHub. We
+are working hard to make the hub a reality, and we are looking for your
+feedback to make it better.</p>
+</div>
+</section>
+<section id="working-with-env-variables">
+<h2>Working with env variables<a class="headerlink" href="#working-with-env-variables" title="Link to this heading">¶</a></h2>
+<p>Whenever a node should be configured with environment variables (imagine a node
+that works with a secret key set on the environment within a container), juturna
+is capable of filling in those configuration entries by picking up their values
+from the environment variables.</p>
+<p>Take for instance a sink node that requires in its configuration a secret token:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"destination"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sink"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"authenticated_sink"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"endpoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"127.0.0.1"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"secret_token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"plain_token_is_dangerous!"</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To avoid this, we might want to use an environment variable called
+<code class="docutils literal notranslate"><span class="pre">AUTH_TOKEN</span></code>, provided from somewhere else. In this case, it is enough to
+replace the item in the configuration with:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"destination"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sink"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"authenticated_sink"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"endpoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"127.0.0.1"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"secret_token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"$JT_ENV_AUTH_TOKEN"</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In short: environment variables used in configuration should be prefixed with
+<code class="docutils literal notranslate"><span class="pre">$JT_ENV</span></code>.</p>
+</section>
+</section>

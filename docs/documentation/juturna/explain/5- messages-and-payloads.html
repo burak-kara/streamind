@@ -1,0 +1,128 @@
+<section id="messages-and-payloads">
+<span id="explain-messages"></span><h1>Messages and payloads<a class="headerlink" href="#messages-and-payloads" title="Link to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">Message</span></code> class is Juturna’s fundamental unit of data transfer. Messages
+are designed to carry data payloads decorated with versioning, timing, and
+arbitrary metadata. Every byte that flows through a pipeline flows inside a
+message.</p>
+<p>Considering how messages are designed, they can be seen as a two-part entity: a
+message acts as an immutable envelope, carrying data and its corresponding
+metadata, while a payload contains the actual domain data to be transferred.</p>
+<p>This design favours:</p>
+<ul class="simple">
+<li><p><strong>type safety</strong>, as ideally nodes always have both knowledge of the type of
+data they will receive as input, and instruction for how to generate data to
+transmit as output;</p></li>
+<li><p><strong>separation of concerns</strong>, since payload processing is decoupled from
+metadata tracking;</p></li>
+<li><p><strong>observability</strong>, as every message carries its own timing and provenance
+data;</p></li>
+<li><p><strong>isolation</strong> as a direct consequence of the nature of messages (at any given
+time, a message can be evaulated without extra information needed on its
+context).</p></li>
+</ul>
+<a class="reference internal image-reference" href="../images/message.svg"><img alt="message" class="align-center" src="../images/message.svg" style="width: 60%;">
+</a>
+<section id="messages">
+<h2>Messages<a class="headerlink" href="#messages" title="Link to this heading">¶</a></h2>
+<p>As said, a message is just a simple data container. It carries a payload, plus
+some extra fields that can be useful to determine who generated it, when, and in
+which order comared to other messages.</p>
+<p>Other than its basic properties, such as <code class="docutils literal notranslate"><span class="pre">creator</span></code>, <code class="docutils literal notranslate"><span class="pre">version</span></code>, <code class="docutils literal notranslate"><span class="pre">payload</span></code>,
+<code class="docutils literal notranslate"><span class="pre">meta</span></code> and <code class="docutils literal notranslate"><span class="pre">timers</span></code>, a message offers a few methods that can help with
+managing its content and representation:</p>
+<p><code class="docutils literal notranslate"><span class="pre">message.to_dict()</span></code> and <code class="docutils literal notranslate"><span class="pre">message.to_json(encoder)</span></code> offer serialisation
+options for when a message needs to be converted, stored, or transmitted to a
+destination that requires serialised content (these are also used by nodes
+through their <code class="docutils literal notranslate"><span class="pre">dump_json()</span></code> method).</p>
+<p><code class="docutils literal notranslate"><span class="pre">message.timeit(t_name)</span></code> is a context manager supposed to ease the collection
+of elapsed time during processing. It can be used to isolate a specific
+operation or group of operations, and store their execution time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">message</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="s1">'inference_time'</span><span class="p">):</span>
+    <span class="n">annotated_image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+
+<span class="n">message</span><span class="o">.</span><span class="n">timers</span>
+<span class="c1"># {'inference_time': &lt;EXEC_TIME&gt;}</span>
+</pre></div>
+</div>
+</section>
+<section id="payloads">
+<h2>Payloads<a class="headerlink" href="#payloads" title="Link to this heading">¶</a></h2>
+<p>All payload types inherit from a <code class="docutils literal notranslate"><span class="pre">BasePayload</span></code>, which provides a <code class="docutils literal notranslate"><span class="pre">clone()</span></code>
+method for deep copying. This can be useful when the same message must be sent
+to multiple destinations without shared state.</p>
+<p>Juturna offers a number of built-in media and structural payloads.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AudioPayload</span></code> carries <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> audio waveforms with metadata
+(sampling rate, channels, start/end timestamps).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ImagePayload</span></code> wraps multidimensional <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> arrays containing
+images, attaching metadata such as width, height, dept, pixel format, and
+timestamp.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VideoPayload</span></code> holds to a list of <code class="docutils literal notranslate"><span class="pre">ImagePayload</span></code>, with metadata on frames
+per second and duration (start and end timestamps).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BytesPayload</span></code> only contains an array of bytes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Batch</span></code> contains a list of messages. A batch is usually produced by a node
+buffer whenever its synchroniser marked multiple messages for processing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ObjectPayload</span></code> is a subclass of <code class="docutils literal notranslate"><span class="pre">dict</span></code> design to hold arbitrary key-value
+pairs.</p></li>
+</ul>
+</section>
+<section id="immutability">
+<h2>Immutability<a class="headerlink" href="#immutability" title="Link to this heading">¶</a></h2>
+<p>The key aspect of both messages and payloads is <strong>immutability</strong>. In short:</p>
+<ul class="simple">
+<li><p>received messages within a node are immutable;</p></li>
+<li><p>playloads are always immutable, so they cannot be modified once created;</p></li>
+<li><p>messages can be <cite>drafted</cite>, so they can be modified before being finalised for
+transmission.</p></li>
+</ul>
+<p>Aside from its payload, a freshly created message can be modified, just like any
+other object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">juturna.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.payloads</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioPayload</span>
+
+
+<span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span>
+  <span class="n">creator</span><span class="o">=</span><span class="s1">'creator_name'</span><span class="p">,</span>
+  <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+  <span class="n">payload</span><span class="o">=</span><span class="n">AudioPayload</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># this is allowed</span>
+<span class="n">message</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># this will throw an error!</span>
+<span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+<span class="n">File</span> <span class="s2">"&lt;stdin&gt;"</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="n">File</span> <span class="s2">"&lt;string&gt;"</span><span class="p">,</span> <span class="n">line</span> <span class="mi">4</span><span class="p">,</span> <span class="ow">in</span> <span class="fm">__setattr__</span>
+<span class="n">dataclasses</span><span class="o">.</span><span class="n">FrozenInstanceError</span><span class="p">:</span> <span class="n">cannot</span> <span class="n">assign</span> <span class="n">to</span> <span class="n">field</span> <span class="s1">'channels'</span>
+</pre></div>
+</div>
+<p>There are situations where it might be conveniente to iteratively create a
+payload, without the need to store its attribute values somewhere and assign
+them only once. In this case, a message can be created with a payload draft. A
+payload draft accepts the type of payload it will eventually be turned into as
+argument. Other than that, it behaves exactly like a normal payload.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">juturna.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.payloads</span><span class="w"> </span><span class="kn">import</span> <span class="n">Draft</span><span class="p">,</span> <span class="n">AudioPayload</span>
+
+
+<span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span>
+  <span class="n">creator</span><span class="o">=</span><span class="s1">'creator_name'</span><span class="p">,</span>
+  <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+  <span class="n">payload</span><span class="o">=</span><span class="n">Draft</span><span class="p">(</span><span class="n">AudioPayload</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># this is allowed now</span>
+<span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>Messages can be explicitly made immutable by calling <code class="docutils literal notranslate"><span class="pre">message.freeze()</span></code>.
+However, nodes take care of that internally before sending out messages.</p>
+<p>Message and payload immutability is a powerful feature: it allows for zero-copy
+transmission of every bit of data flowing through a pipeline, ensuring integrity
+and consistency (multiple nodes receiving the same message can be sure the data
+within that message were not modified by any other node).</p>
+</section>
+</section>

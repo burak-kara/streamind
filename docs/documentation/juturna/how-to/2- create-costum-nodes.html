@@ -1,0 +1,392 @@
+<section id="create-custom-nodes">
+<h1>Create custom nodes<a class="headerlink" href="#create-custom-nodes" title="Link to this heading">¶</a></h1>
+<p>This guide contains the basic instructions you can follow to create custom nodes
+to use within Juturna pipelines. Other than an overview of how to assemble all
+the pieces to design useful custom components, this document will offer the
+required steps to create a node called <code class="docutils literal notranslate"><span class="pre">RedCatDetector</span></code>, a processing node in
+charge of using a custom YOLO model to detect the possible presence of red cats
+in any input image.</p>
+<section id="setup-the-environment" class="">
+<h2>Setup the environment<a class="headerlink" href="#setup-the-environment" title="Link to this heading">¶</a></h2>
+<p>Make sure you are working on a virtual environment, and you have Juturna
+installed alongside all the extra dependencies you need for your node.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">user:~/prj$ </span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="gp">user:~/prj$ </span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>pip<span class="w"> </span>install<span class="w"> </span>juturna
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>mkdir<span class="w"> </span>plugins
+</pre></div>
+</div>
+<p>With the last command, we created the <code class="docutils literal notranslate"><span class="pre">plugins</span></code> folder where we are going to
+store our custom node.</p>
+</section>
+<section id="create-the-node-skeleton" class="">
+<h2>Create the node skeleton<a class="headerlink" href="#create-the-node-skeleton" title="Link to this heading">¶</a></h2>
+<p>Every node has the same base content structure. A node called <code class="docutils literal notranslate"><span class="pre">&lt;NODE_NAME&gt;</span></code> of
+type <code class="docutils literal notranslate"><span class="pre">&lt;NODE_TYPE&gt;</span></code> will be stored as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>./plugins
+  └── nodes
+      └── &lt;NODE_TYPE&gt;
+          └── _&lt;NODE_NAME&gt;
+              ├── &lt;NODE_NAME&gt;.py
+              ├── config.toml
+              ├── requirements.txt
+              └── readme.md
+</pre></div>
+</div>
+<p>Since <code class="docutils literal notranslate"><span class="pre">RedCatDetector</span></code> is a proc node, we can go ahead and create all the
+required files under <code class="docutils literal notranslate"><span class="pre">./plugins/nodes/proc/_red_cat_detector/</span></code>. Alternatively,
+we can let Juturna handle that for us with the CLI <code class="docutils literal notranslate"><span class="pre">stub</span></code> command:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>python<span class="w"> </span>-m<span class="w"> </span>juturna<span class="w"> </span>stub<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-n<span class="w"> </span>red_cat_detector<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-t<span class="w"> </span>proc<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-d<span class="w"> </span>./plugins/nodes<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-a<span class="w"> </span><span class="s2">"Cat Watcher"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-e<span class="w"> </span>watch@cat.com
+</pre></div>
+</div>
+<p>This will generate a node skeleton.</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+red_cat_detector.py</label><div class="sd-tab-content docutils">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
+<span class="sd">CatDetector</span>
+
+<span class="sd">@author: Cat Watcher</span>
+<span class="sd">@email: watch@cat.com</span>
+<span class="sd">@created_at: 2025-11-10 12:56</span>
+
+<span class="sd">Automatically generated with jt.utils.node_utils.node_stub</span>
+<span class="sd">"""</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+
+<span class="c1"># BasePayload type is intended to be a placehoder for the input-output types</span>
+<span class="c1"># you intend to use in the node implementation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.payloads._payloads</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePayload</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RedCatDetector</span><span class="p">(</span><span class="n">Node</span><span class="p">[</span><span class="n">BasePayload</span><span class="p">,</span> <span class="n">BasePayload</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""Node implementation class"""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kwargs : dict</span>
+<span class="sd">            Supernode arguments.</span>
+
+<span class="sd">        """</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Configure the node"""</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">warmup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Warmup the node"""</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_on_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Hot-swap node properties"""</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Start the node"""</span>
+        <span class="c1"># after custom start code, invoke base node start</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Stop the node"""</span>
+        <span class="c1"># after custom stop code, invoke base node stop</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Destroy the node"""</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">[</span><span class="n">BasePayload</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">"""Receive data from upstream, transmit data downstream"""</span>
+        <span class="o">...</span>
+
+    <span class="c1"># uncomment next_batch to design custom synchronisation policy</span>
+    <span class="c1"># def next_batch(sources: dict) -&gt; dict:</span>
+    <span class="c1">#     ...</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+config.toml</label><div class="sd-tab-content docutils">
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[arguments]</span>
+
+<span class="k">[meta]</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+README.md</label><div class="sd-tab-content docutils">
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gh"># cat_detector</span>
+
+<span class="gu">## Node type: proc</span>
+
+<span class="gu">## Node class name: CatDetector</span>
+
+<span class="gu">## Node name: cat_detector</span>
+</pre></div>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+requirements.txt</label><div class="sd-tab-content docutils">
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>// this file is empty
+</pre></div>
+</div>
+</div>
+</div>
+<p>If you decide to create your node files manually:</p>
+<ul class="simple">
+<li><p>make sure the node folder name starts with an underscore (<code class="docutils literal notranslate"><span class="pre">_</span></code>) (in our
+example, the node code is in the folder
+<code class="docutils literal notranslate"><span class="pre">./plugins/nodes/proc/_red_cat_detector</span></code>)</p></li>
+<li><p>make sure the node class file has the same name of its parent folder, just
+without the underscore (in our example, the node class file is
+<code class="docutils literal notranslate"><span class="pre">./plugins/nodes/proc/_red_cat_detector/red_cat_detector.py</span></code>)</p></li>
+<li><p>keep in mind that a <code class="docutils literal notranslate"><span class="pre">README.md</span></code> file is not required, but <strong>higly
+recommended!</strong></p></li>
+</ul>
+</section>
+<section id="add-dependencies" class="">
+<h2>Add dependencies<a class="headerlink" href="#add-dependencies" title="Link to this heading">¶</a></h2>
+<p>We know our node will use a custom <a class="reference external" href="https://docs.ultralytics.com/" rel="noreferrer" target="_blank">YOLO <svg version="1.1" width="1.0em" height="1.0em" viewBox="0 0 16 16" aria-hidden="true" style="display: inline-block; vertical-align: middle; fill: currentColor;"><path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"></path></svg></a> model
+to detect the presence of cats, so when executing the pipeline we need to
+make sure all the YOLO dependencies are satisfied. We then install the
+<code class="docutils literal notranslate"><span class="pre">ultralytics</span></code> package, and include it in the requirement file. We also install
+<code class="docutils literal notranslate"><span class="pre">opencv-python</span></code> to get a better support when checking alarmingly high levels
+of orangeness in our detected entities.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>user:~/prj$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"ultralytics==8.3.79\n"</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>plugins/nodes/proc/_red_cat_detector/requirements.txt
+<span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>user:~/prj$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"opencv-python==4.13.0.92"</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>plugins/nodes/proc/_red_cat_detector/requirements.txt
+<span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>user:~/prj$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>plugins/nodes/proc/_red_cat_detector/requirements.txt
+</pre></div>
+</div>
+<div class="attention admonition">
+<p class="admonition-title">Dependencies are not automatically managed (1.0.1-beta)</p>
+<p>Juturna does not manage Python dependencies automatically, so always
+remember to gather the dependencies of any plugin nodes you want to use, and
+install them. This process may also lead to conflicts; if that happens, you
+can try to solve them manually, or in the worst case, edit the conflicting
+nodes or create new ones!</p>
+</div>
+</section>
+<section id="add-configuration-items" class="">
+<h2>Add configuration items<a class="headerlink" href="#add-configuration-items" title="Link to this heading">¶</a></h2>
+<p>For our cat detector, we want to specify a few arguments that will be available
+for the node implementation. In juturna, this is done by declaring all the
+essential arguments the node accepts, alongside their default values, in the
+<code class="docutils literal notranslate"><span class="pre">config.toml</span></code> file. In our case, this is
+<code class="docutils literal notranslate"><span class="pre">./plugins/nodes/proc/_red_cat_detector/config.toml</span></code>.</p>
+<p>We can imagine the node needs to know:</p>
+<ul class="simple">
+<li><p>the inference model to use,</p></li>
+<li><p>the device to run inference on (whether on CPU or GPU),</p></li>
+<li><p>inference arguments such as confidence threshold and precision.</p></li>
+</ul>
+<p>We pack all this in the node configuration file, where we can define the node
+arguments and their corresponding default values.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[arguments]</span>
+<span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"yolo11x.pt"</span>
+<span class="n">device</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"cuda"</span>
+<span class="n">cat_min_confidence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.4</span>
+<span class="n">orangeness_threshold</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.6</span>
+</pre></div>
+</div>
+</section>
+<section id="implement-the-node" class="active">
+<h2>Implement the node<a class="headerlink" href="#implement-the-node" title="Link to this heading">¶</a></h2>
+<p>The items specified in the node config file are also available to the node
+<code class="docutils literal notranslate"><span class="pre">__init__</span></code> method. We start implementing the node class:</p>
+<ul class="simple">
+<li><p>we import the node dependencies (in this case, <code class="docutils literal notranslate"><span class="pre">ultralytics</span></code>, <code class="docutils literal notranslate"><span class="pre">cv2</span></code> and
+<code class="docutils literal notranslate"><span class="pre">numpy</span></code>),</p></li>
+<li><p>we modify the constructor signature to include the node arguments,</p></li>
+<li><p>we change the input and output types for the node (we receive images to
+segment as input, and we produce annotated images as output)</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ultralytics</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.payloads</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImagePayload</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RedCatDetector</span><span class="p">(</span><span class="n">Node</span><span class="p">[</span><span class="n">ImagePayload</span><span class="p">,</span> <span class="n">ImagePayload</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                 <span class="n">cat_min_confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">orangeness_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># this automatically instantiates the base node</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cat_min_confidence</span> <span class="o">=</span> <span class="n">cat_min_confidence</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orangeness_threshold</span> <span class="o">=</span> <span class="n">orangeness_threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_class</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Our node doesn’t need much else. It only instantiates a YOLO model, and that can
+be done in the <code class="docutils literal notranslate"><span class="pre">warmup</span></code> method. Similarly, we isolate the key corresponding to
+the class <code class="docutils literal notranslate"><span class="pre">cat</span></code> among all the possible targets of the YOLO model (we are
+only interested in detecting cats), and store that in a list so that we can
+later pass it to the model directly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">warmup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">YOLO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_class</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s1">'cat'</span><span class="p">]</span>
+
+    <span class="c1"># we can use the built-in logger</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'model instantiated and ready'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The processing logic of the node is pretty simple, and can be fully contained in
+the <code class="docutils literal notranslate"><span class="pre">update</span></code> method. What we want to do is:</p>
+<ul class="simple">
+<li><p>receive an image and run it through our model;</p></li>
+<li><p>check the YOLO results for the presence of cats;</p></li>
+<li><p>isolate orange cats among all other cats;</p></li>
+<li><p>transmit an alert whenever one of those little devils is found.</p></li>
+</ul>
+<a class="reference internal image-reference" href="../images/tutorial_create_node_flow_diagram.svg"><img alt="node flow" class="align-center" src="../images/tutorial_create_node_flow_diagram.svg" style="width: 100%;">
+</a>
+<p>The <code class="docutils literal notranslate"><span class="pre">update</span></code> code might then look something like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">[</span><span class="n">ImagePayload</span><span class="p">]):</span>
+    <span class="c1"># the image to segment is contained in the payload of the received</span>
+    <span class="c1"># message</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+        <span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">image</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">conf</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cat_min_confidence</span><span class="p">,</span>
+        <span class="n">classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_target_class</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># no cat was found, we can return</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boxes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">orange_cats</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+    <span class="c1"># check all the crops for orangeness, we only want orange cats!</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">box</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boxes</span><span class="p">):</span>
+        <span class="n">bx</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">xyxy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">bx</span><span class="p">)</span>
+
+        <span class="n">crop</span> <span class="o">=</span> <span class="n">image_rgb</span><span class="p">[</span><span class="n">y1</span><span class="p">:</span><span class="n">y2</span><span class="p">,</span> <span class="n">x1</span><span class="p">:</span><span class="n">x2</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_cat_orange</span><span class="p">(</span><span class="n">crop</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">orange_cats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+    <span class="c1"># cats were found, but none of them were orange enough</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">orange_cats</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="c1"># we drop all the other boxes and only keep the ones containing orange</span>
+    <span class="c1"># cats</span>
+    <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boxes</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boxes</span><span class="p">[</span><span class="n">orange_cats</span><span class="p">]</span>
+
+    <span class="n">annotated</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+
+    <span class="n">to_send</span> <span class="o">=</span> <span class="n">Message</span><span class="p">[</span><span class="n">ImagePayload</span><span class="p">](</span>
+        <span class="n">creator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+        <span class="n">payload</span><span class="o">=</span><span class="n">ImagePayload</span><span class="p">(</span>
+            <span class="n">image</span><span class="o">=</span><span class="n">annotated</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">annotated</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">annotated</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">depth</span><span class="o">=</span><span class="n">annotated</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">pixel_format</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">pixel_format</span><span class="p">,</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">timestamp</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">timers_from</span><span class="o">=</span><span class="n">message</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">to_send</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'annotations'</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">transmit</span><span class="p">(</span><span class="n">to_send</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The utility function <code class="docutils literal notranslate"><span class="pre">_is_cat_orange</span></code> simply uses the HSV version of the
+cropped region to check the level of orangeness. This might fail under some
+specific circumstances (maybe you, just like me, have an orange wall), but for
+now we’ll make do.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">is_orange_cat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crop_rgb</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">crop_rgb</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
+        <span class="n">crop_rgb</span> <span class="o">=</span> <span class="p">(</span><span class="n">crop_rgb</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="n">hsv</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">crop_rgb</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2HSV</span><span class="p">)</span>
+
+    <span class="n">lower_orange</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
+    <span class="n">upper_orange</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">25</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">])</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">inRange</span><span class="p">(</span><span class="n">hsv</span><span class="p">,</span> <span class="n">lower_orange</span><span class="p">,</span> <span class="n">upper_orange</span><span class="p">)</span>
+
+    <span class="n">orange_pixel_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">total_pixels</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">orange_fraction</span> <span class="o">=</span> <span class="n">orange_pixel_count</span> <span class="o">/</span> <span class="n">total_pixels</span>
+
+    <span class="k">return</span> <span class="n">orange_fraction</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">orangeness_threshold</span><span class="p">,</span> <span class="n">orange_fraction</span>
+</pre></div>
+</div>
+<p>Once this is done, we are all set to start using our custom node. Assuming we
+have a YOLO model readily available, we can place it in a <code class="docutils literal notranslate"><span class="pre">models</span></code> folder in
+our project, then fill in the node configuration in a pipeline JSON file.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>user:~/prj$<span class="w"> </span>mkdir<span class="w"> </span>models
+<span class="o">(</span>.venv<span class="o">)</span><span class="w"> </span>user:~/prj$<span class="w"> </span>cp<span class="w"> </span>path/to/model/yolo11x.pt<span class="w"> </span>./models
+</pre></div>
+</div>
+<p>In the pipeline configuration file, the node will be represented by the
+following:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"detector"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"proc"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"red_cat_detector"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"./models/yolo11x.pt"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"device"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cuda"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"cat_min_confidence"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"orangeness_threshold"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.6</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="live-node-update">
+<h2>Live node update<a class="headerlink" href="#live-node-update" title="Link to this heading">¶</a></h2>
+<p>There might be cases where we need to tweak the node while the pipeline is
+running. For the red cat detector, this could mean changing the model used for
+inference, or making the inference itself stricter or looser. To do so, we can
+implement the <code class="docutils literal notranslate"><span class="pre">set_on_config</span></code> method. In here, we can specify what to do when
+a new value for a particular property needs to be set on the node.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">set_on_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s1">'cat_min_confidence'</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cat_min_confidence</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s1">'orangeness_threshold'</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orangeness_threshold</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s1">'model'</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">YOLO</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">'cannot update node with property </span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>

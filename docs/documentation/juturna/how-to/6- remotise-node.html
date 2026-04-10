@@ -1,0 +1,113 @@
+<section id="remotise-a-node">
+<h1>Remotise a node<a class="headerlink" href="#remotise-a-node" title="Link to this heading">¶</a></h1>
+<p>This guide demonstrates how to convert a local node into a remote node using the
+<code class="docutils literal notranslate"><span class="pre">Warp</span></code> node feature.</p>
+<section id="starting-point-local-pipeline" class="">
+<h2>Starting point: local pipeline<a class="headerlink" href="#starting-point-local-pipeline" title="Link to this heading">¶</a></h2>
+<p>Consider a simple pipe with three nodes:</p>
+<ul class="simple">
+<li><p>a <code class="docutils literal notranslate"><span class="pre">data_streamer</span></code> source that generates data</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">passthrough_identity</span></code> processing node that introduces a 2-second delay</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">notifier_websocket</span></code> sink that sends results to a WebSocket endpoint</p></li>
+</ul>
+<p>This pipeline can be implemented through a simple local configuration file.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.1.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"./plugins"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"pipeline"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test_mocked_pipeline"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1234567890"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"folder"</span><span class="p">:</span><span class="w"> </span><span class="s2">"./pipe"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0_stream"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"source"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data_streamer"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1_pass"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"proc"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"passthrough_identity"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"delay"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2_notifier"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sink"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"notifier_websocket"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"endpoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ws://127.0.0.1:8081"</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"links"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0_stream"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1_pass"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1_pass"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2_notifier"</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In our scenario, we want to deploy the <code class="docutils literal notranslate"><span class="pre">passthrough_identity</span></code> node remotely.
+Of course, it doesn’t make much sense to remotise this specific node, however,
+the same concepts apply for nodes that might require resources not available
+locally (GPU-dependent nodes are a great example).</p>
+<p>Remotising a node is just as simple as specifying the connection coordinates in
+its configuration, and adding a flag. The node configuration object then
+becomes:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1_pass"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"proc"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"passthrough_identity"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"delay"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"warped"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"warp_configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"grpc_host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"172.17.0.1"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"grpc_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">45000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"timeout"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">warp_configuration</span></code> object, we added:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">grpc_host</span></code>, the ip address of the remote service where the concrete node is
+hosted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grpc_port</span></code>, the port number where the remote service is listening</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code>, how long is the warp node supposed to wait for an answer from the
+remote service</p></li>
+</ul>
+</section>
+<section id="start-the-remote-service" class="">
+<h2>Start the remote service<a class="headerlink" href="#start-the-remote-service" title="Link to this heading">¶</a></h2>
+<p>Once everything is in place on the local side, we need to start the remotisation
+service on the remote side, that is, launch juturna so that the node to make
+remote is instantiated and made available behind a service. To do so, we need to
+install juturna on the remote side making sure to:</p>
+<ul class="simple">
+<li><p>include the <code class="docutils literal notranslate"><span class="pre">warp</span></code> group in the installation</p></li>
+<li><p>have the remotised node available in the <code class="docutils literal notranslate"><span class="pre">./plugin</span></code> folder</p></li>
+</ul>
+<p>Assuming you already copied the plugins in the remote location, we can proceed:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>remote:~/prj$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"juturna[warp]"</span>
+remote:~/prj$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>juturna<span class="w"> </span>remotize<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--node-name<span class="w"> </span><span class="s2">"1_pass"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--plugins-dir<span class="w"> </span><span class="s2">"./plugins"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--pipe-name<span class="w"> </span><span class="s2">"test_mocked_pipeline"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--node-mark<span class="w"> </span><span class="s2">"passthrough_identity"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--default-config<span class="w"> </span><span class="s1">'{"delay": 2}'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--port<span class="w"> </span><span class="m">45000</span>
+</pre></div>
+</div>
+</section>
+</section>

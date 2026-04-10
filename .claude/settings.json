@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run pytest tests/ -x -q 2>&1 | tail -20"
+          },
+          {
+            "type": "command",
+            "command": "python3 -c \"import json; json.load(open('pipelines/config.json')); print('config.json: OK')\" 2>&1"
+          }
+        ]
+      }
+    ]
+  }
+}

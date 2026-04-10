@@ -1,0 +1,160 @@
+<section id="create-pipelines">
+<h1>Create pipelines<a class="headerlink" href="#create-pipelines" title="Link to this heading">¶</a></h1>
+<p>This documentation page will give you an overview of how to create a pipeline in
+juturna. As the focus here is the pipeline itself, we will not be using custom
+nodes but rather built-in and plugin nodes already available in the juturna
+repository.</p>
+<section id="setup-the-environment">
+<h2>Setup the environment<a class="headerlink" href="#setup-the-environment" title="Link to this heading">¶</a></h2>
+<p>As usual, we prepare the environment including juturna and all the required
+dependencies. This time we will pull the library straight from GitHub, so that
+we can also fetch the plugin nodes.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">user:~/prj$ </span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="gp">user:~/prj$ </span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/meetecho/juturna
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"./juturna[pipebuilder]"</span>
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>cp<span class="w"> </span>-r<span class="w"> </span>./juturna/plugins<span class="w"> </span>./
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>rm<span class="w"> </span>-rf<span class="w"> </span>juturna
+</pre></div>
+</div>
+<p>Note that we installed juturna including the <code class="docutils literal notranslate"><span class="pre">pipebuilder</span></code> group, which
+installs the dependencies for a CLI tool we can use to automatically build
+configuration files.</p>
+</section>
+<section id="create-the-pipeline-configuration-file">
+<h2>Create the pipeline configuration file<a class="headerlink" href="#create-the-pipeline-configuration-file" title="Link to this heading">¶</a></h2>
+<p>A pipeline configuration file is a simple json file that can be fed to juturna.
+This file can be created manually, or as we said we can use the CLI utility
+shipped with the library. We can just go ahead and launch it:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>python<span class="w"> </span>-m<span class="w"> </span>juturna<span class="w"> </span>create<span class="w"> </span>-p<span class="w"> </span>./plugins/nodes
+</pre></div>
+</div>
+<p>The pipe builder looks like this:</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_1.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_1.png" style="width: 70%;">
+</a>
+<p>The tool offers autocompletion, and automatically scans the built-in and plugin
+nodes so that their types are included as commands. Regular commands are
+prepended with a dot.</p>
+<p>To create a new node, press TAB to see all the available commands. When a node
+type is selected, add a <code class="docutils literal notranslate"><span class="pre">/</span></code> to see all available nodes of that type.</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_2.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_2.png" style="width: 70%;">
+</a>
+<p>Selecting a node will bring up the configuration prompt. Except for fields such
+as the node name, all other fields will be defaulted to the values in the node
+toml file.</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_3.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_3.png" style="width: 70%;">
+</a>
+<p>When we are done adding all the nodes, we can look at the full list using
+<code class="docutils literal notranslate"><span class="pre">.nodes</span></code>.</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_4.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_4.png" style="width: 70%;">
+</a>
+<p>Links can be added with the <code class="docutils literal notranslate"><span class="pre">.link</span></code> command. It will prompt the full list of
+nodes, autocompleting node names to include in source and destination of every
+new link. TAB autocompletion is also available for the node names.</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_5.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_5.png" style="width: 70%;">
+</a>
+<p>Once we are done, we can look at the full list of links with <code class="docutils literal notranslate"><span class="pre">.links</span></code>.</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_6.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_6.png" style="width: 70%;">
+</a>
+<p>Lastly, the <code class="docutils literal notranslate"><span class="pre">.save</span></code> command will start the saving process, where we will be
+picking the pipe name, its id and running folder, and the name of the file we
+want to save its configuration to.</p>
+<a class="reference internal image-reference" href="../images/tutorial_create_new_pipe_7.png"><img alt="pipe builder" class="align-center" src="../images/tutorial_create_new_pipe_7.png" style="width: 40%;">
+</a>
+<p>In this example, we built a pipeline containing a audio RTP source node, a
+transcription node, and a HTTP transmitter that will send the results to a
+configured endpoint. The saved file (which we could have written manually) looks
+like this:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.1.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"./plugins"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"pipeline"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test_pipe"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12345"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"folder"</span><span class="p">:</span><span class="w"> </span><span class="s2">"./pipelines"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"trx"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"proc"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"transcriber_whispy"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"model_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tiny"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"only_local"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"language"</span><span class="p">:</span><span class="w"> </span><span class="s2">"en"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"word_timestamps"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"without_timestamps"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"task"</span><span class="p">:</span><span class="w"> </span><span class="s2">"transcribe"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"device"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cuda"</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"src"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"source"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"audio_rtp"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"rec_host"</span><span class="p">:</span><span class="w"> </span><span class="s2">"127.0.0.1"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"rec_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">8888</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"audio_rate"</span><span class="p">:</span><span class="w"> </span><span class="mi">16000</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"block_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"channels"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"process_log_level"</span><span class="p">:</span><span class="w"> </span><span class="s2">"quiet"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"payload_type"</span><span class="p">:</span><span class="w"> </span><span class="mi">97</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"encoding_clock_chan"</span><span class="p">:</span><span class="w"> </span><span class="s2">"opus/48000/2"</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dst"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sink"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="s2">"notifier_http"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">"endpoint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://localhost:8080"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"timeout"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"content_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"application/json"</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">"links"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"src"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"trx"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"trx"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dst"</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="installing-extra-dependencies">
+<h2>Installing extra dependencies<a class="headerlink" href="#installing-extra-dependencies" title="Link to this heading">¶</a></h2>
+<p>In the pipeline we are building as example, there is only one plugin node. This
+node is likely to carry extra dependencies with it, so we need to installing
+them before launching the pipeline. In our case, we can see that the transcriber
+node requires <code class="docutils literal notranslate"><span class="pre">ctranslate2</span></code> and <code class="docutils literal notranslate"><span class="pre">faster-whisper</span></code>, so we go ahead and
+install them.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>pip<span class="w"> </span>install<span class="w"> </span>faster-whisper<span class="w"> </span>ctranslate2
+</pre></div>
+</div>
+<p>Juturna also offers a way of collecting all the dependencies defined across
+plugin nodes. This can be done from the command line:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>python<span class="w"> </span>-m<span class="w"> </span>juturna<span class="w"> </span>require<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-c<span class="w"> </span>test_pipe.json<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-p<span class="w"> </span>./plugins<span class="w"> </span><span class="se">\</span>
+<span class="w">                           </span>-s<span class="w"> </span>./requirements.txt
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</section>
+<section id="launch-the-pipe">
+<h2>Launch the pipe<a class="headerlink" href="#launch-the-pipe" title="Link to this heading">¶</a></h2>
+<p>At this point, we are ready to execute the pipeline!</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user:~/prj$ </span>python<span class="w"> </span>-m<span class="w"> </span>juturna<span class="w"> </span>launch<span class="w"> </span>-c<span class="w"> </span>test_pipe.json
+</pre></div>
+</div>
+<p>This will start the pipeline, and create the <code class="docutils literal notranslate"><span class="pre">./pipelines</span></code> folder for us.</p>
+</section>
+</section>

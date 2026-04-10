@@ -1,0 +1,252 @@
+<section id="observability-in-juturna">
+<h1>Observability in Juturna<a class="headerlink" href="#observability-in-juturna" title="Link to this heading">¶</a></h1>
+<section id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Link to this heading">¶</a></h2>
+<p>Nodes have a built-in logger that can be used straight out of the box. A node
+logger is created as a sublogger of its containing pipeline, which in turn is
+a sublogger of the juturna process. Nothing special is required to use the
+juturna logger within a node, and it can be used anywhere in its class code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">juturna.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.components</span><span class="w"> </span><span class="kn">import</span> <span class="n">Message</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">juturna.payloads</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasePayload</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyAwesomeNode</span><span class="p">(</span><span class="n">Node</span><span class="p">[</span><span class="n">BasePayload</span><span class="p">,</span> <span class="n">BasePayload</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># initialisation code</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'awesome node created!'</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">[</span><span class="n">BasePayload</span><span class="p">]):</span>
+        <span class="c1"># run the node update logic</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'node did something awesome!'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Logging messages will carry useful pieces of informatio so that, once printed,
+it will be easy to understand which entry is printed by which node. As an
+example, consider the script below, loading a pipe called <code class="docutils literal notranslate"><span class="pre">my_pipe</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">juturna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jt</span>
+
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">jt</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Pipeline</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s1">'config.json'</span><span class="p">)</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">warmup</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This will generate logging entries split by node:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">2026-02-12 15:05:20 | INFO     | jt.my_pipe.node_0       | init sources: []</span>
+<span class="go">2026-02-12 15:03:54 | INFO     | jt.my_pipe.node_0       | trx created, model id 123197287926000</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe.node_1       | audio loaded</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe.node_1       | duration: 149.942875</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_0</span>
+<span class="go">2026-02-12 15:03:55 | ERROR    | jt.my_pipe.node_1       | model not found, defaulting</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_1</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_2</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe.node_3       | endpoint reached</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_3</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | pipe warmed up!</span>
+</pre></div>
+</div>
+<p>Here we can see that each entry tells us the node that generated it, the pipe it
+belongs to, and lastly the logging message.</p>
+<p>Thanks to their hierarchical structure, loggers can be selectivel enabled or
+disable only through the names of their corresponding components. Looking again
+at the pipe above, we can tell the loggers to raise the level to <code class="docutils literal notranslate"><span class="pre">ERROR</span></code> only
+for <code class="docutils literal notranslate"><span class="pre">node_1</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">juturna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jt</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">jt</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">jt_logger</span><span class="p">(</span><span class="s1">'my_pipe.node_1'</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">jt</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Pipeline</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s1">'config.json'</span><span class="p">)</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">warmup</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This time, the logs will look like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">2026-02-12 15:05:20 | INFO     | jt.my_pipe.node_0       | init sources: []</span>
+<span class="go">2026-02-12 15:03:54 | INFO     | jt.my_pipe.node_0       | trx created, model id 123197287926000</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_0</span>
+<span class="go">2026-02-12 15:03:55 | ERROR    | jt.my_pipe.node_1       | model not found, defaulting</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_1</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_2</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe.node_3       | endpoint reached</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | warmed up node node_3</span>
+<span class="go">2026-02-12 15:03:55 | INFO     | jt.my_pipe              | pipe warmed up!</span>
+</pre></div>
+</div>
+<section id="formatters-and-handlers">
+<h3>Formatters and handlers<a class="headerlink" href="#formatters-and-handlers" title="Link to this heading">¶</a></h3>
+<p>Logs in juturna can be formatted using built-in formatters: <code class="docutils literal notranslate"><span class="pre">simple</span></code>,
+<code class="docutils literal notranslate"><span class="pre">colored</span></code>, <code class="docutils literal notranslate"><span class="pre">full</span></code> (default), <code class="docutils literal notranslate"><span class="pre">compact</span></code>, <code class="docutils literal notranslate"><span class="pre">development</span></code>, <code class="docutils literal notranslate"><span class="pre">minimal</span></code> and
+<code class="docutils literal notranslate"><span class="pre">json</span></code>. To change it, run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">juturna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jt</span>
+
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">jt</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span><span class="s1">'minimal'</span><span class="p">)</span>
+
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">jt</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">Pipeline</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s1">'config.json'</span><span class="p">)</span>
+<span class="n">pipe</span><span class="o">.</span><span class="n">warmup</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">INFO: init sources: []</span>
+<span class="go">INFO: trx created, model id 123197287926000</span>
+<span class="go">INFO: audio loaded</span>
+<span class="go">INFO: duration: 149.942875</span>
+<span class="go">INFO: warmed up node node_0</span>
+<span class="go">ERROR: model not found, defaulting</span>
+<span class="go">INFO: warmed up node node_1</span>
+<span class="go">INFO: warmed up node node_2</span>
+<span class="go">INFO: endpoint reached</span>
+<span class="go">INFO: warmed up node node_3</span>
+<span class="go">INFO: pipe warmed up!</span>
+</pre></div>
+</div>
+<p>New handlers can also be added to the juturna logger. As an example, a file
+handler can be added, to store the logs into a file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">juturna</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jt</span>
+
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">'juturna.log'</span><span class="p">)</span>
+
+<span class="n">jt</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">add_handler</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">formatter</span><span class="o">=</span><span class="s1">'development'</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="telemetry">
+<h2>Telemetry<a class="headerlink" href="#telemetry" title="Link to this heading">¶</a></h2>
+<p>In juturna, it is possible to collect low-level data about basic events such as
+receptions and transmissions. Such data can be used to compute useful metrics
+about nodes latency, bandwidth and throughput.</p>
+<p>Telemetry can be activated on a pipeline level. To do so, add the <code class="docutils literal notranslate"><span class="pre">telemetry</span></code>
+entry in the pipe configuration file, pointing at the file where telemetry data
+will be stored.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.2"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"./plugins"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"pipeline"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my_pipe"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"123456"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"folder"</span><span class="p">:</span><span class="w"> </span><span class="s2">"./run"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"telemetry"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tele.csv"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">    </span><span class="nt">"links"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Once the pipe is started and running, the file <code class="docutils literal notranslate"><span class="pre">./run/my_pipe/tele.csv</span></code> will
+be incrementally filled with telemetry entries. Each node records a telemetry
+entry:</p>
+<ul class="simple">
+<li><p>every time it receives a message,</p></li>
+<li><p>every time it transmits a message.</p></li>
+</ul>
+<p>Each entry is formatted as follows:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>time, event, node, origin, msg_id, src_id, size
+</pre></div>
+</div>
+<p>Generally speaking then, a telemetry record is a collection of basic information
+related to a particular event.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code> is the timestamp at which the event was recorded (this is taken when
+the telemetry record is built within the node)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">event</span></code> is the event being metered (<code class="docutils literal notranslate"><span class="pre">rx</span></code> for a reception event, <code class="docutils literal notranslate"><span class="pre">tx</span></code> for
+a transmission event)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">node</span></code> is the name of the node recording the event</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">origin</span></code> is the name of the node that produced the message related to the
+recorded event (for a reception event, this is the node that generated the
+received message; for a transmission message, this will be the same as
+<code class="docutils literal notranslate"><span class="pre">node</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">msg_id</span></code> is the id of the message that triggered the event</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_id</span></code> is the id of the <strong>previous</strong> message that triggered the last
+recorded event</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> is the size in bytes of the message that triggered the event</p></li>
+</ul>
+<p>Imagine a pipeline with a source node A, a processing node B, and a sink node C.
+In its implementation, node A has a function that writes messages on its own
+internal queue, triggering the <code class="docutils literal notranslate"><span class="pre">update</span></code> function. When the first message is
+<em>received</em> by the node (so, generated and read by the worker thread), the first
+telemetry event will be recorder, and it will look something like this:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>t_0,rx,A,A,0,,s_0
+</pre></div>
+</div>
+<p>Here, node A both generated and received the message, so <code class="docutils literal notranslate"><span class="pre">node</span></code> and <code class="docutils literal notranslate"><span class="pre">origin</span></code>
+are the same. Also, being this the first message processed by the node, there is
+no id stored of previous events, so <code class="docutils literal notranslate"><span class="pre">src_id</span></code> is none.</p>
+<p>When this message is transmitted, another telemetry entry will be recorded:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>t_1,tx,A,A,0,0,s_0
+</pre></div>
+</div>
+<p>At this point, node B receives the message, and produces its own telemetry
+read:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>t_2,rx,B,A,0,,s_0
+</pre></div>
+</div>
+<p>This entry tells us that at time <code class="docutils literal notranslate"><span class="pre">t_2</span></code> node B received message with id 0
+generated by node A, and no previous message passed through it. B chruns the
+message content and sends a new message to C:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>t_3,tx,B,B,1,0,s_1
+</pre></div>
+</div>
+</section>
+<section id="interact-with-the-filesystem">
+<h2>Interact with the filesystem<a class="headerlink" href="#interact-with-the-filesystem" title="Link to this heading">¶</a></h2>
+<p>A pipeline can be configured with its own folder on the filesystem. Here,
+each node will be assigned a directory where it can store data, artifacts, or
+anything else the node developer might need to. The following pipe:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.1.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"./plugins"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"pipeline"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"quality"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"quality"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"folder"</span><span class="p">:</span><span class="w"> </span><span class="s2">"./pipeline"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">    </span><span class="nt">"links"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>will create the <code class="docutils literal notranslate"><span class="pre">./pipeline</span></code> folder, local to where the juturna process was
+launched, and as many subfolders are there are nodes in the pipe.</p>
+<p>The node class offers useful tools to access the filesystem. Assuming we want to
+save some text to file during an <code class="docutils literal notranslate"><span class="pre">update</span></code> call, we can simply do:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
+    <span class="c1"># do update stuff</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipe_path</span><span class="p">,</span> <span class="s1">'file_dump.txt'</span><span class="p">),</span> <span class="s1">'a'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'saving another entry'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So, <code class="docutils literal notranslate"><span class="pre">self.pipe_path</span></code> points to the folder on the filesystem assigned to this
+node.</p>
+<p>Similarly, calling <code class="docutils literal notranslate"><span class="pre">dump_json(message,</span> <span class="pre">f_name)</span></code> will write a json version of a
+message in a node folder. This can be triggered at any time in the node
+execution, however, every transmitted message by the node can be automatically
+dumped to disk by adding the <code class="docutils literal notranslate"><span class="pre">"auto_dump":</span> <span class="pre">true</span></code> flag in the node
+configuration.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node_name"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="nt">"&lt;NODE_TYPE&gt;"</span>
+<span class="w">  </span><span class="nt">"mark"</span><span class="p">:</span><span class="w"> </span><span class="nt">"&lt;NODE_MARK&gt;"</span>
+<span class="w">  </span><span class="nt">"auto_dump"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="nt">"configuration"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
