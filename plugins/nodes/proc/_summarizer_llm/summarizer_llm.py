@@ -1,4 +1,5 @@
 import json
+import re
 import time
 import typing
 import logging
@@ -8,20 +9,6 @@ import ollama
 from juturna.components import Node, Message
 from juturna.payloads import ObjectPayload, ControlPayload
 
-
-_OUTPUT_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "summary": {"type": "string"},
-        "keywords": {
-            "type": "array",
-            "items": {"type": "string"},
-            "minItems": 3,
-            "maxItems": 3,
-        },
-    },
-    "required": ["summary", "keywords"],
-}
 
 
 class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
@@ -56,7 +43,8 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
             self._client.chat(
                 model=self._model_name,
                 messages=[{"role": "user", "content": "Say hello."}],
-                options={"num_predict": 1},
+                options={"num_predict": 5},
+                think=False,
             )
         except Exception as e:
             self._logger.warning(f"Model warmup failed: {e}")
@@ -93,17 +81,20 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
             response = self._client.chat(
                 model=self._model_name,
                 messages=[{"role": "user", "content": prompt}],
-                format=_OUTPUT_SCHEMA,
-                options={"num_predict": 256, "num_ctx": 4096},
+                options={"num_predict": 512, "num_ctx": 4096},
+                think=False,
             )
-            content = response["message"]["content"]
+            content = response.message.content.strip()
+            # Strip markdown code fences if present
+            content = re.sub(r"^```[a-z]*\n?", "", content)
+            content = re.sub(r"\n?```$", "", content)
             parsed = json.loads(content)
             summary = parsed.get("summary", "")
             keywords = self._ensure_three_keywords(parsed.get("keywords", []))
         except Exception as e:
             self._logger.error(f"LLM call failed: {e}")
-            summary = f"Transcript segment ({len(transcript.split())} words)"
-            keywords = ["meeting", "discussion", "general"]
+            summary = f""
+            keywords = []
 
         latency = time.time() - trigger_time
 

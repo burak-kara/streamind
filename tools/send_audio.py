@@ -163,7 +163,28 @@ async def send_audio(
 
         # ── 8. Stream for the duration of the WAV ────────────────────────────
         log.info("Streaming %.1fs of audio to pipeline...", duration)
-        await asyncio.sleep(duration)
+
+        # Keep the Janus HTTP session alive by polling; without this the session
+        # expires (~60s) and Janus tears down the WebRTC connection mid-stream.
+        async def _keepalive_loop():
+            while True:
+                try:
+                    rid = int(time.time() * 1000)
+                    resp = await client.get(f"{session_url}?rid={rid}", timeout=35.0)
+                    data = resp.json()
+                    if data.get("janus") == "keepalive":
+                        log.debug("Janus keepalive")
+                    elif data.get("janus") != "ack":
+                        log.debug("Janus event: %s", data.get("janus"))
+                except Exception as e:
+                    log.warning("Keepalive poll error: %s", e)
+                    await asyncio.sleep(5)
+
+        keepalive_task = asyncio.create_task(_keepalive_loop())
+        try:
+            await asyncio.sleep(duration)
+        finally:
+            keepalive_task.cancel()
 
         # ── 9. Tear down ─────────────────────────────────────────────────────
         await client.post(handle_url, json={
