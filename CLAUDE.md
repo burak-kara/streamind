@@ -102,6 +102,8 @@ docker compose up -d
 
 # Run pipeline (requires Janus + Ollama)
 uv run python -m juturna launch --config pipelines/config.json
+# OR for 30s windows:
+uv run python -m juturna launch --config pipelines/config-30s.json
 
 # Inject test audio through Janus (in a separate terminal while pipeline is running)
 # Use the 10-min fixture so the 300s production window fires at least once

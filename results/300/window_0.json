@@ -1,0 +1,12 @@
+{
+  "window_id": 0,
+  "window_start": 0.0,
+  "window_end": 300.0,
+  "summary": "The discussion addresses the need for Product Marketing Managers to work directly with GTM teams to secure commitments and support for corporate events, specifically mentioning platforms like GitLab, CICD, and GitOps at upcoming conferences. Participants noted that event support roles are not yet fully defined, prompting a two-week cadence to gather feedback and cancel sessions like GitOps if necessary. Additionally, the conversation explored the timeline and scope for product announcements, potentially comparing future launches to past releases like GitLab 14.0.",
+  "keywords": [
+    "corporate events",
+    "GTM teams",
+    "product announcements"
+  ],
+  "latency": 22.016852855682373
+}

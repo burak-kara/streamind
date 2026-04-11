@@ -58,7 +58,7 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 300.0
+          "window_duration": 30.0
         }
       },
       {
@@ -77,7 +77,7 @@
         "mark": "result_transmitter",
         "configuration": {
           "destination_endpoint": "",
-          "results_dir": "./results/300",
+          "results_dir": "./results/30",
           "timeout": 10
         }
       }

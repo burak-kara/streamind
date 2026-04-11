@@ -1,0 +1,12 @@
+{
+  "window_id": 5,
+  "window_start": 150.0,
+  "window_end": 180.0,
+  "summary": "GitOps has been cancelled after the enablement session. The discussion then shifted to potential speaking opportunities at major events, specifically suggesting a platform appearance at reInvent, a session on CI/CD for Google Next, and GitOps coverage at KubeCon.",
+  "keywords": [
+    "GitOps",
+    "reInvent",
+    "CI/CD"
+  ],
+  "latency": 6.97713303565979
+}

@@ -1,0 +1,12 @@
+{
+  "window_id": 10,
+  "window_start": 300.0,
+  "window_end": 330.0,
+  "summary": "At GitLab, making product announcements is challenging because their entire roadmap is public and new features often require time to become fully usable. The discussion highlights the difficulty of transitioning from initial feature releases to complete, production-ready capabilities over the past year.",
+  "keywords": [
+    "GitLab",
+    "roadmap",
+    "features"
+  ],
+  "latency": 8.283846139907837
+}

@@ -1,0 +1,12 @@
+{
+  "window_id": 2,
+  "window_start": 600.0,
+  "window_end": 900.0,
+  "summary": "The discussion addressed updating VS Code integrations from community contributions to officially supported modules, similar to the Terraform module transition. Participants debated metrics for measuring customer excitement, considering Monthly Active Users (MAU), upvotes, and anecdotal feedback, concluding that these should not be exclusive. The team decided to stack rank features by identifying a top five list of key items to highlight in the upcoming product keynote, rather than assigning rigid excitement levels.",
+  "keywords": [
+    "VS Code",
+    "MAU",
+    "product keynote"
+  ],
+  "latency": 18.067021131515503
+}
