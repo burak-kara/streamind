@@ -76,5 +76,7 @@ The final score for an audio source is the average of all scores of its chunks.
 
 ### References and Resources
 
+- Challenge announcement: [MMSP 2026 STREAMIND Challenge](https://attend.ieee.org/mmsp-2026/grand-challenges/)
+- Challenge repository: [STREAMIND-challenge](https://github.com/meetecho/mmsp2026_streamind_challenge)
 - Juturna framework: [juturna](https://github.com/meetecho/juturna)
 - Janus WebRTC server: [janus-gateway](https://github.com/meetecho/janus-gateway)
