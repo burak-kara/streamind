@@ -1,0 +1,12 @@
+{
+  "window_id": 12,
+  "window_start": 360.0,
+  "window_end": 390.0,
+  "summary": "The discussion focused on reusing components from version 14.0, specifically highlighting Vulnerability Management as a key feature to leverage. The team agreed to integrate existing materials from 14.0 and enhance them to address different pressure areas. This approach aims to consolidate efforts rather than developing features from scratch for individual components.",
+  "keywords": [
+    "version 14.0",
+    "Vulnerability Management",
+    "reuse components"
+  ],
+  "latency": 8.543252944946289
+}

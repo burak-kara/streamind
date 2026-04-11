@@ -1,0 +1,12 @@
+{
+  "window_id": 8,
+  "window_start": 240.0,
+  "window_end": 270.0,
+  "summary": "The discussion focuses on defining the time frame for evaluating improvements since version 13.0. The speaker suggests this could align with the GitLab 14 launch scope but acknowledges the difficulty in determining all interplay details. There is uncertainty about the extent of major enhancements made during this period.",
+  "keywords": [
+    "time frame",
+    "improvements",
+    "uncertainty"
+  ],
+  "latency": 7.5430989265441895
+}

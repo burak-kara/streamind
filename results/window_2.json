@@ -1,0 +1,12 @@
+{
+  "window_id": 2,
+  "window_start": 60.0,
+  "window_end": 90.0,
+  "summary": "The discussion addresses an issue where headers were not updated despite previous filtering efforts. Ty contributed suggestions that appear acceptable for moving forward. The team identified a need for support from the GTM teams to proceed with the selected items.",
+  "keywords": [
+    "headers",
+    "GTM support",
+    "filtering"
+  ],
+  "latency": 6.022974967956543
+}
