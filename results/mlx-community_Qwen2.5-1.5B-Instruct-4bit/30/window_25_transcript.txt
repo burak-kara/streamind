@@ -1,0 +1,1 @@
+So that's that's kind of also helpful there. So if we have three for all of these that I mean, it looks like we're going to get there. that's going to be quite a lot of features. So I might constrain it like this. maybe you can only give out one one, two or three and treat it as a stack rank. rather than just like a raw excitement level, that doesn't necessarily

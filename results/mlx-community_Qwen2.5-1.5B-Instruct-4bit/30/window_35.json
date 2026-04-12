@@ -1,0 +1,11 @@
+{
+  "from": 1050.0,
+  "to": 1080.0,
+  "summary": "We've completed fuzzing, will not proceed to fuzzing, moving to vulnerability management and proprietary DAST scanner.",
+  "keywords": [
+    "fuzzing",
+    "vulnerability",
+    "proprietary"
+  ],
+  "proc_time": 0.7768690586090088
+}

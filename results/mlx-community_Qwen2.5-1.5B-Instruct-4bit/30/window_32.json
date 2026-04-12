@@ -1,0 +1,11 @@
+{
+  "from": 960.0,
+  "to": 990.0,
+  "summary": "The team needs to decide on vulnerability management or proprietary scanning, focusing on grouping proprietary scanning without sounding like scanning.",
+  "keywords": [
+    "vulnerability",
+    "scanning",
+    "grouping"
+  ],
+  "proc_time": 0.7086961269378662
+}
