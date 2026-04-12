@@ -78,11 +78,17 @@ The pipeline has 6 sequential stages, all implemented as **Juturna nodes**:
 ```text
 plugins/nodes/        # Juturna node implementations
   source/             # _audio_file (WAV file source for local testing)
-  proc/               # _audio_chunker, _novel_extractor, _transcriber_whisper, _window_aggregator, _summarizer_llm
+  proc/               # _audio_chunker, _novel_extractor, _transcriber_whisper, _window_aggregator, _summarizer_llm, _summarizer_mlx
   sink/               # _result_transmitter
-pipelines/            # Single source of truth for pipeline config
-  config.json         # Production pipeline (qwen3.5:9b-16k, 300s windows)
-  config-fast.json    # Fast mode (qwen3:1.7b, 300s windows)
+pipelines/            # Pipeline configs
+  config-base.json    # Base pipeline (all nodes except summarizer)
+  summarizer/         # Summarizer profiles — one JSON node definition per profile
+    ollama-qwen3.5-9b.json   # production default
+    ollama-qwen3-1.7b.json   # fast / lower latency
+    mlx-qwen2.5-1.5b.json    # Apple Silicon native
+tools/
+  assemble_config.py  # Merges base + profile into a complete config for Juturna
+  run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <seconds> --summarizer <profile>
 tests/                # Unit + integration tests, fixtures/
 results/              # Output JSON files written by result_transmitter
 docs/                 # Challenge spec, TODO, plans
@@ -94,6 +100,8 @@ docs/                 # Challenge spec, TODO, plans
 ```bash
 # Install (requires uv + Python 3.12)
 uv sync --extra dev
+# Optional: install mlx-lm for Apple Silicon native inference
+uv sync --extra dev --extra mlx
 
 # Start Janus (first run builds the Docker image — takes ~15 min)
 docker compose up -d
@@ -102,9 +110,10 @@ docker compose up -d
 .venv/bin/pytest tests/
 
 # Run pipeline (requires Janus + Ollama)
-uv run python -m juturna launch --config pipelines/config.json
-# OR for 30s windows:
-uv run python -m juturna launch --config pipelines/config-30s.json
+./tools/run_pipeline.sh                              # 300s window with default model profile (ollama-qwen3.5-9b)
+./tools/run_pipeline.sh --window 30                  # 30s window for faster outputs and quicker iteration
+./tools/run_pipeline.sh -w 300 -s ollama-qwen3-1.7b  # fast model profile
+./tools/run_pipeline.sh --window 30 --summarizer mlx-qwen2.5-1.5b  # mlx profile
 
 # Inject test audio through Janus (in a separate terminal while pipeline is running)
 # Use the 10-min fixture so the 300s production window fires at least once
@@ -117,7 +126,7 @@ uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 - **Ollama** running locally on `http://127.0.0.1:11434`
 - Pull the LLM model before first run: `ollama pull qwen3.5:9b-16k`
 - ASR model (`small.en` via faster-whisper) downloads automatically on first run
-- `pipelines/config.json` is the single production config — edit it directly
+- Pipeline configs are assembled at launch time: `config-base.json` + a profile from `pipelines/summarizer/`
 - The `audio_rtp` node listens on `0.0.0.0:8888`; Janus forwards RTP to that port
 
 ## Current Model Choices
@@ -125,15 +134,22 @@ uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 | Stage         | Model                     | Notes                                      |
 |---------------|---------------------------|--------------------------------------------|
 | ASR           | `faster-whisper small.en` | `device: auto`, int8, English-only         |
-| Summarization | `qwen3.5:9b-16k` via Ollama     | Structured JSON output, stop-drain logic   |
+| Summarization | `qwen3.5:9b-16k`         | Structured JSON output, stop-drain logic   |
+
+### Summarizer Nodes
+
+Two separate Juturna nodes — switch by changing `mark` in the pipeline config:
+
+- **`summarizer_llm`** (default) — Ollama backend. Requires Ollama at `http://127.0.0.1:11434`. Prompt: `summarize_prompt_ollama.txt` (includes `/no_think`). Config params: `endpoint`, `model_name`, `num_ctx`, `num_predict`.
+- **`summarizer_mlx`** — Native Apple Silicon inference via `mlx-lm`. No server required. Prompt: `summarize_prompt_mlx.txt`. Install with `uv sync --extra mlx`. Model names are HuggingFace IDs (e.g., `mlx-community/Qwen2.5-1.5B-Instruct-4bit`). Config params: `model_name`, `num_predict`.
 
 ## Gotchas
 
-- `destination_endpoint` in `pipelines/config.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty)
-- Prompt template for summarizer lives at `plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt`
-- Results are written to `results/window_N.json` and optionally POSTed to `destination_endpoint`
+- `destination_endpoint` in `pipelines/config-base.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty)
+- Prompt templates: `summarize_prompt_ollama.txt` (Ollama, with `/no_think`) and `summarize_prompt_mlx.txt` (mlx-lm, without). Configured via `prompt_template_file` in each pipeline config.
+- Results are written to `results/{sanitized_model}/{window_duration}/window_N.json` and optionally POSTed to `destination_endpoint`. Model name sanitization: `:` → `-`, `/` → `_` (filesystem compatibility).
 - **Challenge output format**: result_transmitter maps internal keys to challenge-required keys: `window_start` → `from`, `window_end` → `to`, `latency` → `proc_time`. Output must contain exactly: `from`, `to`, `summary`, `keywords` (3 items), `proc_time`.
-- `encoding_clock_chan: "opus/48000/2"` in `config.json` declares stereo Opus; verify against actual Janus stream before submission — change to `opus/48000/1` if Janus sends mono
+- `encoding_clock_chan: "opus/48000/2"` in `config-base.json` declares stereo Opus; verify against actual Janus stream before submission — change to `opus/48000/1` if Janus sends mono
 - Local and production use the same environment: both go through Janus → `audio_rtp`. Do not swap to `audio_file` for testing.
 - To inject a WAV file into the pipeline locally: `uv run python tools/send_audio.py <file.wav>`
 
