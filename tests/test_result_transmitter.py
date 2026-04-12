@@ -13,7 +13,8 @@ from juturna.payloads import ObjectPayload
 
 class TestResultTransmitter:
 
-    def _make_result_message(self, window_id: int = 0) -> Message[ObjectPayload]:
+    def _make_result_message(self, window_id: int = 0,
+                              model_name: str = "test-model") -> Message[ObjectPayload]:
         payload = ObjectPayload.from_dict({
             "window_id": window_id,
             "window_start": 0.0,
@@ -21,6 +22,7 @@ class TestResultTransmitter:
             "summary": "The team discussed project deadlines.",
             "keywords": ["project", "deadlines", "team"],
             "latency": 1.5,
+            "model_name": model_name,
         })
         return Message[ObjectPayload](creator="test", version=1, payload=payload)
 
@@ -38,7 +40,7 @@ class TestResultTransmitter:
             msg = self._make_result_message(window_id=0)
             node.update(msg)
 
-            result_file = os.path.join(tmpdir, "window_0.json")
+            result_file = os.path.join(tmpdir, "test-model", "300", "window_0.json")
             assert os.path.exists(result_file)
             with open(result_file) as f:
                 data = json.load(f)

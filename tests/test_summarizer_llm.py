@@ -52,6 +52,7 @@ class TestSummarizerLLM:
         assert "summary" in result
         assert len(result["keywords"]) == 3
         assert isinstance(result["latency"], float)
+        assert result["model_name"] == "qwen3.5:9b-16k"
 
     @patch("summarizer_llm.ollama.Client")
     def test_malformed_response_pads_keywords(self, mock_client_cls):
