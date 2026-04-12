@@ -42,12 +42,11 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
     def update(self, message: Message[ObjectPayload]):
         window_id = message.payload.get("window_id", 0)
         result = {
-            "window_id": window_id,
-            "window_start": message.payload.get("window_start", 0.0),
-            "window_end": message.payload.get("window_end", 0.0),
+            "from": message.payload.get("window_start", 0.0),
+            "to": message.payload.get("window_end", 0.0),
             "summary": message.payload.get("summary", ""),
             "keywords": message.payload.get("keywords", []),
-            "latency": message.payload.get("latency", 0.0),
+            "proc_time": message.payload.get("latency", 0.0),
         }
 
         filepath = self._results_dir / f"window_{window_id}.json"

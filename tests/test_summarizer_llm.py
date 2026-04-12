@@ -26,14 +26,12 @@ class TestSummarizerLLM:
     @patch("summarizer_llm.ollama.Client")
     def test_produces_summary_and_keywords(self, mock_client_cls):
         mock_client = MagicMock()
-        mock_client.chat.return_value = {
-            "message": {
-                "content": json.dumps({
-                    "summary": "The team discussed project timelines.",
-                    "keywords": ["project", "timelines", "discussion"]
-                })
-            }
-        }
+        mock_response = MagicMock()
+        mock_response.message.content = json.dumps({
+            "summary": "The team discussed project timelines.",
+            "keywords": ["project", "timelines", "discussion"]
+        })
+        mock_client.chat.return_value = mock_response
         mock_client_cls.return_value = mock_client
 
         from summarizer_llm import SummarizerLLM
@@ -58,14 +56,12 @@ class TestSummarizerLLM:
     @patch("summarizer_llm.ollama.Client")
     def test_malformed_response_pads_keywords(self, mock_client_cls):
         mock_client = MagicMock()
-        mock_client.chat.return_value = {
-            "message": {
-                "content": json.dumps({
-                    "summary": "Some summary",
-                    "keywords": ["only_one"]
-                })
-            }
-        }
+        mock_response = MagicMock()
+        mock_response.message.content = json.dumps({
+            "summary": "Some summary",
+            "keywords": ["only_one"]
+        })
+        mock_client.chat.return_value = mock_response
         mock_client_cls.return_value = mock_client
 
         from summarizer_llm import SummarizerLLM

@@ -78,10 +78,11 @@ The pipeline has 6 sequential stages, all implemented as **Juturna nodes**:
 ```text
 plugins/nodes/        # Juturna node implementations
   source/             # _audio_file (WAV file source for local testing)
-  proc/               # _audio_chunker, _novel_extractor, _transcriber_whisper, _transcriber_whispy, _window_aggregator, _summarizer_llm
+  proc/               # _audio_chunker, _novel_extractor, _transcriber_whisper, _window_aggregator, _summarizer_llm
   sink/               # _result_transmitter
 pipelines/            # Single source of truth for pipeline config
-  config.json         # Production pipeline definition (audio_rtp source, 300s windows)
+  config.json         # Production pipeline (qwen3.5:9b-16k, 300s windows)
+  config-fast.json    # Fast mode (qwen3:1.7b, 300s windows)
 tests/                # Unit + integration tests, fixtures/
 results/              # Output JSON files written by result_transmitter
 docs/                 # Challenge spec, TODO, plans
@@ -131,7 +132,7 @@ uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 - `destination_endpoint` in `pipelines/config.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty)
 - Prompt template for summarizer lives at `plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt`
 - Results are written to `results/window_N.json` and optionally POSTed to `destination_endpoint`
-- `transcriber_whispy_disabled/` in `proc/` is a Meetecho-provided ASR node that is **not a drop-in swap** — it outputs a word-level list, not plain text; `novel_extractor` would crash if it were wired in. Folder renamed to disable Juturna discovery (no `_` prefix).
+- **Challenge output format**: result_transmitter maps internal keys to challenge-required keys: `window_start` → `from`, `window_end` → `to`, `latency` → `proc_time`. Output must contain exactly: `from`, `to`, `summary`, `keywords` (3 items), `proc_time`.
 - `encoding_clock_chan: "opus/48000/2"` in `config.json` declares stereo Opus; verify against actual Janus stream before submission — change to `opus/48000/1` if Janus sends mono
 - Local and production use the same environment: both go through Janus → `audio_rtp`. Do not swap to `audio_file` for testing.
 - To inject a WAV file into the pipeline locally: `uv run python tools/send_audio.py <file.wav>`

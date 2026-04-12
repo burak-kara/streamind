@@ -81,7 +81,7 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
             response = self._client.chat(
                 model=self._model_name,
                 messages=[{"role": "user", "content": prompt}],
-                options={"num_predict": 512, "num_ctx": 4096},
+                options={"num_predict": 256, "num_ctx": 4096},
                 think=False,
             )
             content = response.message.content.strip()

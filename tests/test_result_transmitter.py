@@ -42,8 +42,17 @@ class TestResultTransmitter:
             assert os.path.exists(result_file)
             with open(result_file) as f:
                 data = json.load(f)
+            # Verify challenge-compliant output format
+            assert data["from"] == 0.0
+            assert data["to"] == 300.0
             assert data["summary"] == "The team discussed project deadlines."
+            assert data["keywords"] == ["project", "deadlines", "team"]
             assert len(data["keywords"]) == 3
+            assert data["proc_time"] == 1.5
+            # Verify old keys are not present
+            assert "window_start" not in data
+            assert "window_end" not in data
+            assert "latency" not in data
 
     @patch("result_transmitter.httpx.post")
     def test_posts_to_endpoint(self, mock_post):
