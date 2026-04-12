@@ -16,7 +16,9 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
 
     def __init__(self, endpoint: str = "http://127.0.0.1:11434",
                  model_name: str = "qwen3.5:9b-16k",
-                 prompt_template_file: str = "summarize_prompt.txt",
+                 prompt_template_file: str = "summarize_prompt_ollama.txt",
+                 num_ctx: int = 2048,
+                 num_predict: int = 128,
                  **kwargs):
         super().__init__(**kwargs)
         self._endpoint = endpoint
@@ -24,21 +26,20 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
         self._client: ollama.Client | None = None
         self._prompt_template = ""
         self._prompt_file = prompt_template_file
+        self._num_ctx = num_ctx
+        self._num_predict = num_predict
         self._logger = logging.getLogger(self.__class__.__name__)
 
     def configure(self): pass
 
     def warmup(self):
-        self._client = ollama.Client(host=self._endpoint)
         template_path = Path(__file__).parent / self._prompt_file
         if template_path.exists():
             self._prompt_template = template_path.read_text()
         else:
-            self._prompt_template = (
-                "Summarize this meeting transcript. "
-                "Produce a JSON with 'summary' (2-4 sentences) and 'keywords' (exactly 3).\n\n"
-                "Transcript:\n{transcript}"
-            )
+            self._logger.error(f"Prompt template file not found: {template_path}. Using default template.")
+
+        self._client = ollama.Client(host=self._endpoint)
         try:
             self._client.chat(
                 model=self._model_name,
@@ -47,7 +48,7 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
                 think=False,
             )
         except Exception as e:
-            self._logger.warning(f"Model warmup failed: {e}")
+            self._logger.error(f"Model warmup failed: {e}")
 
     def set_on_config(self, prop: str, value: typing.Any): pass
     def start(self): super().start()
@@ -81,7 +82,7 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
             response = self._client.chat(
                 model=self._model_name,
                 messages=[{"role": "user", "content": prompt}],
-                options={"num_predict": 256, "num_ctx": 4096},
+                options={"num_predict": self._num_predict, "num_ctx": self._num_ctx},
                 think=False,
             )
             content = response.message.content.strip()
@@ -105,6 +106,8 @@ class SummarizerLLM(Node[ObjectPayload, ObjectPayload]):
             "summary": summary,
             "keywords": keywords,
             "latency": latency,
+            "model_name": self._model_name,
+            "full_transcript": transcript,
         })
         out = Message[ObjectPayload](
             creator=self.name,

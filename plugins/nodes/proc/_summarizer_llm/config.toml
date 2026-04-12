@@ -1,4 +1,7 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 endpoint = "http://127.0.0.1:11434"
 model_name = "qwen3.5:9b-16k"
-prompt_template_file = "summarize_prompt.txt"
+prompt_template_file = "summarize_prompt_ollama.txt"
+num_ctx = 2048
+num_predict = 128
