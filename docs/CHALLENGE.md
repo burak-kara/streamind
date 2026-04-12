@@ -50,6 +50,18 @@ steps:
 
 ![Overview](/docs/images/challenge_overview.png)
 
+Submitted partial summary and keyword outputs for a chunk $i$ are expected to be in the following format:
+
+```json
+{
+   "from": "timestamp of the first audio sample in chunk i",
+   "to": "timestamp of the last audio sample in chunk i",
+  "summary": "Summary text for chunk i",
+  "keywords": ["keyword1", "keyword2", "keyword3"],
+  "proc_time": "processing time in seconds for chunk i"
+}
+```
+
 ### Evaluation metrics
 
 All submitted chunks for an audio source will be assigned a composite score.

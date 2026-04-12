@@ -151,6 +151,6 @@ uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 - **Do not introduce workarounds**: The challenge is designed to test real-time processing. Avoid any approaches that would circumvent the latency requirement, such as pre-processing the entire audio or using non-streaming models.
 - **All processing must be done in real-time**: The system should process audio as it is received, without waiting for the entire audio to be available.
 - **Do not introduce environment-specific dependencies**: The solution should be portable and not rely on specific hardware or software configurations that are not commonly available.
-- **Do not introduce environemnts**: No Local or Production environments — the same code and config should run in both contexts without modification. The pipeline must be designed to handle real-time audio input in both local testing and production deployment seamlessly.
-- **Do not write local file paths**: All file paths should be relative and not hardcoded to specific local directories. The system should be designed to work in any environment without requiring changes to file paths.
-- Use ./tmp folder located in this project instead of /tmp for temporary files to avoid permission issues in some environments.
+- **Do not introduce environemnts**: No Local or Production environments — the same code and config should run in both contexts without modification.
+- **Do not write local file paths**: All file paths should be relative and not hardcoded to specific local directories.
+- Use `./tmp` folder located in this project instead of `/tmp` for temporary files to avoid permission issues in some environments.
