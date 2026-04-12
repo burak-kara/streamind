@@ -58,17 +58,17 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 300.0
+          "window_duration": 30.0
         }
       },
       {
         "name": "summarizer",
         "type": "proc",
-        "mark": "summarizer_llm",
+        "mark": "summarizer_mlx",
         "configuration": {
-          "endpoint": "http://127.0.0.1:11434",
-          "model_name": "qwen3.5:9b-16k",
-          "prompt_template_file": "summarize_prompt.txt"
+          "model_name": "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
+          "prompt_template_file": "summarize_prompt_mlx.txt",
+          "num_predict": 128
         }
       },
       {
@@ -77,7 +77,7 @@
         "mark": "result_transmitter",
         "configuration": {
           "destination_endpoint": "",
-          "results_dir": "./results/300",
+          "results_dir": "./results",
           "timeout": 10
         }
       }
