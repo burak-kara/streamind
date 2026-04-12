@@ -1,3 +1,4 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 model_name = "small.en"
 language = "en"

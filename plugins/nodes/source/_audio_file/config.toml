@@ -1,3 +1,4 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 file_source = ""
 block_size = 3

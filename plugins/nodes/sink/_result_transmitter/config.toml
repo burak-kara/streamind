@@ -1,3 +1,4 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 destination_endpoint = ""
 results_dir = "./results"

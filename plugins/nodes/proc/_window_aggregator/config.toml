@@ -1,2 +1,3 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 window_duration = 300.0

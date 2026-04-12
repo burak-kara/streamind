@@ -1,3 +1,4 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 max_overlap_words = 10
 similarity_threshold = 0.8

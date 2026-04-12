@@ -1,3 +1,4 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
 [arguments]
 chunk_duration = 5.0
 overlap_duration = 1.0
