@@ -66,7 +66,7 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 30.0
+          "window_duration": 300.0
         }
       },
       {
@@ -74,12 +74,12 @@
         "type": "proc",
         "mark": "summarizer_mlx",
         "configuration": {
-          "model_name": "mlx-community/Qwen3.5-9B-OptiQ-4bit",
+          "model_name": "mlx-community/Qwen3.5-4B-OptiQ-4bit",
           "prompt_template_file": "summarize_prompt_mlx_qwen3.txt",
-          "num_predict": 350,
-          "temp": 0.4,
+          "num_predict": 300,
+          "temp": 0.3,
           "top_p": 0.9,
-          "repetition_penalty": 1.02
+          "repetition_penalty": 1.05
         }
       },
       {
