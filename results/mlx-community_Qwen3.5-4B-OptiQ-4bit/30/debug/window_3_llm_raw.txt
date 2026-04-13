@@ -1,0 +1,1 @@
+{"summary": "The discussion highlights a need for support from GTM teams, specifically regarding an issue identified on a slide. The speaker is seeking confirmation that the team has successfully connected with their GTM counterparts to address this matter.", "keywords": ["GTM", "support", "slack"]}

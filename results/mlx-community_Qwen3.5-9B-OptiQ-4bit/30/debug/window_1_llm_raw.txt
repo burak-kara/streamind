@@ -1,0 +1,1 @@
+{"summary":"The team acknowledged that event support requirements remain undefined following restructuring efforts. The current go-to-market strategy involves the team signing up and securing sponsors for events. As a PMM, your role is to support these events while the campaign manager handles marketing campaigns.","keywords":["event support","sponsors","campaign manager"]}

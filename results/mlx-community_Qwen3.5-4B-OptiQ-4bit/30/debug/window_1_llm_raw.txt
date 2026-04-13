@@ -1,0 +1,1 @@
+{"summary": "The team has restructured its approach to event support, acknowledging that the current requirements are not yet finalized. The go-to-market team is now tasked with signing up and sponsoring events, while the PMM campaign manager will handle the specific campaign execution for those events.", "keywords": ["event support", "go-to-market", "campaign manager"]}
