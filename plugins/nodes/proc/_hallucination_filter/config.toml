@@ -1,0 +1,16 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
+[arguments]
+exact_hallucinations = [
+    "thank you.",
+    "thanks for watching.",
+    "thanks for watching",
+    "thank you for watching.",
+    "thank you for watching",
+    "you",
+    "bye.",
+    "please subscribe.",
+    "subtitles by the amara.org community",
+    "[blank_audio]",
+    "[silence]",
+]
+extra_patterns = []

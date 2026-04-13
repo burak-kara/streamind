@@ -45,6 +45,14 @@
         }
       },
       {
+        "name": "hallucination_filter",
+        "type": "proc",
+        "mark": "hallucination_filter",
+        "configuration": {
+          "extra_patterns": []
+        }
+      },
+      {
         "name": "deduplicator",
         "type": "proc",
         "mark": "novel_extractor",
@@ -83,6 +91,10 @@
       },
       {
         "from": "transcriber",
+        "to": "hallucination_filter"
+      },
+      {
+        "from": "hallucination_filter",
         "to": "deduplicator"
       },
       {
