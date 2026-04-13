@@ -1,1 +1,0 @@
-the proprietary ships and the vulnerability management which would you pick as the number one? of those two? Probably vulnerability management. okay I'm just kind of scanning the list. I would probably say like Kubernetes agent is something that we've made a lot of investment in. been in. Although I think the Kubernetes agent.

@@ -83,9 +83,11 @@ plugins/nodes/        # Juturna node implementations
 pipelines/            # Pipeline configs
   config-base.json    # Base pipeline (all nodes except summarizer)
   summarizer/         # Summarizer profiles — one JSON node definition per profile
-    ollama-qwen3.5-9b.json   # production default
-    ollama-qwen3-1.7b.json   # fast / lower latency
-    mlx-qwen2.5-1.5b.json    # Apple Silicon native
+    ollama-qwen3.5-9b.json        # Ollama, production default
+    ollama-qwen3-1.7b.json        # Ollama, fast / lower latency
+    mlx-Qwen3.5-2B-OptiQ-4bit.json  # MLX, fastest (Apple Silicon)
+    mlx-Qwen3.5-4B-OptiQ-4bit.json  # MLX, balanced
+    mlx-Qwen3.5-9B-OptiQ-4bit.json  # MLX, highest quality
 tools/
   assemble_config.py  # Merges base + profile into a complete config for Juturna
   run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <seconds> --summarizer <profile>
@@ -98,22 +100,24 @@ docs/                 # Challenge spec, TODO, plans
 ## Quick Start
 
 ```bash
-# Install (requires uv + Python 3.12)
-uv sync --extra dev
-# Optional: install mlx-lm for Apple Silicon native inference
+# Install (requires uv + Python 3.12) — include mlx for production inference
 uv sync --extra dev --extra mlx
 
 # Start Janus (first run builds the Docker image — takes ~15 min)
-docker compose up -d
+docker compose up
 
 # Run unit tests (no Janus or Ollama required)
 .venv/bin/pytest tests/
 
-# Run pipeline (requires Janus + Ollama)
-./tools/run_pipeline.sh                              # 300s window with default model profile (ollama-qwen3.5-9b)
-./tools/run_pipeline.sh --window 30                  # 30s window for faster outputs and quicker iteration
-./tools/run_pipeline.sh -w 300 -s ollama-qwen3-1.7b  # fast model profile
-./tools/run_pipeline.sh --window 30 --summarizer mlx-qwen2.5-1.5b  # mlx profile
+# Run pipeline (requires Janus)
+./tools/run_pipeline.sh                                        # 300s window, default (ollama-qwen3.5-9b)
+./tools/run_pipeline.sh --window 30                            # 30s window for faster iteration
+./tools/run_pipeline.sh -s ollama-qwen3-1.7b                   # Ollama fast alternative
+
+# MLX profiles (Apple Silicon native, no Ollama server needed)
+./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-2B-OptiQ-4bit    # fastest (~1GB)
+./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-4B-OptiQ-4bit    # balanced (~2GB)
+./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-9B-OptiQ-4bit    # highest quality (~4.5GB)
 
 # Inject test audio through Janus (in a separate terminal while pipeline is running)
 # Use the 10-min fixture so the 300s production window fires at least once
@@ -123,30 +127,33 @@ uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 ## Runtime Requirements
 
 - **Janus** running via Docker: `docker compose up -d` (builds from source on first run)
-- **Ollama** running locally on `http://127.0.0.1:11434`
-- Pull the LLM model before first run: `ollama pull qwen3.5:9b-16k`
+- **MLX** (default): no server required — model downloads from HuggingFace on first run
+- **Ollama** (alternative): running locally on `http://127.0.0.1:11434`; pull model with `ollama pull qwen3.5:9b-16k`
 - ASR model (`small.en` via faster-whisper) downloads automatically on first run
 - Pipeline configs are assembled at launch time: `config-base.json` + a profile from `pipelines/summarizer/`
 - The `audio_rtp` node listens on `0.0.0.0:8888`; Janus forwards RTP to that port
 
 ## Current Model Choices
 
-| Stage         | Model                     | Notes                                      |
-|---------------|---------------------------|--------------------------------------------|
-| ASR           | `faster-whisper small.en` | `device: auto`, int8, English-only         |
-| Summarization | `qwen3.5:9b-16k`         | Structured JSON output, stop-drain logic   |
+| Stage         | Model                                              | Notes                                                       |
+|---------------|----------------------------------------------------|-------------------------------------------------------------|
+| ASR           | `faster-whisper small.en`                          | `device: auto`, int8, English-only                          |
+| Summarization | `Qwen3.5-2B-OptiQ-4bit` (mlx)                     | Fastest MLX option; ~1GB; `temp=0.2`                        |
+| Summarization | `Qwen3.5-4B-OptiQ-4bit` (mlx)                     | Balanced MLX option; ~2GB; `temp=0.3`                       |
+| Summarization | `Qwen3.5-9B-OptiQ-4bit` (mlx)                     | Highest quality MLX; ~4.5GB; `temp=0.4`                     |
+| Summarization | `qwen3.5:9b-16k` (Ollama)                         | Ollama default; requires Ollama running                     |
 
 ### Summarizer Nodes
 
 Two separate Juturna nodes — switch by changing `mark` in the pipeline config:
 
-- **`summarizer_llm`** (default) — Ollama backend. Requires Ollama at `http://127.0.0.1:11434`. Prompt: `summarize_prompt_ollama.txt` (includes `/no_think`). Config params: `endpoint`, `model_name`, `num_ctx`, `num_predict`.
-- **`summarizer_mlx`** — Native Apple Silicon inference via `mlx-lm`. No server required. Prompt: `summarize_prompt_mlx.txt`. Install with `uv sync --extra mlx`. Model names are HuggingFace IDs (e.g., `mlx-community/Qwen2.5-1.5B-Instruct-4bit`). Config params: `model_name`, `num_predict`.
+- **`summarizer_mlx`** (default) — Native Apple Silicon inference via `mlx-lm`. No server required. Install with `uv sync --extra mlx`. Model names are HuggingFace IDs. Qwen3.5 profiles use `summarize_prompt_mlx_qwen3.txt` (includes `/no_think` to suppress chain-of-thought). Config params: `model_name`, `prompt_template_file`, `num_predict`, `temp`, `top_p`, `repetition_penalty`.
+- **`summarizer_llm`** (alternative) — Ollama backend. Requires Ollama at `http://127.0.0.1:11434`. Prompt: `summarize_prompt_ollama.txt` (includes `/no_think`). Config params: `endpoint`, `model_name`, `num_ctx`, `num_predict`.
 
 ## Gotchas
 
 - `destination_endpoint` in `pipelines/config-base.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty)
-- Prompt templates: `summarize_prompt_ollama.txt` (Ollama, with `/no_think`) and `summarize_prompt_mlx.txt` (mlx-lm, without). Configured via `prompt_template_file` in each pipeline config.
+- Prompt templates: `summarize_prompt_ollama.txt` (Ollama, with `/no_think`), `summarize_prompt_mlx_qwen3.txt` (MLX Qwen3.5 profiles, with `/no_think`), and `summarize_prompt_mlx.txt` (legacy mlx, without `/no_think`). Configured via `prompt_template_file` in each pipeline config.
 - Results are written to `results/{sanitized_model}/{window_duration}/window_N.json` and optionally POSTed to `destination_endpoint`. Model name sanitization: `:` → `-`, `/` → `_` (filesystem compatibility).
 - **Challenge output format**: result_transmitter maps internal keys to challenge-required keys: `window_start` → `from`, `window_end` → `to`, `latency` → `proc_time`. Output must contain exactly: `from`, `to`, `summary`, `keywords` (3 items), `proc_time`.
 - `encoding_clock_chan: "opus/48000/2"` in `config-base.json` declares stereo Opus; verify against actual Janus stream before submission — change to `opus/48000/1` if Janus sends mono

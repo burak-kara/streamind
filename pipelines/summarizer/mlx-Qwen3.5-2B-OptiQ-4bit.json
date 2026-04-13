@@ -1,0 +1,13 @@
+{
+  "name": "summarizer",
+  "type": "proc",
+  "mark": "summarizer_mlx",
+  "configuration": {
+    "model_name": "mlx-community/Qwen3.5-2B-OptiQ-4bit",
+    "prompt_template_file": "summarize_prompt_mlx_qwen3.txt",
+    "num_predict": 256,
+    "temp": 0.2,
+    "top_p": 0.85,
+    "repetition_penalty": 1.1
+  }
+}

@@ -3,3 +3,6 @@
 model_name = "mlx-community/Qwen2.5-1.5B-Instruct-4bit"
 prompt_template_file = "summarize_prompt_mlx.txt"
 num_predict = 128
+temp = 0.0
+top_p = 1.0
+repetition_penalty = 1.0

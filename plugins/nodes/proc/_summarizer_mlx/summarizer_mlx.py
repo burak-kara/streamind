@@ -17,6 +17,9 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
     def __init__(self, model_name: str = "mlx-community/Qwen2.5-1.5B-Instruct-4bit",
                  prompt_template_file: str = "summarize_prompt_mlx.txt",
                  num_predict: int = 128,
+                 temp: float = 0.0,
+                 top_p: float = 1.0,
+                 repetition_penalty: float = 1.0,
                  **kwargs):
         super().__init__(**kwargs)
         self._model_name = model_name
@@ -25,6 +28,9 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
         self._prompt_template = ""
         self._prompt_file = prompt_template_file
         self._num_predict = num_predict
+        self._temp = temp
+        self._top_p = top_p
+        self._repetition_penalty = repetition_penalty
         self._logger = logging.getLogger(self.__class__.__name__)
 
     def configure(self): pass
@@ -76,7 +82,12 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
             )
             content = generate(
                 self._mlx_model, self._mlx_tokenizer,
-                prompt=formatted, max_tokens=self._num_predict, verbose=False,
+                prompt=formatted,
+                max_tokens=self._num_predict,
+                temp=self._temp,
+                top_p=self._top_p,
+                repetition_penalty=self._repetition_penalty,
+                verbose=False,
             )
             # Strip markdown code fences if present
             content = re.sub(r"^```[a-z]*\n?", "", content)
