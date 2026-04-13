@@ -3,3 +3,4 @@
 destination_endpoint = ""
 results_dir = "./results"
 timeout = 10
+debug = false

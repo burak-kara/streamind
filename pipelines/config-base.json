@@ -76,7 +76,8 @@
         "configuration": {
           "destination_endpoint": "",
           "results_dir": "./results",
-          "timeout": 10
+          "timeout": 10,
+          "debug": true
         }
       }
     ],

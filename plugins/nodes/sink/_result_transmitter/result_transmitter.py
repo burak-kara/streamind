@@ -12,17 +12,19 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
     """Saves results to filesystem and POSTs to challenge endpoint."""
 
     def __init__(self, destination_endpoint: str = "", results_dir: str = "./results",
-                 timeout: int = 10, **kwargs):
+                 timeout: int = 10, debug: bool = False, **kwargs):
         super().__init__(**kwargs)
         self._endpoint = destination_endpoint
         self._results_dir = Path(results_dir)
         self._timeout = timeout
+        self._debug = debug
         self._logger = logging.getLogger(self.__class__.__name__)
 
     def configure(self): pass
 
     def warmup(self):
         self._results_dir.mkdir(parents=True, exist_ok=True)
+        self._logger.info(f"Debug mode: {'ON' if self._debug else 'OFF'}")
 
     def set_on_config(self, prop: str, value: typing.Any): pass
     def start(self): super().start()
@@ -66,12 +68,21 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
         filepath.write_text(json.dumps(result, indent=2))
         self._logger.info(f"Saved result to {filepath}")
 
-        # Save transcript for offline accuracy computation
-        transcript = message.payload.get("full_transcript", "")
-        if transcript:
-            transcript_path = output_dir / f"window_{window_id}_transcript.txt"
-            transcript_path.write_text(transcript)
-            self._logger.info(f"Saved transcript to {transcript_path}")
+        if self._debug:
+            debug_dir = output_dir / "debug"
+            debug_dir.mkdir(parents=True, exist_ok=True)
+
+            transcript = message.payload.get("full_transcript", "")
+            if transcript:
+                transcript_path = debug_dir / f"window_{window_id}_transcript.txt"
+                transcript_path.write_text(transcript)
+                self._logger.info(f"Saved transcript to {transcript_path}")
+
+            raw_llm_output = message.payload.get("raw_llm_output", "")
+            if raw_llm_output:
+                raw_path = debug_dir / f"window_{window_id}_llm_raw.json"
+                raw_path.write_text(raw_llm_output)
+                self._logger.info(f"Saved raw LLM output to {raw_path}")
 
         if self._endpoint:
             try:
