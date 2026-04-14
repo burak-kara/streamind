@@ -43,35 +43,8 @@ The pipeline has 6 sequential stages, all implemented as **Juturna nodes**:
 
 ## Key References
 
-- Full challenge specification: `docs/CHALLENGE.md`
-- Juturna framework: <https://github.com/meetecho/juturna>
-- Janus WebRTC server: <https://github.com/meetecho/janus-gateway>
-
-### Juturna Local Documentation (`docs/documentation/juturna/`)
-
-| File | Contents |
-|------|----------|
-| `README.md` | Overview and getting started |
-| `node-development.md` | Juturna node development guide |
-| `package.html` | Full API reference |
-| `audio-transcription.html` | Audio pipeline tutorial |
-| `explain/1- rationale.html` | Design philosophy and scope |
-| `explain/2- entities.html` | Core entities: Pipeline, Node, Message |
-| `explain/3- pipelines.html` | Pipeline lifecycle and config format |
-| `explain/4- nodes.html` | Node types, threading model, lifecycle |
-| `explain/5- messages-and-payloads.html` | Payload types, immutability, Draft |
-| `explain/6- remote-services.html` | Remotizing nodes as microservices |
-| `how-to/1- why-and-how-to.html` | Practical introduction |
-| `how-to/2- create-costum-nodes.html` | Step-by-step custom node guide |
-| `how-to/3- create-pipelines.html` | Pipeline creation workflow |
-| `how-to/4- cli-tool.html` | All CLI commands reference |
-| `how-to/5- constants-and-environment.html` | Env vars and global constants |
-| `how-to/6- remotise-node.html` | Remote node deployment |
-| `how-to/7- observability.html` | Telemetry and logging |
-
-### Janus Local Documentation
-
-- `docs/documentation/janus/README.md` — Janus overview and getting started
+- [`docs/CLAUDE.md`](docs/CLAUDE.md) — docs folder contents and navigation guide (documentation, plans, challenge specification)
+- [`docs/documentation/CLAUDE.md`](docs/documentation/CLAUDE.md) — Juturna/Janus links and local documentation index
 
 ## Directory Structure
 
@@ -135,23 +108,11 @@ uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
 
 ## Current Model Choices
 
-| Stage         | Model                                              | Notes                                                       |
-|---------------|----------------------------------------------------|-------------------------------------------------------------|
-| ASR           | `faster-whisper small.en`                          | `device: auto`, int8, English-only                          |
-| Summarization | `Qwen3.5-2B-OptiQ-4bit` (mlx)                     | Fastest MLX option; ~1GB; `temp=0.2`                        |
-| Summarization | `Qwen3.5-4B-OptiQ-4bit` (mlx)                     | Balanced MLX option; ~2GB; `temp=0.3`                       |
-| Summarization | `Qwen3.5-9B-OptiQ-4bit` (mlx)                     | Highest quality MLX; ~4.5GB; `temp=0.4`                     |
-| Summarization | `qwen3.5:9b-16k` (Ollama)                         | Ollama default; requires Ollama running                     |
-
-### Summarizer Nodes
-
-Two separate Juturna nodes — switch by changing `mark` in the pipeline config:
-
-- **`summarizer_mlx`** (default) — Native Apple Silicon inference via `mlx-lm`. No server required. Install with `uv sync --extra mlx`. Model names are HuggingFace IDs. Qwen3.5 profiles use `summarize_prompt_mlx_qwen3.txt` (includes `/no_think` to suppress chain-of-thought). Config params: `model_name`, `prompt_template_file`, `num_predict`, `temp`, `top_p`, `repetition_penalty`.
-- **`summarizer_llm`** (alternative) — Ollama backend. Requires Ollama at `http://127.0.0.1:11434`. Prompt: `summarize_prompt_ollama.txt` (includes `/no_think`). Config params: `endpoint`, `model_name`, `num_ctx`, `num_predict`.
+See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node directory layout, model choices, and summarizer node details.
 
 ## Gotchas
 
+- To download a YouTube video: see `docs/documentation/yt-dlp-guide.md`
 - `destination_endpoint` in `pipelines/config-base.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty)
 - Prompt templates: `summarize_prompt_ollama.txt` (Ollama, with `/no_think`), `summarize_prompt_mlx_qwen3.txt` (MLX Qwen3.5 profiles, with `/no_think`), and `summarize_prompt_mlx.txt` (legacy mlx, without `/no_think`). Configured via `prompt_template_file` in each pipeline config.
 - Results are written to `results/{sanitized_model}/{window_duration}/window_N.json` and optionally POSTed to `destination_endpoint`. Model name sanitization: `:` → `-`, `/` → `_` (filesystem compatibility).
