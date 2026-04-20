@@ -7,6 +7,7 @@ This file maps the `docs/` directory for agent navigation. Start here when looki
 - `CHALLENGE.md`: Full challenge specification — scoring formula, endpoint contract, submission format
 - `images/challenge_overview.png`: Pipeline architecture diagram
 - `images/challenge_scoring.png`: Scoring breakdown diagram
+- `datasets/`: Audio transcription datasets, details and links. Do not index or include in the context.
 
 ## Task Tracking
 

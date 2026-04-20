@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); print(json.dumps({'continue':False,'stopReason':'docs/datasets/ is excluded from context — large dataset files, do not read.'})) if 'docs/datasets' in fp else None\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",

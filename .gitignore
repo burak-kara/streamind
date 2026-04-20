@@ -30,8 +30,6 @@ tmp/
 .AppleDouble
 .LSOverride
 
-docs/plans/
-
 # Python
 __pycache__/
 *.py[cod]
