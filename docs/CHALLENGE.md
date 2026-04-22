@@ -248,5 +248,5 @@ adopted in the pipeline, so make sure your solution fits in there!
 
 ## References and Resources
 
-- Juturna framework: https://github.com/meetecho/juturna
-- Janus WebRTC server: https://github.com/meetecho/janus-gateway
+- Juturna framework: <https://github.com/meetecho/juturna>
+- Janus WebRTC server: <https://github.com/meetecho/janus-gateway>
