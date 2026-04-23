@@ -5,5 +5,5 @@ c=IN IP4 0.0.0.0
 t=0 0
 a=tool:libavformat 58.76.100
 m=audio 8888 RTP/AVP 97
-a=rtpmap:97 opus/48000/2
+a=rtpmap:97 opus/48000/1
 a=fmtp:97 sprop-stereo=1

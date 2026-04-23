@@ -1,11 +1,11 @@
 {
   "from": 0.0,
   "to": 30.0,
-  "summary": "The speaker mentions having limited items to cover but suggests recording a fun corporate event topic if time permits. They reference seeing some noise or discussion about this subject on Slack, indicating it has already generated some interest.",
+  "summary": "The speaker mentions having many items to address and suggests recording a fun corporate event if time permits, noting some Slack noise regarding the topic.",
   "keywords": [
     "corporate events",
-    "recording",
-    "slack"
+    "Slack noise",
+    "recording"
   ],
-  "proc_time": 3.1085822582244873
+  "proc_time": 3.040864944458008
 }

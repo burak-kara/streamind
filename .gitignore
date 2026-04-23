@@ -1,5 +1,6 @@
 # AI assistants – local overrides only
 .claude/**/*.local.*
+.claude/**/*.lock
 .cursor
 .remember/
 tmp/

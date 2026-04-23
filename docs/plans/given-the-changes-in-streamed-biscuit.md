@@ -9,7 +9,10 @@ The Janus +4 bonus is already earned by our architecture.
 ## New Scoring Reference
 
 ```text
-C_i = B_i + K_i + L_i + 4 (Janus, free)
+C_i = B_i + K_i + L_i
+
+Overall score per audio source:
+S = avg_i(C_i) + 4 (Janus bonus, if applicable)
 
 B_i  max 25  — LLM judge on 5 Likert criteria:
                factual consistency, relevance, coherence, fluency, CONCISENESS (new)
@@ -138,6 +141,8 @@ Script that reads `results/*/window_*.json` + `results/*/debug/window_*_transcri
 
 This harness is the single tool that validates every change in Phases 2 and 3.
 
+Treat this harness as directional, not authoritative: the official hidden judge may score differently. Keep deterministic checks in CI for schema validity, exact 3-keyword outputs, and `proc_time` presence.
+
 ### 3.2 Prompt A/B testing
 
 Use `tools/eval_quality.py` to test prompt variants against `tests/fixtures/youtube_15min.wav` (15 min → 3 windows, fast iteration). Key variants:
@@ -176,19 +181,13 @@ Multi-container note: Janus must also be running. Update `docker-compose.yml` to
 
 **Acceptance**: `docker compose up` starts both Janus and the pipeline; `uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav` produces result files.
 
-### 4.2 Approach document
+### 4.2 Benchmark skill
 
-**New file**: `docs/APPROACH.md`
-
-1-2 pages: pipeline architecture, key design decisions (Janus for WebRTC bonus, faster-whisper, model choice), scoring strategy (quality floor first, then latency), any novel contributions (keyword validation, hallucination filter).
-
-### 4.3 Benchmark skill
-
-**New file**: `.claude/skills/benchmark-pipeline/skill.md`
+**New file**: `.claude/skills/benchmark-pipeline/SKILL.md`
 
 Reads `results/*/window_*.json`, computes `L_i = 10·exp(−0.5·proc_time)` for each window, flags format violations (empty keywords, fewer than 3), and shows estimated C_i range across B_i assumptions.
 
-### 4.4 Final submission checklist
+### 4.3 Final submission checklist
 
 - `destination_endpoint` set to challenge POST URL
 - `encoding_clock_chan` verified against actual Janus stream (`opus/48000/2` vs `opus/48000/1`)
@@ -216,17 +215,27 @@ Phase 4 (last, needs arch finalized)
 
 ## Estimated Score Ceiling
 
-| State | B_i | K_i | L_i | Janus | Total |
-|-------|-----|-----|-----|-------|-------|
-| Current (4B MLX, 9.35s) | ~15 | ~2 | ~0.1 | 4 | ~21 |
-| After Phase 1 | ~18 | ~5 | ~0.5 | 4 | ~27 |
-| After Phase 2+3 (3s proc_time) | ~20 | ~6 | ~2.2 | 4 | ~32 |
-| Stretch (1s proc_time) | ~22 | ~6 | ~6.1 | 4 | ~38 |
+Per-chunk estimate (without Janus):
+
+| State | B_i | K_i | L_i | Chunk C_i |
+| ------- | ----- | ----- | ----- | ----------- |
+| Current (4B MLX, 9.35s) | ~15 | ~2 | ~0.1 | ~17.1 |
+| After Phase 1 | ~18 | ~5 | ~0.5 | ~23.5 |
+| After Phase 2+3 (3s proc_time) | ~20 | ~6 | ~2.2 | ~28.2 |
+| Stretch (1s proc_time) | ~22 | ~6 | ~6.1 | ~34.1 |
+
+Audio-level estimate with Janus bonus:
+
+$$
+S \approx avg_i(C_i) + 4
+$$
+
+Under stable chunk quality, this is approximately `chunk estimate + 4` at the audio level.
 
 ## Files Modified
 
 | Phase | File |
-|-------|------|
+| ------- | ------ |
 | 1.1 | `plugins/nodes/proc/_summarizer_mlx/summarizer_mlx.py` |
 | 1.1 | `plugins/nodes/proc/_summarizer_llm/summarizer_llm.py` |
 | 1.1 | `tests/test_summarizer_mlx.py` (new) |
@@ -239,5 +248,4 @@ Phase 4 (last, needs arch finalized)
 | 3.1 | `tools/eval_quality.py` (new) |
 | 4.1 | `Dockerfile` (new) |
 | 4.1 | `docker-compose.yml` |
-| 4.2 | `docs/APPROACH.md` (new) |
-| 4.3 | `.claude/skills/benchmark-pipeline/skill.md` (new) |
+| 4.2 | `.claude/skills/benchmark-pipeline/SKILL.md` (new) |

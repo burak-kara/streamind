@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import re
 import time
@@ -9,6 +10,20 @@ from mlx_lm import load, generate
 from mlx_lm.sample_utils import make_sampler, make_logits_processors
 from juturna.components import Node, Message
 from juturna.payloads import ObjectPayload, ControlPayload
+
+
+# Load the shared keyword-handling module by path. Juturna loads this file by
+# path too (not as part of a package), so a regular import cannot reach the
+# sibling `_summarizer_common` directory.
+_kw_spec = importlib.util.spec_from_file_location(
+    "summarizer_keywords",
+    Path(__file__).resolve().parent.parent / "_summarizer_common" / "keywords.py",
+)
+_kw_module = importlib.util.module_from_spec(_kw_spec)
+assert _kw_spec.loader is not None
+_kw_spec.loader.exec_module(_kw_module)
+BANNED_KEYWORDS = _kw_module.BANNED_KEYWORDS
+_ensure_three_keywords_impl = _kw_module.ensure_three_keywords
 
 
 
@@ -61,11 +76,8 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
         super().stop()
     def destroy(self): pass
 
-    def _ensure_three_keywords(self, keywords: list) -> list[str]:
-        kw = [str(k) for k in keywords]
-        while len(kw) < 3:
-            kw.append("general")
-        return kw[:3]
+    def _ensure_three_keywords(self, keywords: list, transcript: str = "") -> list[str]:
+        return _ensure_three_keywords_impl(keywords, transcript)
 
     def update(self, message: Message[ObjectPayload]):
         transcript = message.payload.get("full_transcript", "")
@@ -105,19 +117,26 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
             self._logger.debug(f"Raw LLM output: {repr(content)}")
             # Strip thinking blocks (Qwen3 may emit <think>...</think> despite /no_think)
             content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
+            # Strip Qwen/ChatML special tokens like <|im_end|>, <|endoftext|>.
+            content = re.sub(r"<\|[^|]+\|>", "", content)
             # Strip markdown code fences if present
             content = re.sub(r"^```[a-z]*\n?", "", content, flags=re.MULTILINE)
             content = re.sub(r"\n?```$", "", content, flags=re.MULTILINE)
             content = content.strip()
             if not content:
                 raise ValueError("LLM returned empty content")
-            parsed = json.loads(content)
+            # Extract the outermost JSON object — tolerates trailing stop tokens
+            # or commentary the model may emit after the JSON.
+            obj_match = re.search(r"\{.*\}", content, re.DOTALL)
+            if obj_match is None:
+                raise ValueError(f"No JSON object found in LLM output: {content[:120]!r}")
+            parsed = json.loads(obj_match.group(0))
             summary = parsed.get("summary", "")
-            keywords = self._ensure_three_keywords(parsed.get("keywords", []))
+            keywords = self._ensure_three_keywords(parsed.get("keywords", []), transcript)
         except Exception as e:
             self._logger.error(f"LLM call failed: {e}")
             summary = ""
-            keywords = []
+            keywords = self._ensure_three_keywords([], transcript)
 
         latency = time.time() - trigger_time
 

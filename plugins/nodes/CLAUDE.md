@@ -11,6 +11,7 @@
 | `proc/_window_aggregator/` | `window_aggregator` | Accumulates transcript into rolling windows |
 | `proc/_summarizer_mlx/` | `summarizer_mlx` | LLM summarization — native MLX (default) |
 | `proc/_summarizer_llm/` | `summarizer_llm` | LLM summarization — Ollama backend |
+| `proc/_summarizer_common/` | — (helper) | Shared keyword post-processing for both summarizer nodes (loaded via importlib, not a Juturna node) |
 | `proc/_hallucination_filter/` | `hallucination_filter` | Post-processes LLM output to remove hallucinations |
 | `sink/_result_transmitter/` | `result_transmitter` | Writes results locally and POSTs to endpoint |
 

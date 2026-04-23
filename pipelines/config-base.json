@@ -17,10 +17,10 @@
           "rec_port": 8888,
           "audio_rate": 16000,
           "block_size": 3,
-          "channels": 2,
+          "channels": 1,
           "process_log_level": "quiet",
           "payload_type": 97,
-          "encoding_clock_chan": "opus/48000/2"
+          "encoding_clock_chan": "opus/48000/1"
         }
       },
       {

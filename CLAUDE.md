@@ -4,12 +4,16 @@
 
 STREAMIND Grand Challenge: build **real-time AI meeting intelligence pipeline**. Receives live audio stream, transcribes incrementally, aggregates context, produces structured LLM outputs (summary + keywords) with minimal latency.
 
-Scoring: `C_i = B_i + K_i + L_i` (per-chunk, averaged across all chunks, min-max normalised)
+Scoring:
+
+- Per-chunk: `C_i = B_i + K_i + L_i`
+- Per-audio source: `S_audio = avg_i(C_i)`
+- Janus bonus: `+4` added to overall score
+- Submission ranking: min-max normalised across submissions
 
 - `B_i` max 25: LLM judge on 5 Likert criteria — factual consistency, relevance, coherence, fluency, conciseness
 - `K_i` max 6: +2 per relevant keyword, −2 per irrelevant; exactly 3 required
 - `L_i` max ~6: `10·e^(−0.5·proc_time)`, **only if `B_i ≥ 10`**; ~0.09 at 9s, ~2.2 at 3s, ~6.1 at 1s
-- Janus bonus: flat +4 (already earned by architecture)
 Quality gates latency reward — `B_i < 10` zeroes out `L_i` entirely.
 
 ## Pipeline Architecture
@@ -40,7 +44,7 @@ Quality gates latency reward — `B_i < 10` zeroes out `L_i` entirely.
 ## Scoring Constraints
 
 - Per-chunk score: `C_i = B_i + K_i + L_i` — quality gates latency reward
-- **Final score = average of all chunk scores**, min-max normalised across submissions
+- **Final score = average of all chunk scores + Janus bonus (if applicable)**, then min-max normalised across submissions
 - `L_i` only applies when `B_i ≥ 10` — prioritize summary quality over raw latency
 - Each window output **must include exactly 3 keywords**; wrong count hurts `K_i`
 - Missing/extra keywords penalized: −2 per irrelevant keyword
@@ -65,8 +69,8 @@ plugins/nodes/        # Juturna node implementations
 pipelines/            # Pipeline configs
   config-base.json    # Base pipeline (all nodes except summarizer)
   summarizer/         # Summarizer profiles — one JSON node definition per profile
-    ollama-qwen3.5-9b.json        # Ollama, production default
-    ollama-qwen3-1.7b.json        # Ollama, fast / lower latency
+    ollama-qwen3.5-9b.json        # Ollama, higher quality
+    ollama-qwen3.5-4b.json        # Ollama, submission default (CUDA target)
     mlx-Qwen3.5-2B-OptiQ-4bit.json  # MLX, fastest (Apple Silicon)
     mlx-Qwen3.5-4B-OptiQ-4bit.json  # MLX, balanced
     mlx-Qwen3.5-9B-OptiQ-4bit.json  # MLX, highest quality
@@ -94,7 +98,7 @@ docker compose up
 # Run pipeline (requires Janus)
 ./tools/run_pipeline.sh                                        # 300s window, default (ollama-qwen3.5-9b)
 ./tools/run_pipeline.sh --window 30                            # 30s window for faster iteration
-./tools/run_pipeline.sh -s ollama-qwen3-1.7b                   # Ollama fast alternative
+./tools/run_pipeline.sh -s ollama-qwen3.5-4b                   # Ollama submission default (CUDA target)
 
 # MLX profiles (Apple Silicon native, no Ollama server needed)
 ./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-2B-OptiQ-4bit    # fastest (~1GB)
@@ -135,7 +139,7 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout, model 
 | Skill | Purpose |
 | -------- | ----------- |
 | `/run-pipeline` | Check Ollama + model, launch pipeline |
-| `/benchmark-pipeline` | Parse `results/window_*.json`, report latency stats + score estimate |
+| `/benchmark-pipeline` | Parse `results/*/window_*.json`, compute L_i per chunk, flag format violations |
 | `/tune-prompt` | Test summarization prompt against sample transcript via Ollama |
 | `/swap-model` | Switch ASR or LLM model in `config.json`, verify availability |
 | `/add-node` | Scaffold new Juturna node with correct structure |
