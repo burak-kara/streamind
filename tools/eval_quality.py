@@ -11,9 +11,8 @@ This harness is directional only. The official hidden judge may differ.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
-import math
-import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,29 +22,19 @@ from typing import Iterable
 import ollama
 
 
-LIKERT_CRITERIA = (
-    "factual_consistency",
-    "relevance",
-    "coherence",
-    "fluency",
-    "conciseness",
+# Load the shared scorer module by path. Mirrors the loader pattern used by
+# the in-pipeline judge node so the script and node can never drift.
+# The sys.modules registration is required so @dataclass inside the module
+# can resolve its own __module__ in Python 3.12+.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_scorer_spec = importlib.util.spec_from_file_location(
+    "judge_scorer",
+    _REPO_ROOT / "plugins" / "nodes" / "sink" / "_judge_common" / "scorer.py",
 )
-
-JUDGE_PROMPT = """You are a strict evaluator for meeting summaries. Given the TRANSCRIPT and the CANDIDATE JSON (summary + 3 keywords), output ONLY a raw JSON object (no markdown) with these fields:
-
-- "factual_consistency": integer 1-5 — does the summary state only facts present in the transcript?
-- "relevance": integer 1-5 — does the summary capture the main point of the transcript?
-- "coherence": integer 1-5 — is the summary logically ordered and readable?
-- "fluency": integer 1-5 — grammatical, natural English?
-- "conciseness": integer 1-5 — short and specific, no padding?
-- "keyword_relevance": array of exactly 3 booleans — is each keyword a specific, relevant term from the transcript (not a generic word like "meeting", "discussion", "topic")?
-
-TRANSCRIPT:
-{transcript}
-
-CANDIDATE:
-{candidate}
-"""
+_scorer = importlib.util.module_from_spec(_scorer_spec)
+assert _scorer_spec.loader is not None
+sys.modules["judge_scorer"] = _scorer
+_scorer_spec.loader.exec_module(_scorer)
 
 
 @dataclass
@@ -63,13 +52,6 @@ class Scored:
     transcript_len: int
 
 
-def _strip_fences(text: str) -> str:
-    text = text.strip()
-    text = re.sub(r"^```[a-z]*\n?", "", text)
-    text = re.sub(r"\n?```$", "", text)
-    return text.strip()
-
-
 def _read_transcript(window_path: Path) -> str:
     stem = window_path.stem  # window_N
     candidates = [
@@ -84,11 +66,10 @@ def _read_transcript(window_path: Path) -> str:
 
 def _iter_window_files(root: Path) -> Iterable[Path]:
     for p in sorted(root.rglob("window_*.json")):
-        # Skip debug artifacts like `debug/window_N_llm_raw.json`.
-        if "debug" in p.parts:
+        # Skip debug artifacts and the judge node's own output dir.
+        if "debug" in p.parts or "judge" in p.parts:
             continue
         if p.name.startswith("window_") and not p.stem[len("window_"):].isdigit():
-            # Only accept `window_<int>.json`, not `window_N_llm_raw.json` etc.
             continue
         yield p
 
@@ -100,49 +81,34 @@ def _score_one(client: ollama.Client, model: str, window: Path) -> Scored | None
         print(f"skip {window}: {e}", file=sys.stderr)
         return None
     transcript = _read_transcript(window)
-    candidate = json.dumps(
-        {"summary": result.get("summary", ""), "keywords": result.get("keywords", [])},
-        ensure_ascii=False,
-    )
-    prompt = JUDGE_PROMPT.format(transcript=transcript, candidate=candidate)
+    summary = result.get("summary", "")
+    keywords = result.get("keywords", [])
+    prompt = _scorer.build_prompt(transcript=transcript, summary=summary, keywords=keywords)
     response = client.chat(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         options={"num_predict": 256, "num_ctx": 4096, "temperature": 0.0},
         think=False,
     )
-    content = _strip_fences(response.message.content)
     try:
-        judged = json.loads(content)
-    except json.JSONDecodeError:
-        print(f"skip {window}: judge returned non-JSON: {content[:120]!r}", file=sys.stderr)
+        b_breakdown, keyword_flags = _scorer.parse_judge_response(response.message.content)
+    except (ValueError, json.JSONDecodeError) as e:
+        print(f"skip {window}: judge parse failed: {e}", file=sys.stderr)
         return None
 
-    b_breakdown = {c: int(judged.get(c, 0)) for c in LIKERT_CRITERIA}
-    b = sum(b_breakdown.values())
-    flags_raw = judged.get("keyword_relevance") or []
-    keyword_flags = [bool(f) for f in flags_raw][:3]
-    while len(keyword_flags) < 3:
-        keyword_flags.append(False)
-    k = sum(2 if f else -2 for f in keyword_flags)
-
     proc_time = float(result.get("proc_time", 0.0))
-    if b >= 10:
-        l_val = 10.0 * math.exp(-0.5 * proc_time)
-    else:
-        l_val = 0.0
-    c = b + k + l_val
+    score = _scorer.compute_score(b_breakdown, keyword_flags, proc_time)
     return Scored(
         path=window,
         proc_time=proc_time,
-        b_breakdown=b_breakdown,
-        b=b,
-        keyword_flags=keyword_flags,
-        k=k,
-        l=l_val,
-        c=c,
-        summary=result.get("summary", ""),
-        keywords=result.get("keywords", []),
+        b_breakdown=score.b_breakdown,
+        b=score.b,
+        keyword_flags=score.keyword_flags,
+        k=score.k,
+        l=score.l,
+        c=score.c,
+        summary=summary,
+        keywords=keywords,
         transcript_len=len(transcript),
     )
 

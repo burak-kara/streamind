@@ -65,7 +65,7 @@ Quality gates latency reward — `B_i < 10` zeroes out `L_i` entirely.
 plugins/nodes/        # Juturna node implementations
   source/             # _audio_file (WAV file source for local testing)
   proc/               # _audio_chunker, _novel_extractor, _transcriber_whisper, _window_aggregator, _summarizer_llm, _summarizer_mlx
-  sink/               # _result_transmitter
+  sink/               # _result_transmitter, _judge_llm (async LLM-as-judge), _judge_common (shared scorer helper)
 pipelines/            # Pipeline configs
   config-base.json    # Base pipeline (all nodes except summarizer)
   summarizer/         # Summarizer profiles — one JSON node definition per profile
@@ -74,9 +74,13 @@ pipelines/            # Pipeline configs
     mlx-Qwen3.5-2B-OptiQ-4bit.json  # MLX, fastest (Apple Silicon)
     mlx-Qwen3.5-4B-OptiQ-4bit.json  # MLX, balanced
     mlx-Qwen3.5-9B-OptiQ-4bit.json  # MLX, highest quality
+  judge/              # Optional async LLM-as-judge profiles (off by default; opt in with --judge)
+    ollama-qwen3.5-4b.json        # Cheap scoring; pair with the 9b summarizer
+    ollama-qwen3.5-9b.json        # Higher-quality scoring
 tools/
-  assemble_config.py  # Merges base + profile into a complete config for Juturna
-  run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <seconds> --summarizer <profile>
+  assemble_config.py  # Merges base + summarizer (+ optional judge) into a complete config
+  run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <s> --summarizer <profile> [--judge <profile>]
+  eval_quality.py     # Offline judge harness — shares the scorer module with the in-pipeline judge_llm node
 tests/                # Unit + integration tests, fixtures/
 results/              # Output JSON files written by result_transmitter
 docs/                 # Challenge spec, TODO, plans
@@ -104,6 +108,9 @@ docker compose up
 ./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-2B-OptiQ-4bit    # fastest (~1GB)
 ./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-4B-OptiQ-4bit    # balanced (~2GB)
 ./tools/run_pipeline.sh -w 30 -s mlx-Qwen3.5-9B-OptiQ-4bit    # highest quality (~4.5GB)
+
+# Add async LLM-as-judge (writes B/K/L/C scores per window to results/.../judge/, never blocks the live path)
+./tools/run_pipeline.sh -s ollama-qwen3.5-9b -j ollama-qwen3.5-4b
 
 # Inject test audio through Janus (in a separate terminal while pipeline is running)
 # Use the 10-min fixture so the 300s production window fires at least once

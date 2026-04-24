@@ -14,6 +14,8 @@
 | `proc/_summarizer_common/` | — (helper) | Shared keyword post-processing for both summarizer nodes (loaded via importlib, not a Juturna node) |
 | `proc/_hallucination_filter/` | `hallucination_filter` | Post-processes LLM output to remove hallucinations |
 | `sink/_result_transmitter/` | `result_transmitter` | Writes results locally and POSTs to endpoint |
+| `sink/_judge_llm/` | `judge_llm` | Async LLM-as-judge — forks from summarizer, scores B/K/L/C offline without blocking the live transmitter |
+| `sink/_judge_common/` | — (helper) | Shared judge prompt + B/K/L/C math, used by `judge_llm` and `tools/eval_quality.py` (loaded via importlib, not a Juturna node) |
 
 ## Current Model Choices
 
@@ -24,6 +26,15 @@
 | Summarization | `Qwen3.5-4B-OptiQ-4bit` (mlx) | Balanced MLX option; ~2GB; `temp=0.3` |
 | Summarization | `Qwen3.5-9B-OptiQ-4bit` (mlx) | Highest quality MLX; ~4.5GB; `temp=0.4` |
 | Summarization | `qwen3.5:9b-16k` (Ollama) | Ollama default; requires Ollama running |
+
+## Judge Node
+
+`judge_llm` is a sink that consumes summarizer output via a fork (`summarizer → transmitter` and `summarizer → judge`). It is **off by default** — opt in with `--judge <profile>` when launching the pipeline.
+
+- Async by design: incoming windows are pushed to a bounded `queue.Queue` and a background worker calls Ollama. `update()` returns immediately so the live transmitter is never blocked.
+- Backpressure handling: if the queue fills up the oldest unscored window is dropped (a warning is logged) — keeps the live monitoring view current rather than letting the judge starve the pipeline.
+- Output: `results/{summarizer_model}/{window_dur}/judge/window_N.json` with the same `from`/`to`/`summary`/`keywords`/`proc_time` plus `B_breakdown`, `B`, `K`, `L`, `C`, `keyword_flags`, `judge_model`. Doesn't touch the official submission file.
+- Use a different model than the summarizer to limit self-bias. Default profile uses `qwen3.5:4b` for cheap scoring; `ollama-qwen3.5-9b` is also provided.
 
 ## Summarizer Nodes
 
