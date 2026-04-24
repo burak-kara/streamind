@@ -1,0 +1,14 @@
+{
+  "name": "judge",
+  "type": "sink",
+  "mark": "judge_llm",
+  "configuration": {
+    "endpoint": "http://127.0.0.1:11434",
+    "model_name": "qwen3.5:9b-16k",
+    "results_dir": "./results",
+    "num_ctx": 4096,
+    "num_predict": 256,
+    "queue_size": 8,
+    "worker_join_timeout": 15.0
+  }
+}

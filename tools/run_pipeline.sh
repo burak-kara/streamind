@@ -4,6 +4,7 @@ set -euo pipefail
 # Default values
 WINDOW=300
 SUMMARIZER=ollama-qwen3.5-9b
+JUDGE=""
 
 # Parse named arguments
 while [[ $# -gt 0 ]]; do
@@ -16,17 +17,22 @@ while [[ $# -gt 0 ]]; do
       SUMMARIZER="$2"
       shift 2
       ;;
+    -j|--judge)
+      JUDGE="$2"
+      shift 2
+      ;;
     -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
       echo "  -w, --window <seconds>      Window duration in seconds (default: 300)"
       echo "  -s, --summarizer <profile>   Summarizer profile (default: ollama-qwen3.5-9b)"
+      echo "  -j, --judge <profile>        Optional async LLM-as-judge profile (off by default)"
       echo "  -h, --help                  Show this help message"
       echo ""
       echo "Examples:"
       echo "  $0 -w 600 -s ollama-llama3.1-8b"
-      echo "  $0 --window 300 --summarizer ollama-qwen3.5-9b"
+      echo "  $0 --window 300 --summarizer ollama-qwen3.5-9b --judge ollama-qwen3.5-4b"
       exit 0
       ;;
     -*)
@@ -45,9 +51,24 @@ if [ ! -f "$PROFILE" ]; then
   exit 1
 fi
 
-ASSEMBLED="./tmp/config-${WINDOW}s-${SUMMARIZER}.json"
-uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED"
+if [ -n "$JUDGE" ]; then
+  JUDGE_PROFILE="pipelines/judge/${JUDGE}.json"
+  if [ ! -f "$JUDGE_PROFILE" ]; then
+    echo "Judge profile not found: $JUDGE_PROFILE"
+    echo "Available judge profiles:"
+    ls pipelines/judge/*.json 2>/dev/null | xargs -n1 basename | sed 's/\.json//'
+    exit 1
+  fi
+fi
 
-echo "Window:     ${WINDOW}s  |  Summarizer: ${SUMMARIZER}"
+if [ -n "$JUDGE" ]; then
+  ASSEMBLED="./tmp/config-${WINDOW}s-${SUMMARIZER}-judge-${JUDGE}.json"
+  uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED" --judge "$JUDGE"
+else
+  ASSEMBLED="./tmp/config-${WINDOW}s-${SUMMARIZER}.json"
+  uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED"
+fi
+
+echo "Window:     ${WINDOW}s  |  Summarizer: ${SUMMARIZER}${JUDGE:+  |  Judge: $JUDGE}"
 echo ""
 uv run python -m juturna launch --config "$ASSEMBLED"
