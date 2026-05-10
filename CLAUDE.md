@@ -81,6 +81,12 @@ tools/
   assemble_config.py  # Merges base + summarizer (+ optional judge) into a complete config
   run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <s> --summarizer <profile> [--judge <profile>]
   eval_quality.py     # Offline judge harness — shares the scorer module with the in-pipeline judge_llm node
+  finetune/           # QLoRA fine-tuning workflow on rev16 (CUDA only)
+    prepare_rev16.py    # Distill rev16 transcripts via teacher LLM, judge-filter → JSONL train/val/test
+    finetune_summarizer.py  # QLoRA on Qwen2.5 base, sized for RTX 2070 (8GB)
+    merge_lora.py       # Merge adapter into base for export
+    export_to_ollama.sh # GGUF conversion + ollama create
+    eval_finetuned.py   # Base vs fine-tuned comparison via judge
 tests/                # Unit + integration tests, fixtures/
 results/              # Output JSON files written by result_transmitter
 docs/                 # Challenge spec, TODO, plans

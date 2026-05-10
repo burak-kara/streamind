@@ -17,6 +17,17 @@ dev = [
     "pytest-asyncio",
     "aiortc",
 ]
+finetune = [
+    "torch",
+    "transformers>=4.45",
+    "peft>=0.13",
+    "trl>=0.12",
+    "accelerate>=1.0",
+    "bitsandbytes>=0.44",
+    "datasets>=3.0",
+    "sentencepiece",
+    "protobuf",
+]
 
 [tool.setuptools]
 packages = []
