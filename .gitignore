@@ -42,3 +42,13 @@ build/
 streamind.egg-info/
 
 **/*_raw.wav
+
+# Fine-tuning artefacts
+tools/finetune/data/*
+!tools/finetune/data/train.jsonl
+!tools/finetune/data/val.jsonl
+!tools/finetune/data/test.jsonl
+!tools/finetune/data/prep_summary.json
+tools/finetune/runs/
+tools/finetune/llama.cpp/
+tools/finetune/.cache/
