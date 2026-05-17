@@ -68,6 +68,7 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 - [`docs/CLAUDE.md`](docs/CLAUDE.md) — docs folder navigation
 - [`docs/documentation/CLAUDE.md`](docs/documentation/CLAUDE.md) — Juturna/Janus reference
 - [`docs/plans/cuda-native-pipeline-base-first.md`](docs/plans/cuda-native-pipeline-base-first.md) — active plan (M0/M1 done, M2–M4 ahead)
+- [`academic-paper/CLAUDE.md`](academic-paper/CLAUDE.md) — IEEE MMSP Grand Challenge paper workspace (compilation, structure, writing rules)
 
 ## Directory Structure
 

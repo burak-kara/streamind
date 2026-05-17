@@ -1,0 +1,57 @@
+\usepackage[dvipsnames,table,xcdraw]{xcolor}
+\usepackage{tikz-inet, pgf, pgfplots}
+\usepackage{tikzscale}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage[capitalise]{cleveref}
+\usepackage[acronym]{glossaries}
+\usepackage{xspace}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage[caption=false]{subfig}
+\usepackage{siunitx}
+\usepackage{enumitem}
+\usepackage{textcomp}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage{needspace}
+\usepackage{caption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usetikzlibrary{arrows, automata, patterns, shapes, plotmarks, backgrounds, fit, positioning, shadows.blur} %%
+\usepgfplotslibrary{fillbetween, statistics, groupplots}
+\pgfplotsset{compat=newest}
+
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+\DeclareSIUnit{\nothing}{\relax}
+\DeclareSIUnit{\bit}{b}
+\DeclareSIUnit{\Per}{/}
+\sisetup{detect-weight=true, detect-family=true, group-separator = {,}}
+\sisetup{per-mode=symbol, per-symbol = \text{p}}
+% \sisetup{range-phrase = \text{--}}
+
+% To enable Table Breaks
+% \keepXColumns
+
+% For code listings
+\DeclareCaptionType{code}[Code][List of Codes]
+\captionsetup[code]{labelsep=colon}
+
+% For examples
+\DeclareCaptionType{example}[Example][List of Examples]
+\captionsetup[example]{labelsep=colon}
+
+\crefname{code}{Code}{Codes}
+\Crefname{code}{Code}{Codes}
+
+\crefname{example}{Example}{Examples}
+\Crefname{example}{Example}{Examples}

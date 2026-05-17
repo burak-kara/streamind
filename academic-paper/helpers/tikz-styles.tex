@@ -1,0 +1,299 @@
+\colorlet{line1}{colorBlue}
+\colorlet{line2}{colorOrange}
+\colorlet{line3}{colorGreen}
+\colorlet{line4}{colorGray}
+
+\def\ateachpoint{10}
+
+\pgfplotscreateplotcyclelist{LineCycle}{%
+    {line1, thick, mark=x, mark options={solid}, mark size = 2pt, mark repeat=75, filter discard warning=false, unbounded coords=discard},
+    {line2, thick, densely dotted, mark=triangle, mark options={solid}, mark size = 1pt, mark repeat=75, filter discard warning=false, unbounded coords=discard},
+    {line3, thick, densely dashed, mark=square, mark options={solid}, mark size = 1pt, mark repeat=75, filter discard warning=false, unbounded coords=discard},
+    {line4, thick, thin, mark=Mercedes star, mark options={solid}, mark size = 4pt, mark repeat=70, each nth point={\ateachpoint}, filter discard warning=false, unbounded coords=discard},
+    {line1, very thick, dashdotted, mark=x, mark options={solid}, mark size = 2pt, mark repeat=45, each nth point={\ateachpoint}, filter discard warning=false, unbounded coords=discard},
+    {line2, very thick, dashdotted, mark=x, mark options={solid}, mark size = 2pt, mark repeat=45, each nth point={\ateachpoint}, filter discard warning=false, unbounded coords=discard}
+}
+
+\def\ateachpointLoose{30}
+\pgfplotscreateplotcyclelist{LineCycleLoose}{%
+    {line1, thick, mark=x, mark options={solid}, mark size = 4pt, mark repeat=15, each nth point={\ateachpointLoose}, filter discard warning=false, unbounded coords=discard},
+    {line2, thick, densely dotted, mark=triangle, mark options={solid}, mark size = 2pt, mark repeat=17, each nth point={\ateachpointLoose}, filter discard warning=false, unbounded coords=discard},
+    {line3, thick, densely dashed, mark=square, mark options={solid}, mark size = 2pt, mark repeat=19, each nth point={\ateachpointLoose}, filter discard warning=false, unbounded coords=discard},
+    {line4, thick, thin, mark=Mercedes star, mark options={solid}, mark size = 2pt, mark repeat=16, each nth point={\ateachpointLoose}, filter discard warning=false, unbounded coords=discard},
+    {line1, very thick, dashdotted, mark=x, mark options={solid}, mark size = 2pt, mark repeat=18, each nth point={\ateachpointLoose}, filter discard warning=false, unbounded coords=discard},
+    {line2, very thick, dashdotted, mark=x, mark options={solid}, mark size = 2pt, mark repeat=15, each nth point={\ateachpointLoose}, filter discard warning=false, unbounded coords=discard}
+}
+
+\pgfplotsset{
+    /pgfplots/area style/.style={%
+        /pgfplots/cycle list={%
+            {line1, mark=none, each nth point={\ateachpoint}},%
+            {line2, mark=none, each nth point={\ateachpoint}},%
+            {line3, mark=none, each nth point={\ateachpoint}},%
+            {line4, mark=none, each nth point={\ateachpoint}}%
+        }%
+    }%
+}%
+
+\pgfplotsset{
+   boxplot/every median/.style={ultra thick}
+}
+
+\pgfplotsset{
+    compat=1.18,
+    /pgfplots/boxplot legend/.style={
+        /pgfplots/legend image code/.code={%
+        \draw[##1,/tikz/.cd,yshift=-0.25em]
+            (0cm,0cm) rectangle (6pt,6pt);},
+    },
+}
+
+\pgfplotsset{
+    compat=1.18,
+	legend image code/.code={
+		\draw[mark repeat=2, mark phase=2, rounded corners=2pt,]
+		plot coordinates {
+			(0cm,0cm)
+			(0.15cm,0cm)        %% default is (0.3cm,0cm)
+			(0.15cm,0cm)         %% default is (0.6cm,0cm)
+		};%
+	}
+}
+
+\pgfplotsset{
+    every axis legend/.style={
+        draw=legendBorderColor,
+        fill=legendFillColor,
+        fill opacity=0.1,
+        text opacity=1,
+        draw opacity=1, 
+        legend columns=1,
+        inner sep=2pt,
+        /tikz/rounded corners=2pt,
+    }
+}
+
+\pgfplotsset{
+    every axis legend/.append style={
+        legend pos=north east,
+        legend cell align=left,
+    }
+}
+
+\pgfplotsset{
+    every axis/.style={
+        tick align=inside,
+        tick pos=both,
+        tick style={line width=0.5pt, color=labelColor},
+        tick label style={font=\small, color=labelColor},
+        label style={font=\small, color=labelColor},
+        title style={font=\small},
+        legend style={font=\small, text={labelColor}},
+        major grid style={dashed, labelColor},
+        grid style=dashed,
+        xminorgrids,
+        yminorgrids,
+        enlargelimits=0.05,
+        clip=false,
+        scaled ticks=false,
+        axis line style={labelColor}
+    }
+}
+
+\tikzstyle{every pin}=[
+    labelColor,
+    draw=legendBorderColor,
+    fill=legendFillColor,
+    font=\footnotesize,
+    fill opacity=0.1,
+    draw opacity=0.4,
+    text opacity=1,
+    pin distance = 1.6em,
+    rounded corners=2pt, 
+    inner sep=4pt,
+    pin edge={labelColor, dashed, thin}
+]
+
+\tikzset{
+    plotv/.style={
+        domain=\ymin:\ymax,
+        samples=2,
+        thin,
+        dash pattern=on 2pt off 8pt,
+        color=labelColor
+    },
+    ploth/.style={
+        domain=\xmin:\xmax,
+        samples=2,
+        thin,
+        dash pattern=on 2pt off 8pt,
+        color=labelColor
+    },
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%% not used yet %%%%%%%%%%%%%%%%%%%%%%%%
+
+% \makeatletter
+% \pgfplotsset{
+%     boxplot prepared from table/.code={
+%         \def\tikz@plot@handler{\pgfplotsplothandlerboxplotprepared}%
+%         \pgfplotsset{
+%             /pgfplots/boxplot prepared from table/.cd,
+%             #1,
+%         }
+%     },
+%     /pgfplots/boxplot prepared from table/.cd,
+%         table/.code={\pgfplotstablecopy{#1}\to\boxplot@datatable},
+%         row/.initial=0,
+%         make style readable from table/.style={
+%             #1/.code={
+%                 \pgfplotstablegetelem{\pgfkeysvalueof{/pgfplots/boxplot prepared from table/row}}{##1}\of\boxplot@datatable
+%                 \pgfplotsset{boxplot/#1/.expand once={\pgfplotsretval}}
+%             }
+%         },
+%         make style readable from table=lower whisker,
+%         make style readable from table=upper whisker,
+%         make style readable from table=lower quartile,
+%         make style readable from table=upper quartile,
+%         make style readable from table=median,
+%         make style readable from table=lower notch,
+%         make style readable from table=upper notch
+% }
+
+% \makeatother
+%     \pgfmathdeclarefunction{fpumod}{2}{%
+%         \pgfmathfloatdivide{#1}{#2}%
+%         \pgfmathfloatint{\pgfmathresult}%
+%         \pgfmathfloatmultiply{\pgfmathresult}{#2}%
+%         \pgfmathfloatsubtract{#1}{\pgfmathresult}%
+%         % replaced `0' by `5' to make it work for this problem
+%         \pgfmathfloatifapproxequalrel{\pgfmathresult}{#2}{\def\pgfmathresult{5}}{}%
+%     }
+
+% % defining the new dimensions and parameters
+% \newlength{\hatchspread}
+% \newlength{\hatchthickness}
+% \newlength{\hatchshift}
+% \newcommand{\hatchcolor}{}
+% % declaring the keys in tikz
+% \tikzset{
+%     hatchspread/.code={\setlength{\hatchspread}{#1}},
+%     hatchthickness/.code={\setlength{\hatchthickness}{#1}},
+%     hatchshift/.code={\setlength{\hatchshift}{#1}},% must be >= 0
+%     hatchcolor/.code={\renewcommand{\hatchcolor}{#1}}
+% }
+% % setting the default values
+% \tikzset{
+%     hatchspread=3pt,
+%     hatchthickness=2pt,
+%     hatchshift=0pt,% must be >= 0
+%     hatchcolor=white
+% }
+         
+% % declaring the pattern
+% \pgfdeclarepatternformonly[\hatchspread,\hatchthickness,\hatchshift,\hatchcolor]% variables
+%    {custom north west lines}% name
+%    {\pgfqpoint{\dimexpr-2\hatchthickness}{\dimexpr-2\hatchthickness}}% lower left corner
+%    {\pgfqpoint{\dimexpr\hatchspread+2\hatchthickness}{\dimexpr\hatchspread+2\hatchthickness}}% upper right corner
+%    {\pgfqpoint{\dimexpr\hatchspread}{\dimexpr\hatchspread}}% tile size
+%    {% shape description
+%     \pgfsetlinewidth{\hatchthickness}
+%     \pgfpathmoveto{\pgfqpoint{0pt}{\dimexpr\hatchspread+\hatchshift}}
+%     \pgfpathlineto{\pgfqpoint{\dimexpr\hatchspread+0.15pt+\hatchshift}{-0.15pt}}
+%     \ifdim \hatchshift > 0pt
+%       \pgfpathmoveto{\pgfqpoint{0pt}{\hatchshift}}
+%       \pgfpathlineto{\pgfqpoint{\dimexpr0.15pt+\hatchshift}{-0.15pt}}
+%     \fi
+%     \pgfsetstrokecolor{\hatchcolor}
+% %    \pgfsetdash{{1pt}{1pt}}{0pt}% dashing cannot work correctly in all situation this way
+%     \pgfusepath{stroke}
+%    }
+
+% \pgfdeclarepatternformonly[\hatchspread,\hatchthickness,\hatchshift,\hatchcolor]% variables
+%    {custom north east lines}% name
+%    {\pgfqpoint{\dimexpr-2\hatchthickness}{\dimexpr-2\hatchthickness}}% lower left corner
+%    {\pgfqpoint{\dimexpr\hatchspread+2\hatchthickness}{\dimexpr\hatchspread+2\hatchthickness}}% upper right corner
+%    {\pgfqpoint{\dimexpr\hatchspread}{\dimexpr\hatchspread}}% tile size
+%    {% shape description
+%     \pgfsetlinewidth{\hatchthickness}
+%     \pgfpathmoveto{\pgfqpoint{\dimexpr\hatchshift-0.15pt}{-0.15pt}}
+%     \pgfpathlineto{\pgfqpoint{\dimexpr\hatchspread+0.15pt}{\dimexpr\hatchspread-\hatchshift+0.15pt}}
+%     \ifdim \hatchshift > 0pt
+%       \pgfpathmoveto{\pgfqpoint{-0.15pt}{\dimexpr\hatchspread-\hatchshift-0.15pt}}
+%       \pgfpathlineto{\pgfqpoint{\dimexpr\hatchshift+0.15pt}{\dimexpr\hatchspread+0.15pt}}
+%     \fi
+%     \pgfsetstrokecolor{\hatchcolor}
+% %    \pgfsetdash{{1pt}{1pt}}{0pt}% dashing cannot work correctly in all situation this way
+%     \pgfusepath{stroke}
+%    }
+
+% \pgfdeclarepatternformonly{mydots}
+%     {\pgfqpoint{-1pt}{-1pt}}
+%     {\pgfqpoint{1pt}{1pt}}
+%     {\pgfqpoint{2pt}{2pt}}% original definition: \pgfqpoint{3pt}{3pt}
+% {%
+%   \pgfpathcircle{\pgfqpoint{0pt}{0pt}}{.8pt}%
+%   \pgfusepath{fill}%
+% }%
+
+% % declaring the pattern
+% \pgfdeclarepatternformonly%[\hatchspread,\hatchthickness,\hatchshift,\hatchcolor]% variables
+%    {mynorthwestlines}% name
+%    {\pgfqpoint{-4pt}{-4pt}}% lower left corner
+%    {\pgfqpoint{8pt}{8pt}}% upper right corner
+%    {\pgfqpoint{4pt}{4pt}}% tile size
+%    {% shape description
+%     \pgfsetlinewidth{2pt}
+%     \pgfpathmoveto{\pgfqpoint{0pt}{4pt}}
+%     \pgfpathlineto{\pgfqpoint{4.15pt}{-0.15pt}}
+%     \pgfsetstrokecolor{white}
+% %    \pgfsetdash{{1pt}{1pt}}{0pt}% dashing cannot work correctly in all situation this way
+%     \pgfusepath{stroke}
+%    }
+
+% Style to select only points from #1 to #2 (inclusive)
+% \pgfplotsset{select coords between index/.style 2 args={
+%     x filter/.code={
+%         \ifnum\coordindex<#1\def\pgfmathresult{}\fi
+%         \ifnum\coordindex>#2\def\pgfmathresult{}\fi
+%     }
+% }}
+
+% \newsavebox{\measuredSize}
+% \newcommand{\resizeToWidth}[2]{%
+%     \pgfmathsetmacro{\pgfplotswidth}{#2}%
+%     \begin{lrbox}{\measuredSize}#1\end{lrbox}%
+%     \pgfmathsetmacro{\pgfplotswidth}{2*\pgfplotswidth-\wd\measuredSize}%
+%     #1%
+% }
+
+% \tikzset{every picture/.style={scale=1.4, transform shape}}
+
+% \pgfplotsset{
+%     discard if/.style 2 args={
+%         x filter/.code={
+%             \edef\tempa{\thisrow{#1}}
+%             \edef\tempb{#2}
+%             \ifx\tempa\tempb
+%                 \def\pgfmathresult{inf}
+%             \fi
+%         }
+%     },
+%     discard if not/.style 2 args={
+%         x filter/.code={
+%             \edef\tempa{\thisrow{#1}}
+%             \edef\tempb{#2}
+%             \ifx\tempa\tempb
+%             \else
+%                 \def\pgfmathresult{inf}
+%             \fi
+%         }
+%     }
+% }
+
+% \pgfplotscreateplotcyclelist{AreaCycle}{%
+%     {line1, mark=none, pattern=crosshatch, pattern color = colorGray, each nth point={\ateachpoint}},
+%     {line2, mark=none, pattern=mydots, pattern color = colorGreen, each nth point={\ateachpoint}},
+%     {line3, mark=none, each nth point={\ateachpoint}},
+%     {line4, mark=none, each nth point={\ateachpoint}}
+% }

@@ -1,0 +1,54 @@
+\newcommand{\ie}{\emph{i.e.}, }
+\newcommand{\eg}{\emph{e.g.}, }
+\newcommand{\etc}{\emph{etc.}\xspace}
+\newcommand{\etal}{\emph{et al.} }
+\newcommand{\td}{\textemdash}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\mc{\mathcal}
+\def\cA {{\mathcal{A}}}
+\def\cB {{\mathcal{B}}}
+\def\cC {{\mathcal{C}}}
+\def\cF {{\mathcal{F}}}
+\def\cG {{\mathcal{G}}}
+\def\cH {{\mathcal{H}}}
+\def\cI {{\mathcal{I}}}
+\def\cJ {{\mathcal{J}}}
+\def\cL {{\mathcal{L}}}
+\def\cO {{\mathcal{O}}}
+\def\cP {{\mathcal{P}}}
+\def\cR {{\mathcal{R}}}
+\def\cS {{\mathcal{S}}}
+\def\cT {{\mathcal{T}}}
+\def\cU {{\mathcal{U}}}
+\def\cV {{\mathcal{V}}}
+\def\cX {{\mathcal{X}}}
+\def\cY {{\mathcal{Y}}}
+\newcommand{\E}{\mathds{E}}
+\renewcommand{\P}{\mathds{P}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\quotes}[1]{``#1''\xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newif\ifnotes\notesfalse
+\def\boxnote#1#2{\ifnotes\fbox{\footnote{\ }}\ \footnotetext{From #1: #2}\fi}
+\def\boxnoteh#1#2{\ifnotes\fbox{\footnote{\ }}\ \footnotetext{Removed by #1: #2}\fi}
+
+\newcommand{\todo}[1]{{\color{red}TODO: #1}}
+\def\burak#1{\boxnote{Burak}{\color{colorRed}#1}}
+\newcommand{\mburak}[1]{{\color{colorGreen}#1}}
+
+\newcommand{\ssection}[1]{%
+    % \needspace{\baselineskip}%
+     \vspace{0.6ex}%
+    % \noindent\textbf{#1}\xspace%
+  \noindent\textbf{#1}\xspace
+}
+
+\newcolumntype{L}{@{\extracolsep{\fill}}l}
+\newcolumntype{R}{@{\extracolsep{\fill}}r}
+\newcolumntype{C}{@{\extracolsep{\fill}}c}
