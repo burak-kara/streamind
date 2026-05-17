@@ -1,0 +1,47 @@
+% F1 — STREAMIND pipeline architecture block diagram.
+% Eight Juturna nodes from Janus ingestion to challenge-endpoint POST.
+\begin{tikzpicture}[
+    every node/.style={font=\footnotesize},
+    node distance=4mm and 4mm,
+    block/.style={
+        draw=labelColor, fill=legendFillColor, rounded corners=2pt,
+        minimum width=18mm, minimum height=7mm, align=center, inner sep=2pt,
+        text=labelColor
+    },
+    source/.style={block, fill=colorBlue!15, draw=colorBlue},
+    proc/.style={block, fill=colorGreen!12, draw=colorGreen},
+    sink/.style={block, fill=colorOrange!15, draw=colorOrange},
+    external/.style={
+        draw=colorDarkGray, dashed, rounded corners=2pt,
+        minimum width=18mm, minimum height=7mm, align=center,
+        font=\footnotesize\itshape, text=colorDarkGray
+    },
+    arrow/.style={-{Latex[length=1.2mm]}, line1, thick},
+    label-edge/.style={font=\scriptsize\itshape, text=labelColor, midway, above, sloped}
+]
+    \node[external] (janus) {Janus\\WebRTC};
+    \node[source, right=of janus] (rtp) {audio\_rtp};
+    \node[proc, right=of rtp] (chunker) {audio\_chunker};
+    \node[proc, right=of chunker] (asr) {transcriber\\whisper};
+
+    \node[proc, below=10mm of asr] (halluc) {hallucination\\filter};
+    \node[proc, left=of halluc] (novel) {novel\_extractor};
+    \node[proc, left=of novel] (window) {window\\aggregator};
+    \node[proc, left=of window] (summ) {summarizer\\(LLM / MLX)};
+
+    \node[sink, below=10mm of summ] (sink) {result\\transmitter};
+    \node[external, left=of sink] (endpoint) {Challenge\\endpoint};
+
+    \draw[arrow] (janus) -- node[label-edge]{Opus/RTP} (rtp);
+    \draw[arrow] (rtp) -- (chunker);
+    \draw[arrow] (chunker) -- node[label-edge]{5\,s chunks} (asr);
+    \draw[arrow] (asr.south) -- ++(0,-3mm) -| (halluc.north);
+    \draw[arrow] (halluc) -- (novel);
+    \draw[arrow] (novel) -- (window);
+    \draw[arrow] (window) -- node[label-edge]{300\,s text} (summ);
+    \draw[arrow] (summ.south) -- ++(0,-3mm) -| (sink.north);
+    \draw[arrow] (sink) -- node[label-edge]{POST JSON} (endpoint);
+
+    \node[font=\scriptsize, text=colorDarkGray, anchor=west]
+        at ([yshift=2mm]chunker.north west) {1\,s overlap, 4\,s advance};
+\end{tikzpicture}

@@ -27,9 +27,17 @@ academic-paper/
   helpers/
     packages.tex        # \usepackage declarations and pgfplots/siunitx setup
     commands.tex        # Custom macros, math shorthands, annotation commands
-    colors.tex          # Color palette: colorRed/Blue/Green/Orange/Gray + TikZ aliases
-    glossaries.tex      # \newacronym entries for CDN/streaming/networking terms
+    colors.tex          # Color palette + TikZ aliases
+    glossaries.tex      # \newacronym entries for streaming/networking terms
     tikz-styles.tex     # pgfplots cycle lists, axis styles, legend styles
+  figures/              # \input fragments embedded in figure environments
+    pipeline.tex          # F1 — pipeline block diagram (TikZ)
+    scoring-curve.tex     # F2 — L_i = 10*exp(-0.5*proc_time) curve (pgfplots)
+    chunk-overlap.tex     # F3 — chunking + novel-extraction timing (TikZ)
+    phase1-ablation.tex   # F4 — Pre/Post Phase-1 bar chart (pgfplots)
+    model-sweep.tex       # F5 — Qwen3.5 2B/4B/9B sweep (pgfplots)
+  data/                 # CSV inputs for pgfplots tables
+    README.md             # CSV schema + which figure consumes which file
 ```
 
 ## Custom Macros
