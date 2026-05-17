@@ -26,12 +26,21 @@ PDFLATEX="pdflatex -interaction=nonstopmode -output-directory=$BUILDDIR"
 
 cd "$SRCDIR"
 
+# pdflatex/bibtex return non-zero on plain warnings (undefined refs etc).
+# Don't let that abort the build — check the PDF afterwards instead.
+set +e
 $PDFLATEX "$JOBNAME.tex"
 
 if ! $DRAFT; then
     bibtex "$BUILDDIR/$JOBNAME"
     $PDFLATEX "$JOBNAME.tex"
     $PDFLATEX "$JOBNAME.tex"
+fi
+set -e
+
+if [ ! -f "$BUILDDIR/$JOBNAME.pdf" ]; then
+    echo "Build failed: $BUILDDIR/$JOBNAME.pdf not produced" >&2
+    exit 1
 fi
 
 cp "$BUILDDIR/$JOBNAME.pdf" "$SRCDIR/$JOBNAME.pdf"

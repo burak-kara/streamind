@@ -1,0 +1,47 @@
+% F3 — Chunking + novel-extraction timing diagram.
+% Five-second chunks slide every 4 s; novel extractor isolates the new 4 s
+% per step (drops the 1 s of overlap with the previous chunk).
+\begin{tikzpicture}[
+    every node/.style={font=\scriptsize},
+    chunk/.style={
+        draw=labelColor, fill=colorBlue!12, rounded corners=1pt,
+        minimum height=4mm, anchor=west, inner sep=0pt
+    },
+    overlap/.style={
+        draw=colorOrange, fill=colorOrange!30, rounded corners=1pt,
+        minimum height=4mm, anchor=west, inner sep=0pt
+    },
+    novel/.style={
+        draw=colorGreen, fill=colorGreen!25, rounded corners=1pt,
+        minimum height=4mm, anchor=west, inner sep=0pt
+    },
+    axis-style/.style={-{Latex[length=1.2mm]}, thick, color=labelColor},
+    tick-style/.style={color=labelColor, font=\scriptsize}
+]
+    % Time axis: 1 unit = 8 mm, total 14 s.
+    \def\u{8mm}
+    \draw[axis-style] (0,0) -- (14*\u/1cm,0) node[right]{time (s)};
+    \foreach \t in {0,2,4,6,8,10,12}{
+        \draw[tick-style] (\t*\u/1cm,0) -- (\t*\u/1cm,-1.5mm) node[below]{\t};
+    }
+
+    % Chunk 0: [0, 5]
+    \node[chunk, minimum width=5*\u] at (0,5mm) {};
+    \node[novel, minimum width=5*\u] at (0,5mm) {chunk 0 (novel)};
+
+    % Chunk 1: [4, 9], overlap [4,5] with previous
+    \node[chunk, minimum width=5*\u] at (4*\u,11mm) {};
+    \node[overlap, minimum width=1*\u] at (4*\u,11mm) {};
+    \node[novel, minimum width=4*\u] at (5*\u,11mm) {chunk 1 novel};
+
+    % Chunk 2: [8, 13], overlap [8,9]
+    \node[chunk, minimum width=5*\u] at (8*\u,17mm) {};
+    \node[overlap, minimum width=1*\u] at (8*\u,17mm) {};
+    \node[novel, minimum width=4*\u] at (9*\u,17mm) {chunk 2 novel};
+
+    % Legend.
+    \node[novel, minimum width=4mm] at (0,28mm) {};
+    \node[anchor=west] at (5mm,28mm) {novel words emitted};
+    \node[overlap, minimum width=4mm] at (40mm,28mm) {};
+    \node[anchor=west] at (45mm,28mm) {1\,s overlap (discarded)};
+\end{tikzpicture}

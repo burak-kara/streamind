@@ -1,4 +1,6 @@
-% References for STREAMIND IEEE MMSP 2026 Grand Challenge paper
+% References for STREAMIND IEEE MMSP 2026 Grand Challenge paper.
+
+% ----- Frameworks and infrastructure -----
 
 @misc{juturna,
   title        = {{Juturna}: Open-source framework for real-time {AI} pipeline prototyping},
@@ -8,11 +10,21 @@
 }
 
 @misc{janus,
-  title        = {{Janus}: Open-source {WebRTC} server},
+  title        = {{Janus}: General purpose {WebRTC} server},
   author       = {{Meetecho}},
   howpublished = {\url{https://github.com/meetecho/janus-gateway}},
   year         = {2014},
 }
+
+@misc{streamind-challenge,
+  title        = {{STREAMIND} Grand Challenge --- {IEEE MMSP 2026}},
+  author       = {{IEEE MMSP 2026 Organising Committee}},
+  howpublished = {\url{https://attend.ieee.org/mmsp-2026/grand-challenges/}},
+  year         = {2026},
+  note         = {Challenge repository: \url{https://github.com/meetecho/mmsp2026_streamind_challenge}},
+}
+
+% ----- ASR -----
 
 @misc{whisper,
   title        = {Robust Speech Recognition via Large-Scale Weak Supervision},
@@ -21,9 +33,105 @@
   year         = {2022},
 }
 
+@misc{faster-whisper,
+  title        = {{faster-whisper}: Faster Whisper transcription with {CTranslate2}},
+  author       = {Klein, Guillaume},
+  howpublished = {\url{https://github.com/SYSTRAN/faster-whisper}},
+  year         = {2023},
+}
+
+@inproceedings{silero-vad,
+  title        = {Silero {VAD}: pre-trained enterprise-grade Voice Activity Detector},
+  author       = {{Silero Team}},
+  howpublished = {\url{https://github.com/snakers4/silero-vad}},
+  year         = {2024},
+}
+
+% ----- LLMs and inference -----
+
 @misc{qwen3,
-  title        = {Qwen3 Technical Report},
+  title        = {{Qwen3} Technical Report},
   author       = {{Qwen Team}},
   howpublished = {arXiv:2505.09388},
   year         = {2025},
+}
+
+@misc{ollama,
+  title        = {{Ollama}: Get up and running with large language models locally},
+  author       = {{Ollama Authors}},
+  howpublished = {\url{https://ollama.com}},
+  year         = {2024},
+}
+
+@misc{mlx,
+  title        = {{MLX}: An array framework for {A}pple silicon},
+  author       = {Hannun, Awni and Digani, Jagrit and Katharopoulos, Angelos and Collobert, Ronan},
+  howpublished = {\url{https://github.com/ml-explore/mlx}},
+  year         = {2023},
+}
+
+@misc{mlx-lm,
+  title        = {{MLX-LM}: Run and fine-tune {LLM}s on {A}pple silicon with {MLX}},
+  author       = {{MLX Community}},
+  howpublished = {\url{https://github.com/ml-explore/mlx-lm}},
+  year         = {2024},
+}
+
+% ----- Quantisation and efficient inference -----
+
+@inproceedings{gptq,
+  title     = {{GPTQ}: Accurate Post-Training Quantization for Generative Pre-trained Transformers},
+  author    = {Frantar, Elias and Ashkboos, Saleh and Hoefler, Torsten and Alistarh, Dan},
+  booktitle = {Proc. ICLR},
+  year      = {2023},
+}
+
+@inproceedings{awq,
+  title     = {{AWQ}: Activation-aware Weight Quantization for {LLM} Compression and Acceleration},
+  author    = {Lin, Ji and Tang, Jiaming and Tang, Haotian and Yang, Shang and Dang, Xingyu and Han, Song},
+  booktitle = {Proc. MLSys},
+  year      = {2024},
+}
+
+% ----- Summarisation evaluation -----
+
+@inproceedings{geval,
+  title     = {{G-Eval}: {NLG} Evaluation Using {GPT}-4 with Better Human Alignment},
+  author    = {Liu, Yang and Iter, Dan and Xu, Yichong and Wang, Shuohang and Xu, Ruochen and Zhu, Chenguang},
+  booktitle = {Proc. EMNLP},
+  year      = {2023},
+}
+
+@inproceedings{summac,
+  title     = {{SummaC}: Re-Visiting {NLI}-based Models for Inconsistency Detection in Summarization},
+  author    = {Laban, Philippe and Schnabel, Tobias and Bennett, Paul N. and Hearst, Marti A.},
+  journal   = {Trans. ACL},
+  year      = {2022},
+}
+
+% ----- Streaming and real-time speech systems -----
+
+@misc{rev16,
+  title        = {{Rev16}: long-form podcast transcription evaluation set},
+  author       = {{Rev}},
+  howpublished = {\url{https://huggingface.co/datasets/distil-whisper/rev16}},
+  year         = {2024},
+}
+
+% ----- Codecs and transport -----
+
+@techreport{opus,
+  title       = {Definition of the {O}pus Audio Codec},
+  author      = {Valin, Jean-Marc and Vos, Koen and Terriberry, Timothy B.},
+  institution = {IETF},
+  number      = {RFC 6716},
+  year        = {2012},
+}
+
+@techreport{rtp,
+  title       = {{RTP}: A Transport Protocol for Real-Time Applications},
+  author      = {Schulzrinne, Henning and Casner, Stephen L. and Frederick, Ron and Jacobson, Van},
+  institution = {IETF},
+  number      = {RFC 3550},
+  year        = {2003},
 }

@@ -1,0 +1,38 @@
+% F4 — Phase-1 ablation: Pre-Phase-1 vs Post-Phase-1 on 30 s windows.
+% TODO: replace placeholder Y values with values computed from
+%       data/phase1-ablation.csv once CUDA bench produces them.
+%       Current placeholders are the MLX 4B numbers from docs/APPROACH.md
+%       so the figure renders end-to-end.
+\begin{tikzpicture}
+    \begin{axis}[
+        width=0.95\columnwidth,
+        height=4.6cm,
+        ybar=2pt,
+        bar width=8pt,
+        enlargelimits=0.2,
+        ylabel={value},
+        symbolic x coords={proc\_time (s), $L_i$, $C_i$},
+        xtick=data,
+        nodes near coords,
+        nodes near coords style={font=\scriptsize},
+        legend style={
+            at={(0.5,1.05)}, anchor=south, legend columns=-1,
+            font=\scriptsize, inner sep=2pt,
+        },
+        ymin=0,
+    ]
+        \addplot[fill=line2!50, draw=line2] coordinates {
+            (proc\_time (s), 4.09)
+            ($L_i$, 1.34)
+            ($C_i$, 32.06)
+        };
+        \addlegendentry{Pre-Phase-1}
+
+        \addplot[fill=line1!60, draw=line1] coordinates {
+            (proc\_time (s), 3.10)
+            ($L_i$, 2.13)
+            ($C_i$, 33.13)
+        };
+        \addlegendentry{Post-Phase-1}
+    \end{axis}
+\end{tikzpicture}

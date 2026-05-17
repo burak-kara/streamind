@@ -29,48 +29,186 @@
 \maketitle
 
 \begin{abstract}
-    \todo{Abstract}
+    \todo{Abstract: real-time meeting intelligence pipeline; scoring-formula-driven design; key contributions (streaming dedup, keyword guarantee, quality-gated latency optimisation); headline result.}
 \end{abstract}
 
 \begin{IEEEkeywords}
-    \todo{Keywords}
+real-time speech processing, automatic speech recognition, large language models, streaming summarisation, WebRTC, Juturna
 \end{IEEEkeywords}
 
+% =====================================================================
 \section{Introduction}
 \label{sec:introduction}
 
-\todo{Introduction}
+\todo{Motivate live-audio intelligence (meetings, podcasts, IETF sessions). Frame the STREAMIND scoring formula $C_i = B_i + K_i + L_i$ with the $B_i \ge 10$ latency gate as the central design constraint: \emph{quality first, latency second, keyword discipline always}.}
 
+\ssection{Contributions.}
+\todo{Enumerate three contributions:
+(1) streaming chunk deduplication that preserves temporal coherence across overlapping 5\,s ASR chunks while keeping the aggregated window non-redundant;
+(2) a keyword guarantee algorithm that strips banned generic terms and back-fills missing slots from transcript proper nouns, converting the worst-case $-6$ LLM-failure mode into a $+0$ floor;
+(3) quality-gated latency optimisation through prompt engineering and 4-bit quantisation, jointly cutting \texttt{proc\_time} by 24\,\% while keeping $B_i$ at ceiling.}
+
+\ssection{Paper roadmap.}
+\todo{Section ordering pointer.}
+
+% =====================================================================
+\section{Background and Related Work}
+\label{sec:related}
+
+\todo{Juturna node-graph framework. Janus WebRTC gateway. Streaming ASR: Whisper family, \texttt{faster-whisper} int8. LLM summarisation under latency constraints; small-model 4-bit quantisation (Qwen3.5 OptiQ). Position STREAMIND as a \emph{systems} contribution wrapping these primitives, not a new model.}
+
+% =====================================================================
 \section{System Architecture}
 \label{sec:architecture}
 
-% TODO
+\todo{High-level pipeline overview: insert Figure~\ref{fig:pipeline}. Explain seven-stage data flow from Opus/RTP ingestion to challenge-endpoint POST. State the scoring-aware design principle: every component is justified against one or more terms of $C_i = B_i + K_i + L_i$.}
 
-\section{Pipeline Components}
-\label{sec:pipeline}
+\begin{figure*}[t]
+    \centering
+    \input{figures/pipeline}
+    \caption{End-to-end STREAMIND pipeline. Janus delivers mono Opus/RTP into \texttt{audio\_rtp}; chunks slide every 4\,s through ASR; deduplication and hallucination filtering precede a 300\,s aggregation buffer; the summariser emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
+    \label{fig:pipeline}
+\end{figure*}
+
+\begin{figure}[t]
+    \centering
+    \input{figures/scoring-curve}
+    \caption{Latency bonus $L_i = 10 e^{-0.5 \cdot \mathrm{proc\_time}}$, gated by $B_i \ge 10$. Below the gate, latency contributes zero; above it, returns diminish past $\sim$1--2\,s.}
+    \label{fig:scoring}
+\end{figure}
 
 \subsection{Audio Reception}
+\label{sec:arch:audio}
+\todo{Janus WebRTC gateway forwards mono Opus/48k as RTP to \texttt{audio\_rtp} on UDP/8888. Identical code paths in dev and eval environments; earns the flat $+4$ audio-level Janus bonus. Cite Janus.}
 
 \subsection{Incremental ASR}
+\label{sec:arch:asr}
+\todo{\texttt{audio\_chunker} buffers the stream into 5\,s chunks with 1\,s overlap (advance = 4\,s) so the ASR sees audio incrementally. \texttt{transcriber\_whisper} runs \texttt{faster-whisper} \texttt{small.en} (int8, \texttt{device: auto}). VAD filter enabled; previous-text conditioning disabled to avoid context drift.}
+
+\subsection{Hallucination Filter}
+\label{sec:arch:halluc}
+\todo{Post-ASR guard. Strips Whisper noise tags (\texttt{[Music]}, \texttt{(applause)}) and drops pure-hallucination outputs against a configurable exact-match block-list. Protects $B_i$ factual-consistency. Insert Figure~\ref{fig:chunk-overlap} here or in §\ref{sec:arch:novel}.}
 
 \subsection{Novel Chunk Extraction}
+\label{sec:arch:novel}
+\todo{Word-level overlap detection: longest suffix-prefix match up to \texttt{max\_overlap\_words}\,=\,10 with a \texttt{SequenceMatcher} fallback (\texttt{similarity\_threshold}\,=\,0.8). Emits only novel words. Preserves temporal coherence across overlapping ASR chunks; prevents duplicate content reaching the aggregator. Refer to Figure~\ref{fig:chunk-overlap}.}
+
+\begin{figure}[t]
+    \centering
+    \input{figures/chunk-overlap}
+    \caption{Audio chunking and novel extraction timing. Five-second chunks slide by 4\,s; the novel extractor isolates the 4\,s of newly-spoken content each step, dropping the 1\,s of overlap with the previous chunk.}
+    \label{fig:chunk-overlap}
+\end{figure}
 
 \subsection{Window Aggregation}
+\label{sec:arch:window}
+\todo{\texttt{window\_aggregator} concatenates novel transcript segments into a rolling 300\,s context window. Flush trigger: \texttt{chunk\_end} $\ge$ \texttt{window\_start} $+$ 300\,s. Graceful stop emits partial windows on pipeline shutdown.}
 
-\subsection{Summarization}
+\subsection{Summarisation}
+\label{sec:arch:summ}
+\todo{Two interchangeable backends with identical output schema: \texttt{summarizer\_llm} (Ollama, Qwen3.5-4B, CUDA target) and \texttt{summarizer\_mlx} (MLX, Qwen3.5 2B/4B/9B OptiQ-4bit, Apple Silicon dev). Prompt engineering for conciseness + specificity (1--2 sentences, specific noun-phrase keywords) double-up: higher $B_i$ conciseness score and lower \texttt{num\_predict}, which boosts $L_i$. \texttt{/no\_think} flag suppresses chain-of-thought. Robust output cleaning strips ChatML tokens (\texttt{<|im\_end|>}, \texttt{<|endoftext|>}) and extracts the outermost balanced JSON object.}
 
-\subsection{Transmission}
+\subsection{Keyword Validation}
+\label{sec:arch:keywords}
+\todo{Shared \texttt{ensure\_three\_keywords} (\texttt{plugins/nodes/proc/\_summarizer\_common/keywords.py}) guarantees exactly three keywords regardless of LLM output state. Pipeline: (i) deduplicate case-insensitively, (ii) drop banned generic terms (\quotes{general}, \quotes{discussion}, \quotes{meeting}), (iii) back-fill from transcript by frequency + capitalisation ranking, (iv) pad with conservative fallbacks. Converts $-6$ worst-case into $+0$ floor.}
 
+\subsection{Result Transmission}
+\label{sec:arch:sink}
+\todo{\texttt{result\_transmitter} maps internal keys to challenge contract (\texttt{window\_start} $\to$ \texttt{from}, \texttt{window\_end} $\to$ \texttt{to}, \texttt{latency} $\to$ \texttt{proc\_time}), writes \texttt{results/\{model\}/\{window\}/window\_N.json}, and POSTs to \texttt{destination\_endpoint} when configured. Drains pending messages on stop.}
+
+% =====================================================================
+\section{Implementation and Deployment}
+\label{sec:implementation}
+
+\todo{Pipeline-config assembly: \texttt{tools/assemble\_config.py} merges \texttt{config-base.json} with a summariser profile JSON. Launcher: \texttt{tools/run\_pipeline.sh}.}
+
+\todo{Single-image Docker submission: CUDA 12.3 runtime, Python 3.12 + \texttt{uv}, Ollama daemon, pre-pulled Qwen3.5-4B baked at build time. \texttt{docker-compose.yml} orchestrates Janus + pipeline. Entry point starts Ollama, waits for readiness, then launches the pipeline with the submission profile.}
+
+\todo{Reproducibility checklist: dataset hashes, model revision pins, RTP \texttt{payload\_type}, \texttt{encoding\_clock\_chan}.}
+
+\begin{table}[t]
+    \centering
+    \caption{Pipeline nodes (Juturna).}
+    \label{tab:nodes}
+    \todo{Rows: \texttt{audio\_rtp}, \texttt{audio\_chunker}, \texttt{transcriber\_whisper}, \texttt{hallucination\_filter}, \texttt{novel\_extractor}, \texttt{window\_aggregator}, \texttt{summarizer\_llm}/\texttt{summarizer\_mlx}, \texttt{result\_transmitter}. Columns: type, model/algorithm, key hyper-parameters, role.}
+\end{table}
+
+\begin{table}[t]
+    \centering
+    \caption{Summariser profiles.}
+    \label{tab:profiles}
+    \todo{Columns: profile, backend, model, quantisation, temp, top\_p, repetition\_penalty, mem footprint, target hardware. Rows: ollama-qwen3.5-4b (submission default, CUDA), ollama-qwen3.5-9b, mlx-Qwen3.5-2B-OptiQ-4bit, mlx-Qwen3.5-4B-OptiQ-4bit, mlx-Qwen3.5-9B-OptiQ-4bit.}
+\end{table}
+
+% =====================================================================
 \section{Evaluation}
 \label{sec:evaluation}
 
-% TODO
+\subsection{Setup}
+\label{sec:eval:setup}
+\todo{Datasets: \texttt{youtube\_15min.wav} 120\,s slice (≥3 full 300\,s windows); secondary against the \texttt{rev16} Whisper subset (30 podcast episodes) and \texttt{ietf} IETF125 sessions. Judge harness: \texttt{tools/eval\_quality.py} with local \texttt{qwen3.5:9b-16k} as judge. Disclose: this approximates the official judge; numbers are directional. Hardware: Apple Silicon M-series (MLX, dev); NVIDIA RTX 4090 dev box and RTX Pro 4500 target (CUDA, Ollama).}
 
+\subsection{End-to-End Scoring}
+\label{sec:eval:scoring}
+\todo{Per-window $B_i / K_i / L_i / C_i$ and audio-level mean across summariser profiles. Refer to Table~\ref{tab:per-window}.}
+
+\begin{table}[t]
+    \centering
+    \caption{Per-window scores on \texttt{youtube\_15min.wav}, 300\,s windows, Qwen3.5-4B (CUDA).}
+    \label{tab:per-window}
+    \todo{Columns: window, from (s), to (s), proc\_time (s), $B_i$, $K_i$, $L_i$, $C_i$. Numbers TBD from CUDA bench.}
+\end{table}
+
+\subsection{Latency Profile}
+\label{sec:eval:latency}
+\todo{\texttt{proc\_time} distribution; refer to Figure~\ref{fig:scoring} for the $L_i$ curve. Optional per-stage breakdown (ASR vs LLM) if instrumentation lands.}
+
+\subsection{Ablations}
+\label{sec:eval:ablation}
+\todo{Four single-component removals plus the Phase-1 fix package. See Figure~\ref{fig:phase1-ablation} and Table~\ref{tab:ablation}.}
+
+\begin{figure}[t]
+    \centering
+    \input{figures/phase1-ablation}
+    \caption{Phase-1 ablation. Pre-Phase-1 vs Post-Phase-1 \texttt{proc\_time}, $L_i$, and $C_i$ on 30\,s windows of \texttt{youtube\_15min.wav}. Phase-1 fixes (prompt tightening, \texttt{num\_predict\,=\,150}, banned-keyword filter, JSON extraction fix) cut \texttt{proc\_time} 24\,\% and lifted $L_i$ 59\,\% while holding $B_i$ at ceiling.}
+    \label{fig:phase1-ablation}
+\end{figure}
+
+\begin{table}[t]
+    \centering
+    \caption{Component ablation. $\Delta$ relative to the full pipeline.}
+    \label{tab:ablation}
+    \todo{Rows: baseline (full pipeline), $-$banned\_keywords, $-$hallucination\_filter, $-$novel\_extractor. Columns: $\Delta B_i$, $\Delta K_i$, $\Delta L_i$, $\Delta C_i$. Numbers TBD from CUDA bench.}
+\end{table}
+
+\subsection{Model-Size Sweep}
+\label{sec:eval:sweep}
+\todo{Qwen3.5 2B vs 4B vs 9B. MLX (Apple Silicon) and CUDA (Ollama, RTX Pro 4500). See Figure~\ref{fig:model-sweep}.}
+
+\begin{figure}[t]
+    \centering
+    \input{figures/model-sweep}
+    \caption{Quality vs latency across Qwen3.5 model sizes (2B/4B/9B) on MLX (Apple Silicon) and Ollama (RTX Pro 4500). Larger models trade \texttt{proc\_time} for marginal $B_i$ gains; the gate at $B_i \ge 10$ makes the sweet spot model-size-dependent.}
+    \label{fig:model-sweep}
+\end{figure}
+
+\subsection{Threats to Validity}
+\label{sec:eval:threats}
+\todo{Local judge $\ne$ official judge; held-out audio is small; deterministic decoding settings; eval hardware availability.}
+
+% =====================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\todo{What the scoring formula encourages vs what real users want (gist coherence over keyword precision; latency only matters once quality clears the gate). Limits of static prompt tuning. Future work: per-window adaptive prompts, speculative decoding, batched ASR, structured-output decoding.}
+
+% =====================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-% TODO
+\todo{Recap three contributions. State final claimed audio-level score (avg $C_i$ + 4 Janus bonus) on the submission profile. Point at the open-source release.}
 
+% =====================================================================
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 
