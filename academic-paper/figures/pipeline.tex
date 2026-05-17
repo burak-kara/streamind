@@ -1,47 +1,107 @@
-% F1 — STREAMIND pipeline architecture block diagram.
-% Eight Juturna nodes from Janus ingestion to challenge-endpoint POST.
+% F1 — STREAMIND pipeline architecture, two-row serpentine.
+% Top row (L→R): Janus → audio_rtp → chunker → Whisper ASR → halluc filter
+% Bridge:                                                                ↓
+% Bottom row (R→L): novel extractor → window aggregator → summarizer →
+%                   result sink → Challenge endpoint
+\def\nodeW{18mm}
+\def\nodeH{10mm}
+\def\nodeGap{6mm}
+\def\rowSep{10mm}
+
 \begin{tikzpicture}[
-    every node/.style={font=\footnotesize},
-    node distance=4mm and 4mm,
-    block/.style={
-        draw=labelColor, fill=legendFillColor, rounded corners=2pt,
-        minimum width=18mm, minimum height=7mm, align=center, inner sep=2pt,
-        text=labelColor
+    node distance=\nodeGap,
+    every node/.style={font=\scriptsize},
+    box/.style={
+        draw, rounded corners=2pt,
+        minimum width=\nodeW, minimum height=\nodeH,
+        align=center, inner sep=2pt, line width=0.5pt
     },
-    source/.style={block, fill=colorBlue!15, draw=colorBlue},
-    proc/.style={block, fill=colorGreen!12, draw=colorGreen},
-    sink/.style={block, fill=colorOrange!15, draw=colorOrange},
+    source/.style={
+        box, fill=colorBlue!12, draw=colorBlue!85,
+        text=colorBlue!55!black
+    },
+    proc/.style={
+        box, fill=colorGreen!12, draw=colorGreen!75,
+        text=colorGreen!45!black
+    },
+    sink/.style={
+        box, fill=colorOrange!15, draw=colorOrange,
+        text=colorOrange!55!black
+    },
     external/.style={
-        draw=colorDarkGray, dashed, rounded corners=2pt,
-        minimum width=18mm, minimum height=7mm, align=center,
-        font=\footnotesize\itshape, text=colorDarkGray
+        box, draw=colorDarkGray, dashed, fill=colorGray,
+        font=\scriptsize\itshape, text=colorDarkGray
     },
-    arrow/.style={-{Latex[length=1.2mm]}, line1, thick},
-    label-edge/.style={font=\scriptsize\itshape, text=labelColor, midway, above, sloped}
+    arrow/.style={-{Latex[length=1.6mm]}, line1, semithick},
+    edgelbl/.style={
+        font=\tiny\itshape, text=labelColor,
+        midway, above=0.4mm, inner sep=1pt
+    },
+    edgelbl-side/.style={
+        font=\tiny\itshape, text=labelColor,
+        midway, right=0.5mm, inner sep=1pt
+    },
+    notelbl/.style={
+        font=\tiny\itshape, text=colorDarkGray
+    },
+    % Legend tiles replicate the node styles at small scale so colors match.
+    legend-tile/.style={
+        rounded corners=1pt, minimum width=3mm, minimum height=3mm,
+        inner sep=0pt, line width=0.5pt
+    },
+    legend-source/.style={legend-tile, fill=colorBlue!12, draw=colorBlue!85},
+    legend-proc/.style={legend-tile, fill=colorGreen!12, draw=colorGreen!75},
+    legend-sink/.style={legend-tile, fill=colorOrange!15, draw=colorOrange},
+    legend-ext/.style={legend-tile, draw=colorDarkGray, dashed, fill=colorGray}
 ]
-    \node[external] (janus) {Janus\\WebRTC};
-    \node[source, right=of janus] (rtp) {audio\_rtp};
-    \node[proc, right=of rtp] (chunker) {audio\_chunker};
-    \node[proc, right=of chunker] (asr) {transcriber\\whisper};
+    % --- Top row, left-to-right.
+    \node[external]              (janus)   {Janus\\WebRTC};
+    \node[source,  right=of janus]    (rtp)     {audio\_rtp};
+    \node[proc,    right=of rtp]      (chunker) {audio\\chunker};
+    \node[proc,    right=of chunker]  (asr)     {Whisper\\ASR};
+    \node[proc,    right=of asr]      (halluc)  {hallucination\\filter};
 
-    \node[proc, below=10mm of asr] (halluc) {hallucination\\filter};
-    \node[proc, left=of halluc] (novel) {novel\_extractor};
-    \node[proc, left=of novel] (window) {window\\aggregator};
-    \node[proc, left=of window] (summ) {summarizer\\(LLM / MLX)};
+    % --- Bottom row, right-to-left. Start directly below halluc.
+    \node[proc,    below=\rowSep of halluc] (novel)    {novel\\extractor};
+    \node[proc,    left=of novel]           (window)   {window\\aggregator};
+    \node[proc,    left=of window]          (summ)     {LLM\\summarizer};
+    \node[sink,    left=of summ]            (sink)     {result\\transmitter};
+    \node[external, left=of sink]           (endpoint) {Challenge\\endpoint};
 
-    \node[sink, below=10mm of summ] (sink) {result\\transmitter};
-    \node[external, left=of sink] (endpoint) {Challenge\\endpoint};
+    % --- Top row arrows.
+    \draw[arrow] (janus)   -- node[edgelbl]{Opus/RTP} (rtp);
+    \draw[arrow] (rtp)     -- (chunker);
+    \draw[arrow] (chunker) -- node[edgelbl]{5\,s chunks} (asr);
+    \draw[arrow] (asr)     -- (halluc);
 
-    \draw[arrow] (janus) -- node[label-edge]{Opus/RTP} (rtp);
-    \draw[arrow] (rtp) -- (chunker);
-    \draw[arrow] (chunker) -- node[label-edge]{5\,s chunks} (asr);
-    \draw[arrow] (asr.south) -- ++(0,-3mm) -| (halluc.north);
-    \draw[arrow] (halluc) -- (novel);
-    \draw[arrow] (novel) -- (window);
-    \draw[arrow] (window) -- node[label-edge]{300\,s text} (summ);
-    \draw[arrow] (summ.south) -- ++(0,-3mm) -| (sink.north);
-    \draw[arrow] (sink) -- node[label-edge]{POST JSON} (endpoint);
+    % --- Row-bridge arrow.
+    \draw[arrow] (halluc.south) -- (novel.north);
 
-    \node[font=\scriptsize, text=colorDarkGray, anchor=west]
-        at ([yshift=2mm]chunker.north west) {1\,s overlap, 4\,s advance};
+    % --- Bottom row arrows (right-to-left).
+    \draw[arrow] (novel)  -- (window);
+    \draw[arrow] (window) -- node[edgelbl]{300\,s text} (summ);
+    \draw[arrow] (summ)   -- (sink);
+    \draw[arrow] (sink)   -- node[edgelbl]{POST JSON} (endpoint);
+
+    % --- Note above chunker.
+    \node[notelbl, above=1.5mm of chunker]
+        {1\,s overlap, 4\,s advance};
+
+    % --- Legend below endpoint, chained relatively, tiles match node styles.
+    \node[legend-source, below=4mm of endpoint.south west, anchor=north west]
+        (lgSrc) {};
+    \node[anchor=west, right=1mm of lgSrc, font=\tiny, text=labelColor]
+        (lgSrcL) {source};
+    \node[legend-proc, right=3mm of lgSrcL.east, anchor=west]
+        (lgProc) {};
+    \node[anchor=west, right=1mm of lgProc, font=\tiny, text=labelColor]
+        (lgProcL) {processing};
+    \node[legend-sink, right=3mm of lgProcL.east, anchor=west]
+        (lgSink) {};
+    \node[anchor=west, right=1mm of lgSink, font=\tiny, text=labelColor]
+        (lgSinkL) {sink};
+    \node[legend-ext, right=3mm of lgSinkL.east, anchor=west]
+        (lgExt) {};
+    \node[anchor=west, right=1mm of lgExt, font=\tiny, text=labelColor]
+        {external};
 \end{tikzpicture}

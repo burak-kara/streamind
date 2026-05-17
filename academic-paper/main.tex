@@ -15,7 +15,7 @@
 \title{STREAMIND: A Real-Time AI Meeting Intelligence Pipeline}
 
 \author{
-    \IEEEauthorblockN{Mervegul Parlak, Alperen F. Zengin, \\Ayse B. Demir, Zafer Gurel, Ali C. Begen}
+    \IEEEauthorblockN{Mervegul Parlak, Alperen F. Zengin, \\Ayse B. Demir, Ali C. Begen}
     \IEEEauthorblockA{
         \textit{Ozyegin University}\\
         Istanbul, Turkey}
@@ -29,11 +29,11 @@
 \maketitle
 
 \begin{abstract}
-    \todo{Abstract: real-time meeting intelligence pipeline; scoring-formula-driven design; key contributions (streaming dedup, keyword guarantee, quality-gated latency optimisation); headline result.}
+    \todo{Abstract: real-time meeting intelligence pipeline; scoring-formula-driven design; key contributions (streaming dedup, keyword guarantee, quality-gated latency optimization); headline result.}
 \end{abstract}
 
 \begin{IEEEkeywords}
-real-time speech processing, automatic speech recognition, large language models, streaming summarisation, WebRTC, Juturna
+    real-time speech processing, automatic speech recognition, large language models, streaming summarization, WebRTC, Juturna
 \end{IEEEkeywords}
 
 % =====================================================================
@@ -44,9 +44,9 @@ real-time speech processing, automatic speech recognition, large language models
 
 \ssection{Contributions.}
 \todo{Enumerate three contributions:
-(1) streaming chunk deduplication that preserves temporal coherence across overlapping 5\,s ASR chunks while keeping the aggregated window non-redundant;
-(2) a keyword guarantee algorithm that strips banned generic terms and back-fills missing slots from transcript proper nouns, converting the worst-case $-6$ LLM-failure mode into a $+0$ floor;
-(3) quality-gated latency optimisation through prompt engineering and 4-bit quantisation, jointly cutting \texttt{proc\_time} by 24\,\% while keeping $B_i$ at ceiling.}
+    (1) streaming chunk deduplication that preserves temporal coherence across overlapping 5\,s ASR chunks while keeping the aggregated window non-redundant;
+    (2) a keyword guarantee algorithm that strips banned generic terms and back-fills missing slots from transcript proper nouns, converting the worst-case $-6$ LLM-failure mode into a $+0$ floor;
+    (3) quality-gated latency optimization through prompt engineering and 4-bit quantization, jointly cutting \texttt{proc\_time} by 24\,\% while keeping $B_i$ at ceiling.}
 
 \ssection{Paper roadmap.}
 \todo{Section ordering pointer.}
@@ -55,7 +55,7 @@ real-time speech processing, automatic speech recognition, large language models
 \section{Background and Related Work}
 \label{sec:related}
 
-\todo{Juturna node-graph framework. Janus WebRTC gateway. Streaming ASR: Whisper family, \texttt{faster-whisper} int8. LLM summarisation under latency constraints; small-model 4-bit quantisation (Qwen3.5 OptiQ). Position STREAMIND as a \emph{systems} contribution wrapping these primitives, not a new model.}
+\todo{Juturna node-graph framework. Janus WebRTC gateway. Streaming ASR: Whisper family, \texttt{faster-whisper} int8. LLM summarization under latency constraints; small-model 4-bit quantization (Qwen3.5 OptiQ). Position STREAMIND as a \emph{systems} contribution wrapping these primitives, not a new model.}
 
 % =====================================================================
 \section{System Architecture}
@@ -66,7 +66,7 @@ real-time speech processing, automatic speech recognition, large language models
 \begin{figure*}[t]
     \centering
     \input{figures/pipeline}
-    \caption{End-to-end STREAMIND pipeline. Janus delivers mono Opus/RTP into \texttt{audio\_rtp}; chunks slide every 4\,s through ASR; deduplication and hallucination filtering precede a 300\,s aggregation buffer; the summariser emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
+    \caption{End-to-end STREAMIND pipeline. Janus delivers mono Opus/RTP into \texttt{audio\_rtp}; chunks slide every 4\,s through ASR; deduplication and hallucination filtering precede a 300\,s aggregation buffer; the summarizer emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
     \label{fig:pipeline}
 \end{figure*}
 
@@ -104,13 +104,13 @@ real-time speech processing, automatic speech recognition, large language models
 \label{sec:arch:window}
 \todo{\texttt{window\_aggregator} concatenates novel transcript segments into a rolling 300\,s context window. Flush trigger: \texttt{chunk\_end} $\ge$ \texttt{window\_start} $+$ 300\,s. Graceful stop emits partial windows on pipeline shutdown.}
 
-\subsection{Summarisation}
+\subsection{Summarization}
 \label{sec:arch:summ}
 \todo{Two interchangeable backends with identical output schema: \texttt{summarizer\_llm} (Ollama, Qwen3.5-4B, CUDA target) and \texttt{summarizer\_mlx} (MLX, Qwen3.5 2B/4B/9B OptiQ-4bit, Apple Silicon dev). Prompt engineering for conciseness + specificity (1--2 sentences, specific noun-phrase keywords) double-up: higher $B_i$ conciseness score and lower \texttt{num\_predict}, which boosts $L_i$. \texttt{/no\_think} flag suppresses chain-of-thought. Robust output cleaning strips ChatML tokens (\texttt{<|im\_end|>}, \texttt{<|endoftext|>}) and extracts the outermost balanced JSON object.}
 
 \subsection{Keyword Validation}
 \label{sec:arch:keywords}
-\todo{Shared \texttt{ensure\_three\_keywords} (\texttt{plugins/nodes/proc/\_summarizer\_common/keywords.py}) guarantees exactly three keywords regardless of LLM output state. Pipeline: (i) deduplicate case-insensitively, (ii) drop banned generic terms (\quotes{general}, \quotes{discussion}, \quotes{meeting}), (iii) back-fill from transcript by frequency + capitalisation ranking, (iv) pad with conservative fallbacks. Converts $-6$ worst-case into $+0$ floor.}
+\todo{Shared \texttt{ensure\_three\_keywords} (\texttt{plugins/nodes/proc/\_summarizer\_common/keywords.py}) guarantees exactly three keywords regardless of LLM output state. Pipeline: (i) deduplicate case-insensitively, (ii) drop banned generic terms (\quotes{general}, \quotes{discussion}, \quotes{meeting}), (iii) back-fill from transcript by frequency + capitalization ranking, (iv) pad with conservative fallbacks. Converts $-6$ worst-case into $+0$ floor.}
 
 \subsection{Result Transmission}
 \label{sec:arch:sink}
@@ -120,7 +120,7 @@ real-time speech processing, automatic speech recognition, large language models
 \section{Implementation and Deployment}
 \label{sec:implementation}
 
-\todo{Pipeline-config assembly: \texttt{tools/assemble\_config.py} merges \texttt{config-base.json} with a summariser profile JSON. Launcher: \texttt{tools/run\_pipeline.sh}.}
+\todo{Pipeline-config assembly: \texttt{tools/assemble\_config.py} merges \texttt{config-base.json} with a summarizer profile JSON. Launcher: \texttt{tools/run\_pipeline.sh}.}
 
 \todo{Single-image Docker submission: CUDA 12.3 runtime, Python 3.12 + \texttt{uv}, Ollama daemon, pre-pulled Qwen3.5-4B baked at build time. \texttt{docker-compose.yml} orchestrates Janus + pipeline. Entry point starts Ollama, waits for readiness, then launches the pipeline with the submission profile.}
 
@@ -135,9 +135,9 @@ real-time speech processing, automatic speech recognition, large language models
 
 \begin{table}[t]
     \centering
-    \caption{Summariser profiles.}
+    \caption{Summarizer profiles.}
     \label{tab:profiles}
-    \todo{Columns: profile, backend, model, quantisation, temp, top\_p, repetition\_penalty, mem footprint, target hardware. Rows: ollama-qwen3.5-4b (submission default, CUDA), ollama-qwen3.5-9b, mlx-Qwen3.5-2B-OptiQ-4bit, mlx-Qwen3.5-4B-OptiQ-4bit, mlx-Qwen3.5-9B-OptiQ-4bit.}
+    \todo{Columns: profile, backend, model, quantization, temp, top\_p, repetition\_penalty, mem footprint, target hardware. Rows: ollama-qwen3.5-4b (submission default, CUDA), ollama-qwen3.5-9b, mlx-Qwen3.5-2B-OptiQ-4bit, mlx-Qwen3.5-4B-OptiQ-4bit, mlx-Qwen3.5-9B-OptiQ-4bit.}
 \end{table}
 
 % =====================================================================
@@ -146,11 +146,11 @@ real-time speech processing, automatic speech recognition, large language models
 
 \subsection{Setup}
 \label{sec:eval:setup}
-\todo{Datasets: \texttt{youtube\_15min.wav} 120\,s slice (≥3 full 300\,s windows); secondary against the \texttt{rev16} Whisper subset (30 podcast episodes) and \texttt{ietf} IETF125 sessions. Judge harness: \texttt{tools/eval\_quality.py} with local \texttt{qwen3.5:9b-16k} as judge. Disclose: this approximates the official judge; numbers are directional. Hardware: Apple Silicon M-series (MLX, dev); NVIDIA RTX 4090 dev box and RTX Pro 4500 target (CUDA, Ollama).}
+\todo{Datasets: \texttt{youtube\_15min.wav} 120\,s slice ($\ge$3 full 300\,s windows); secondary against the \texttt{rev16} Whisper subset (30 podcast episodes) and \texttt{ietf} IETF125 sessions. Judge harness: \texttt{tools/eval\_quality.py} with local \texttt{qwen3.5:9b-16k} as judge. Disclose: this approximates the official judge; numbers are directional. Hardware: Apple Silicon M-series (MLX, dev); NVIDIA RTX 4090 dev box and RTX Pro 4500 target (CUDA, Ollama).}
 
 \subsection{End-to-End Scoring}
 \label{sec:eval:scoring}
-\todo{Per-window $B_i / K_i / L_i / C_i$ and audio-level mean across summariser profiles. Refer to Table~\ref{tab:per-window}.}
+\todo{Per-window $B_i / K_i / L_i / C_i$ and audio-level mean across summarizer profiles. Refer to Table~\ref{tab:per-window}.}
 
 \begin{table}[t]
     \centering

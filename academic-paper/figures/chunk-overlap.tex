@@ -1,47 +1,78 @@
-% F3 — Chunking + novel-extraction timing diagram.
-% Five-second chunks slide every 4 s; novel extractor isolates the new 4 s
-% per step (drops the 1 s of overlap with the previous chunk).
+% F3 — Chunking and novel extraction timing.
+% Three chunks of 5 s, sliding by 4 s. Each chunk after the first carries
+% 1 s of overlap (orange) with the previous chunk; the novel extractor
+% emits only the remaining 4 s (green).
+%
+% Coordinate system: x in seconds (via x=\unitW), y in millimeters
+% (via y=1mm). Node `minimum width/height` need explicit mm values, so
+% width-in-mm is pre-computed via pgfmath from the dimensionless `*Sec`
+% durations and the per-second width.
+\def\chunkSec{5}            % seconds per chunk
+\def\overlapSec{1}          % seconds of overlap with previous
+\def\novelSec{4}            % chunkSec - overlapSec
+\def\advanceSec{4}          % seconds slide between chunks
+\def\timeMaxSec{14}         % time axis end
+\def\tickEverySec{2}        % tick spacing
+\def\unitWmm{5.5}           % horizontal mm per second
+\def\unitW{\unitWmm mm}     % matching dimension for x scaling
+
+\def\barHmm{5}              % chunk bar height (mm)
+\def\rowGapMm{2}            % vertical gap between stacked chunks (mm)
+\def\axisYOffMm{5}          % gap between axis line and first chunk (mm)
+
+\pgfmathsetmacro{\chunkWmm}{\chunkSec*\unitWmm}
+\pgfmathsetmacro{\overlapWmm}{\overlapSec*\unitWmm}
+\pgfmathsetmacro{\novelWmm}{\novelSec*\unitWmm}
+\pgfmathsetmacro{\rowPitchMm}{\barHmm + \rowGapMm}
+
 \begin{tikzpicture}[
-    every node/.style={font=\scriptsize},
-    chunk/.style={
-        draw=labelColor, fill=colorBlue!12, rounded corners=1pt,
-        minimum height=4mm, anchor=west, inner sep=0pt
+    x=\unitW, y=1mm,
+    every node/.style={font=\scriptsize, inner sep=0pt},
+    novel/.style={
+        draw=colorGreen!75, fill=colorGreen!25,
+        rounded corners=1pt,
+        minimum height=\barHmm mm, anchor=south west,
+        text=colorGreen!40!black
     },
     overlap/.style={
-        draw=colorOrange, fill=colorOrange!30, rounded corners=1pt,
-        minimum height=4mm, anchor=west, inner sep=0pt
+        draw=colorOrange!85, fill=colorOrange!35,
+        rounded corners=1pt,
+        minimum height=\barHmm mm, anchor=south west,
+        text=colorOrange!55!black
     },
-    novel/.style={
-        draw=colorGreen, fill=colorGreen!25, rounded corners=1pt,
-        minimum height=4mm, anchor=west, inner sep=0pt
-    },
-    axis-style/.style={-{Latex[length=1.2mm]}, thick, color=labelColor},
-    tick-style/.style={color=labelColor, font=\scriptsize}
+    axisline/.style={-{Latex[length=1.2mm]}, color=labelColor, semithick},
+    tickstyle/.style={color=labelColor, semithick}
 ]
-    % Time axis: 1 unit = 8 mm, total 14 s.
-    \def\u{8mm}
-    \draw[axis-style] (0,0) -- (14*\u/1cm,0) node[right]{time (s)};
-    \foreach \t in {0,2,4,6,8,10,12}{
-        \draw[tick-style] (\t*\u/1cm,0) -- (\t*\u/1cm,-1.5mm) node[below]{\t};
+    % Time axis. x-units are seconds, y-units are mm.
+    \draw[axisline] (0, 0) -- (\timeMaxSec + 0.5, 0)
+        node[right, font=\tiny, text=labelColor]{time (s)};
+    \foreach \t in {0, \tickEverySec, ..., \timeMaxSec}{
+        \draw[tickstyle] (\t, 0) -- (\t, -1.2)
+            node[below, font=\tiny, text=labelColor]{\t};
     }
 
-    % Chunk 0: [0, 5]
-    \node[chunk, minimum width=5*\u] at (0,5mm) {};
-    \node[novel, minimum width=5*\u] at (0,5mm) {chunk 0 (novel)};
+    % Bottom-left anchors for each chunk, chained via calc.
+    \coordinate (b0) at (0, \axisYOffMm);
+    \coordinate (b1) at ($(b0) + (\advanceSec, \rowPitchMm)$);
+    \coordinate (b2) at ($(b1) + (\advanceSec, \rowPitchMm)$);
 
-    % Chunk 1: [4, 9], overlap [4,5] with previous
-    \node[chunk, minimum width=5*\u] at (4*\u,11mm) {};
-    \node[overlap, minimum width=1*\u] at (4*\u,11mm) {};
-    \node[novel, minimum width=4*\u] at (5*\u,11mm) {chunk 1 novel};
+    % Chunk 0: pure novel (no preceding chunk to overlap with).
+    \node[novel, minimum width=\chunkWmm mm] at (b0) (c0n) {chunk 0};
 
-    % Chunk 2: [8, 13], overlap [8,9]
-    \node[chunk, minimum width=5*\u] at (8*\u,17mm) {};
-    \node[overlap, minimum width=1*\u] at (8*\u,17mm) {};
-    \node[novel, minimum width=4*\u] at (9*\u,17mm) {chunk 2 novel};
+    % Chunks 1 and 2: 1 s overlap segment + 4 s novel segment.
+    \node[overlap, minimum width=\overlapWmm mm] at (b1) (c1o) {};
+    \node[novel,   minimum width=\novelWmm mm,
+          anchor=south west] at (c1o.south east) (c1n) {chunk 1};
 
-    % Legend.
-    \node[novel, minimum width=4mm] at (0,28mm) {};
-    \node[anchor=west] at (5mm,28mm) {novel words emitted};
-    \node[overlap, minimum width=4mm] at (40mm,28mm) {};
-    \node[anchor=west] at (45mm,28mm) {1\,s overlap (discarded)};
+    \node[overlap, minimum width=\overlapWmm mm] at (b2) (c2o) {};
+    \node[novel,   minimum width=\novelWmm mm,
+          anchor=south west] at (c2o.south east) (c2n) {chunk 2};
+
+    % Legend row above the top chunk, chained relatively.
+    \node[novel, minimum width=3.5mm,
+          above=4mm of c2o.north west, anchor=south west] (legN) {};
+    \node[anchor=west, right=1mm of legN] (legNlbl) {novel (emitted)};
+    \node[overlap, minimum width=3.5mm,
+          right=4mm of legNlbl.east, anchor=west] (legO) {};
+    \node[anchor=west, right=1mm of legO] {overlap (discarded)};
 \end{tikzpicture}

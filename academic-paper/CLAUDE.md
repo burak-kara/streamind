@@ -68,6 +68,7 @@ Key acronyms from `helpers/glossaries.tex` (use `\gls{key}`):
 ## Challenge Context
 
 Scoring formula (see root `CLAUDE.md`): `C_i = B_i + K_i + L_i`. Paper must explain:
+
 - Pipeline architecture (6 Juturna nodes)
 - Model choices (Whisper ASR, Qwen3.5 summarizer via Ollama/MLX)
 - Latency optimisation strategy
@@ -86,6 +87,7 @@ Primary task: correct grammar, syntax, and style to IEEE conference standards.
 - American English, serial comma.
 - Preserve passive voice standard for methodology. Convert to active only for clarity.
 - Do not alter technical meaning. Flag ambiguity with `% TODO: Ambiguous — do you mean X or Y?`
+- Use American English (e.g., "optimize", "analyze", "modeling").
 
 ### LaTeX formatting rules
 
@@ -94,6 +96,7 @@ No markdown styling.
 Each sentence on its own line. No `\\` for line breaks.
 
 Required packages (loaded via `helpers/packages.tex`):
+
 - `siunitx`: `\num{}` for standalone numbers, `\SI{}{}` for numbers with units.
 - `glossaries`: `\gls{}` for acronyms.
 
