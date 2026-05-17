@@ -1,30 +1,81 @@
 % F2 — Latency bonus L_i = 10 * exp(-0.5 * proc_time), gated by B_i >= 10.
+% Annotated reference points at proc_time in {1, 3, 9} s.
+\pgfmathsetmacro{\procMax}{10}
+\pgfmathsetmacro{\Lmax}{10}
+\pgfmathsetmacro{\Lone}{10 * exp(-0.5)}
+\pgfmathsetmacro{\Lthree}{10 * exp(-1.5)}
+\pgfmathsetmacro{\Lnine}{10 * exp(-4.5)}
+
 \begin{tikzpicture}
     \begin{axis}[
-        width=0.95\columnwidth,
-        height=4.2cm,
+        width=0.98\columnwidth,
+        height=4.6cm,
         xlabel={\texttt{proc\_time} (s)},
         ylabel={$L_i$},
-        xmin=0, xmax=10,
+        xlabel style={font=\footnotesize, text=labelColor},
+        ylabel style={font=\footnotesize, text=labelColor},
+        xticklabel style={font=\scriptsize, text=labelColor},
+        yticklabel style={font=\scriptsize, text=labelColor},
+        xmin=0, xmax=\procMax,
         ymin=0, ymax=11,
-        domain=0:10,
+        domain=0:\procMax,
         samples=120,
+        xtick={0, 1, 3, 5, 7, 9},
         ytick={0, 2, 4, 6, 8, 10},
-        xtick={0, 1, 2, 3, 5, 7, 9},
-        legend pos=north east,
-        legend style={font=\scriptsize, inner sep=2pt},
+        grid=major,
+        major grid style={dashed, line4!30},
+        minor tick num=0,
+        axis lines=left,
+        axis line style={color=labelColor},
+        clip=false,
+        legend style={
+            font=\scriptsize,
+            draw=line4!60,
+            fill=legendFillColor!30,
+            inner sep=2pt,
+            rounded corners=2pt,
+            at={(0.98, 0.95)}, anchor=north east,
+        },
     ]
-        \addplot[line1, very thick, no marks] {10 * exp(-0.5 * x)};
+        \addplot[line1, very thick, smooth, no marks]
+            {10 * exp(-0.5 * x)};
         \addlegendentry{$L_i$ when $B_i \ge 10$}
 
-        \addplot[line2, very thick, dashed, no marks, domain=0:10] {0};
-        \addlegendentry{$L_i$ when $B_i < 10$}
+        \coordinate (p1) at (axis cs:1, \Lone);
+        \coordinate (p3) at (axis cs:3, \Lthree);
+        \coordinate (p9) at (axis cs:9, \Lnine);
 
-        \node[anchor=west, font=\scriptsize, text=line1]
-            at (axis cs:1, {10*exp(-0.5)}) {6.07 @ 1\,s};
-        \node[anchor=west, font=\scriptsize, text=line1]
-            at (axis cs:3, {10*exp(-1.5)}) {2.23 @ 3\,s};
-        \node[anchor=west, font=\scriptsize, text=line1]
-            at (axis cs:9, {10*exp(-4.5)}) {0.11 @ 9\,s};
+        \draw[dashed, line4!70, semithick] (axis cs:1, 0) -- (p1);
+        \draw[dashed, line4!70, semithick] (axis cs:3, 0) -- (p3);
+        \draw[dashed, line4!70, semithick] (axis cs:9, 0) -- (p9);
+
+        \node[circle, fill=line1, inner sep=1.4pt] at (p1) {};
+        \node[circle, fill=line1, inner sep=1.4pt] at (p3) {};
+        \node[circle, fill=line1, inner sep=1.4pt] at (p9) {};
+
+        \node[
+            pin={[font=\scriptsize, text=line1, inner sep=1pt]
+                 above right:$6.07$}
+        ] at (p1) {};
+        \node[
+            pin={[font=\scriptsize, text=line1, inner sep=1pt]
+                 above right:$2.23$}
+        ] at (p3) {};
+        \node[
+            pin={[font=\scriptsize, text=line1, inner sep=1pt]
+                 above right:$0.11$}
+        ] at (p9) {};
+
+        \node[
+            anchor=north east,
+            font=\scriptsize,
+            text=colorOrange!70!black,
+            draw=colorOrange!70,
+            fill=colorOrange!10,
+            rounded corners=2pt,
+            inner sep=3pt,
+            align=center
+        ] at (rel axis cs:0.98, 0.55)
+            {gate: $B_i < 10$\\$\Rightarrow L_i = 0$};
     \end{axis}
 \end{tikzpicture}
