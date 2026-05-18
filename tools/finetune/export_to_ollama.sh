@@ -66,8 +66,12 @@ fi
 
 # convert_hf_to_gguf.py needs a few python deps that aren't in our finetune extra.
 # Install them into the same uv env on demand; cheap if they're already installed.
+# `unsafe-best-match` lets uv look at PyPI for these deps even though our
+# project pins torch to the pytorch-cu124 index — otherwise transformers gets
+# resolved from the wrong index and the version conversion needs isn't found.
 echo "[deps] ensuring llama.cpp Python deps"
-uv pip install --quiet -r "$LLAMA_CPP_DIR/requirements/requirements-convert_hf_to_gguf.txt"
+uv pip install --quiet --index-strategy unsafe-best-match \
+    -r "$LLAMA_CPP_DIR/requirements/requirements-convert_hf_to_gguf.txt"
 
 # Step 3: HF → GGUF (FP16).
 if [ ! -f "$GGUF_RAW" ]; then
