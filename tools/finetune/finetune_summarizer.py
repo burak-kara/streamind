@@ -193,14 +193,19 @@ def main() -> int:
 
     collator = DataCollatorForLanguageModeling(tokenizer, mlm=False)
 
-    trainer = SFTTrainer(
+    # TRL 0.12+ renamed `tokenizer` to `processing_class`; older versions still
+    # accept the old name. Try the new name first, fall back for older TRL.
+    sft_kwargs = dict(
         model=model,
         args=training_args,
         train_dataset=datasets["train"],
         eval_dataset=datasets.get("validation"),
-        tokenizer=tokenizer,
         data_collator=collator,
     )
+    try:
+        trainer = SFTTrainer(processing_class=tokenizer, **sft_kwargs)
+    except TypeError:
+        trainer = SFTTrainer(tokenizer=tokenizer, **sft_kwargs)
 
     last_ckpt = None
     if args.output_dir.exists() and any(p.name.startswith("checkpoint-") for p in args.output_dir.iterdir()):
