@@ -4,17 +4,7 @@
 
 STREAMIND Grand Challenge: build **real-time AI meeting intelligence pipeline**. Receives live audio stream, transcribes incrementally, aggregates context, produces structured LLM outputs (summary + keywords) with minimal latency.
 
-Scoring:
-
-- Per-chunk: `C_i = B_i + K_i + L_i`
-- Per-audio source: `S_audio = avg_i(C_i)`
-- Janus bonus: `+4` added to overall score
-- Submission ranking: min-max normalised across submissions
-
-- `B_i` max 25: LLM judge on 5 Likert criteria — factual consistency, relevance, coherence, fluency, conciseness
-- `K_i` max 6: +2 per relevant keyword, −2 per irrelevant; exactly 3 required
-- `L_i` max ~6: `10·e^(−0.5·proc_time)`, **only if `B_i ≥ 10`**; ~0.09 at 9s, ~2.2 at 3s, ~6.1 at 1s
-Quality gates latency reward — `B_i < 10` zeroes out `L_i` entirely.
+See **Scoring Constraints** section for formula and limits.
 
 ## Pipeline Architecture
 
@@ -53,6 +43,7 @@ Quality gates latency reward — `B_i < 10` zeroes out `L_i` entirely.
 
 - Production: single **RTX Pro 4500** GPU — size all models to fit within its VRAM
 - MLX profiles run on Apple Silicon locally; submission must target RTX Pro 4500
+- **Lab machine** (`uni-lab`): RTX 4090, CUDA 12.4 — finetune, CUDA pipeline validation, and final submission development; access via `ssh uni-lab`
 
 ## Key References
 
@@ -121,6 +112,18 @@ docker compose up
 # Inject test audio through Janus (in a separate terminal while pipeline is running)
 # Use the 10-min fixture so the 300s production window fires at least once
 uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
+
+# CUDA development on lab machine (uni-lab, RTX 4090)
+# Primary sync — after committing locally:
+ssh uni-lab "cd ~/streamind && git pull"
+# Mid-development sync (uncommitted changes):
+rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' . uni-lab:~/streamind/
+# On lab — first time or after dep changes:
+ssh uni-lab "cd ~/streamind && uv sync --extra dev"
+ssh uni-lab "cd ~/streamind && uv sync --extra finetune"  # QLoRA only (torch cu124, CUDA)
+# Run CUDA pipeline on lab:
+ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s ollama-qwen3.5-4b"
+ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s ollama-qwen3.5-4b -j ollama-qwen3.5-9b"
 ```
 
 ## Runtime Requirements
@@ -146,6 +149,8 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout, model 
 - `encoding_clock_chan: "opus/48000/2"` in `config-base.json` declares stereo Opus; verify against actual Janus stream before submission — change to `opus/48000/1` if Janus sends mono
 - Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
 - To inject WAV file into pipeline locally: `uv run python tools/send_audio.py <file.wav>`
+- `uv sync --extra finetune` must run on `uni-lab` — torch cu124 wheels don't install on Apple Silicon (fails silently with wrong torch). Never run finetune locally.
+- Finetune pipeline order is fixed: `prepare_rev16.py` → `finetune_summarizer.py` → `merge_lora.py` → `export_to_ollama.sh` → `eval_finetuned.py`. Steps are not idempotent.
 
 ## Skills
 
@@ -156,6 +161,8 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout, model 
 | `/tune-prompt` | Test summarization prompt against sample transcript via Ollama |
 | `/swap-model` | Switch ASR or LLM model in `config.json`, verify availability |
 | `/add-node` | Scaffold new Juturna node with correct structure |
+| `/remote-finetune` | Sync to uni-lab and run full QLoRA pipeline (prepare → train → merge → export → eval) |
+| `/prep-submission` | Pre-submission checklist — config, format, CUDA smoke test on uni-lab |
 
 ## Constraints and Disallowed Approaches
 

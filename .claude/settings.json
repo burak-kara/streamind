@@ -9,6 +9,15 @@
             "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); print(json.dumps({'continue':False,'stopReason':'docs/datasets/ is excluded from context — large dataset files, do not read.'})) if 'docs/datasets' in fp else None\" 2>/dev/null || true"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); print(json.dumps({'continue':False,'stopReason':'pipelines/config.json is assembled at runtime — edit config-base.json or a profile in pipelines/summarizer/ instead'})) if fp.endswith('pipelines/config.json') else None\" 2>/dev/null || true"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -21,7 +30,7 @@
           },
           {
             "type": "command",
-            "command": "python3 -c \"import json; json.load(open('pipelines/config.json')); print('config.json: OK')\" 2>&1"
+            "command": "python3 -c \"import json; json.load(open('pipelines/config-base.json')); print('config-base.json: OK')\" 2>&1"
           }
         ]
       }
