@@ -1,5 +1,7 @@
 # STREAMIND — Scoring Formula Realignment Roadmap
 
+> **SUPERSEDED — 2026-05-19.** Replaced by [cuda-native-pipeline-base-first.md](cuda-native-pipeline-base-first.md). Scoring-rule changes captured here are still accurate; the inference backend choices (Ollama / MLX) are not.
+
 ## Context
 
 The challenge scoring formula was completely redesigned. The old formula `C_i = S_i - latency_i` (0–30 opaque judge minus latency penalty) was replaced with an explicit component model. This requires targeted changes across: keyword error handling (immediate score penalty), prompt engineering (new conciseness criterion), latency strategy (bonus replaces penalty, exponential decay), and submission packaging (Dockerfile now required).

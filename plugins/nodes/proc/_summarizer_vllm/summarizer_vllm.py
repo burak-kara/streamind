@@ -1,20 +1,16 @@
 import importlib.util
 import json
+import logging
+import queue as _q
 import re
 import time
 import typing
-import logging
 from pathlib import Path
 
-from mlx_lm import load, generate
-from mlx_lm.sample_utils import make_sampler, make_logits_processors
 from juturna.components import Node, Message
 from juturna.payloads import ObjectPayload, ControlPayload
 
 
-# Load the shared keyword-handling module by path. Juturna loads this file by
-# path too (not as part of a package), so a regular import cannot reach the
-# sibling `_summarizer_common` directory.
 _kw_spec = importlib.util.spec_from_file_location(
     "summarizer_keywords",
     Path(__file__).resolve().parent.parent / "_summarizer_common" / "keywords.py",
@@ -26,46 +22,91 @@ BANNED_KEYWORDS = _kw_module.BANNED_KEYWORDS
 _ensure_three_keywords_impl = _kw_module.ensure_three_keywords
 
 
+class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
+    """Summarizes transcript windows via vLLM in-process inference.
 
-class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
-    """Summarizes transcript windows using mlx-lm on Apple Silicon."""
+    The summarizer loads model weights from a **local filesystem path** —
+    never an HF id at runtime. Weights ship with the submission image,
+    populated either by `tools/fetch_models.sh` (dev) or by the Dockerfile
+    at build time. Refuses to start if the model directory is missing so
+    pipeline failure mode is loud and obvious.
+    """
 
-    def __init__(self, model_name: str = "",
-                 prompt_template_file: str = "",
-                 num_predict: int = 128,
-                 temp: float = 0.0,
-                 top_p: float = 1.0,
-                 repetition_penalty: float = 1.0,
+    def __init__(self,
+                 model_name: str,
+                 prompt_template_file: str = "summarize_prompt.txt",
+                 dtype: str = "float16",
+                 gpu_memory_utilization: float = 0.85,
+                 max_model_len: int = 2048,
+                 max_tokens: int = 150,
+                 temperature: float = 0.3,
+                 top_p: float = 0.9,
+                 repetition_penalty: float = 1.05,
+                 enforce_eager: bool = False,
                  **kwargs):
         super().__init__(**kwargs)
         self._model_name = model_name
-        self._mlx_model = None
-        self._mlx_tokenizer = None
-        self._prompt_template = ""
         self._prompt_file = prompt_template_file
-        self._num_predict = num_predict
-        self._temp = temp
+        self._dtype = dtype
+        self._gpu_memory_utilization = gpu_memory_utilization
+        self._max_model_len = max_model_len
+        self._max_tokens = max_tokens
+        self._temperature = temperature
         self._top_p = top_p
         self._repetition_penalty = repetition_penalty
+        self._enforce_eager = enforce_eager
+
+        self._llm = None
+        self._sampling_params = None
+        self._prompt_template = ""
         self._logger = logging.getLogger(self.__class__.__name__)
 
     def configure(self): pass
 
     def warmup(self):
-        template_path = Path(__file__).parent / self._prompt_file
-        if template_path.exists():
-            self._prompt_template = template_path.read_text()
-        else:
-            self._logger.error(f"Prompt template file not found: {template_path}")
-            raise FileNotFoundError(f"Prompt template file not found: {template_path}")
+        model_path = Path(self._model_name)
+        if not model_path.exists() or not (model_path / "config.json").exists():
+            raise FileNotFoundError(
+                f"Model directory not found or missing config.json: {model_path}. "
+                f"Run `./tools/fetch_models.sh <hf_id> {model_path.name}` to populate it."
+            )
 
-        self._mlx_model, self._mlx_tokenizer = load(self._model_name)
+        template_path = Path(__file__).parent / self._prompt_file
+        if not template_path.exists():
+            raise FileNotFoundError(f"Prompt template file not found: {template_path}")
+        self._prompt_template = template_path.read_text()
+
+        from vllm import LLM, SamplingParams
+
+        self._logger.info(f"Loading vLLM model from {model_path} (dtype={self._dtype})")
+        self._llm = LLM(
+            model=str(model_path),
+            dtype=self._dtype,
+            gpu_memory_utilization=self._gpu_memory_utilization,
+            max_model_len=self._max_model_len,
+            enforce_eager=self._enforce_eager,
+        )
+        self._sampling_params = SamplingParams(
+            temperature=self._temperature,
+            top_p=self._top_p,
+            max_tokens=self._max_tokens,
+            repetition_penalty=self._repetition_penalty,
+        )
+
+        try:
+            self._llm.chat(
+                [{"role": "user", "content": "Say hello."}],
+                sampling_params=SamplingParams(max_tokens=5),
+                use_tqdm=False,
+            )
+        except Exception as e:
+            self._logger.error(f"vLLM warmup chat failed: {e}")
 
     def set_on_config(self, prop: str, value: typing.Any): pass
+
     def start(self): super().start()
 
     def stop(self):
-        import queue as _q
         while True:
             try:
                 msg = self._queue.get_nowait()
@@ -74,10 +115,19 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
             if msg is not None and not isinstance(msg.payload, ControlPayload):
                 self.update(msg)
         super().stop()
+
     def destroy(self): pass
 
     def _ensure_three_keywords(self, keywords: list, transcript: str = "") -> list[str]:
         return _ensure_three_keywords_impl(keywords, transcript)
+
+    def _generate(self, prompt: str) -> str:
+        outputs = self._llm.chat(
+            [{"role": "user", "content": prompt}],
+            sampling_params=self._sampling_params,
+            use_tqdm=False,
+        )
+        return outputs[0].outputs[0].text
 
     def update(self, message: Message[ObjectPayload]):
         transcript = message.payload.get("full_transcript", "")
@@ -85,48 +135,12 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
 
         prompt = self._prompt_template.format(transcript=transcript)
 
-        raw_llm_output = ""
         try:
-            template_kwargs = dict(tokenize=False, add_generation_prompt=True)
-            try:
-                formatted = self._mlx_tokenizer.apply_chat_template(
-                    [{"role": "user", "content": prompt}],
-                    enable_thinking=False,
-                    **template_kwargs,
-                )
-            except TypeError:
-                # Tokenizer doesn't support enable_thinking; fall back to plain template
-                self._logger.warning("Tokenizer does not support enable_thinking; using fallback template formatting")
-                formatted = self._mlx_tokenizer.apply_chat_template(
-                    [{"role": "user", "content": prompt}],
-                    **template_kwargs,
-                )
-            sampler = make_sampler(temp=self._temp, top_p=self._top_p)
-            logits_processors = make_logits_processors(
-                repetition_penalty=self._repetition_penalty
-            )
-            content = generate(
-                self._mlx_model, self._mlx_tokenizer,
-                prompt=formatted,
-                max_tokens=self._num_predict,
-                sampler=sampler,
-                logits_processors=logits_processors,
-                verbose=False,
-            )
-            raw_llm_output = content
-            self._logger.debug(f"Raw LLM output: {repr(content)}")
-            # Strip thinking blocks (Qwen3 may emit <think>...</think> despite /no_think)
-            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
-            # Strip Qwen/ChatML special tokens like <|im_end|>, <|endoftext|>.
+            content = self._generate(prompt).strip()
             content = re.sub(r"<\|[^|]+\|>", "", content)
-            # Strip markdown code fences if present
-            content = re.sub(r"^```[a-z]*\n?", "", content, flags=re.MULTILINE)
-            content = re.sub(r"\n?```$", "", content, flags=re.MULTILINE)
+            content = re.sub(r"^```[a-z]*\n?", "", content)
+            content = re.sub(r"\n?```$", "", content)
             content = content.strip()
-            if not content:
-                raise ValueError("LLM returned empty content")
-            # Extract the outermost JSON object — tolerates trailing stop tokens
-            # or commentary the model may emit after the JSON.
             obj_match = re.search(r"\{.*\}", content, re.DOTALL)
             if obj_match is None:
                 raise ValueError(f"No JSON object found in LLM output: {content[:120]!r}")
@@ -149,7 +163,6 @@ class SummarizerMlx(Node[ObjectPayload, ObjectPayload]):
             "latency": latency,
             "model_name": self._model_name,
             "full_transcript": transcript,
-            "raw_llm_output": raw_llm_output,
         })
         out = Message[ObjectPayload](
             creator=self.name,

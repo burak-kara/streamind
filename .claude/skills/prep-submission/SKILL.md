@@ -1,19 +1,29 @@
 ---
 name: prep-submission
-description: Pre-submission checklist — validate config, output format, and CUDA pipeline on uni-lab before submitting
+description: Pre-submission checklist — validate config, output format, and native CUDA vLLM pipeline on uni-lab before submitting
 disable-model-invocation: true
 ---
 
 Complete each step before submitting. All CUDA testing runs on uni-lab.
+Active summarizer profile and model are committed in `pipelines/summarizer/vllm-<name>.json` — substitute the name everywhere below.
 
-1. Set `destination_endpoint` in `pipelines/config-base.json` (currently `""`)
-2. Verify `encoding_clock_chan` matches actual Janus stream: mono=`opus/48000/1`, stereo=`opus/48000/2`
-3. Confirm summarizer profile is `ollama-qwen3.5-4b` (submission CUDA default)
-4. Pull model on uni-lab if absent: `ssh uni-lab "ollama pull qwen3.5:4b"`
-5. Sync to uni-lab: `rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' . uni-lab:~/streamind/`
-6. Run 30s smoke test with judge on uni-lab:
-   `ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s ollama-qwen3.5-4b -j ollama-qwen3.5-9b"`
-7. Pull results: `rsync -av uni-lab:~/streamind/results/ ./results/`
-8. Validate output format: check results/ for `from`/`to`/`summary`/`keywords`(3 items)/`proc_time` — no extra keys
-9. Confirm audio goes through `audio_rtp` (Janus path), NOT `audio_file`
-10. Run full 300s test to confirm at least one window fires and posts successfully
+1. Set `destination_endpoint` in `pipelines/config-base.json` (currently `""` — submission deadline blocker).
+2. Verify `encoding_clock_chan: "opus/48000/1"` (challenge specifies mono Opus).
+3. Confirm `pipelines/summarizer/vllm-<name>.json` exists and `configuration.model_name` points to a relative path under `./models/` (never an HF id at runtime).
+4. Sync to uni-lab: `rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/streamind/`
+5. Verify CUDA + vLLM on uni-lab:
+   `ssh uni-lab "cd ~/streamind && nvidia-smi && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
+6. Ensure weights present: `ssh uni-lab "cd ~/streamind && ls ./models/<name>/config.json"` — if missing, run `./tools/fetch_models.sh <hf_id> <name>`.
+7. 30 s smoke test (audio_rtp via Janus, NOT audio_file):
+   `ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-<name>"`
+   In parallel: `ssh uni-lab "cd ~/streamind && uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav"`
+8. Pull results: `rsync -av uni-lab:~/streamind/results/ ./results/`
+9. Validate output JSON: keys MUST be exactly `from`, `to`, `summary`, `keywords` (length 3), `proc_time` — no extras.
+10. Offline judge (sequential — summarizer must be unloaded first):
+    `ssh uni-lab "cd ~/streamind && uv run python tools/eval_quality.py results/<name>/30/ --judge-profile vllm-<judge_name>"`
+11. Full 300 s test: at least one window fires and POSTs successfully to `destination_endpoint`.
+12. Grep guard: `rg -i 'ollama|mlx' --type py --type json -g '!tools/finetune/**' -g '!docs/**'` returns zero matches.
+13. VRAM budget during run: `nvidia-smi` peak < 24 GB.
+14. **No-network sanity** (M3): docker run with `--network none` still loads model and produces results — proves weights baked into image.
+15. Confirm `Dockerfile` includes `RUN ./tools/fetch_models.sh ...` so the image carries the weights (no runtime download).
+16. Submission bundle includes: code (`plugins/`, `tools/`), `pipelines/config-base.json` + assembled config, sample results JSONs, `Dockerfile`, `docs/APPROACH.md`.

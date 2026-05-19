@@ -9,36 +9,35 @@
 | `proc/_novel_extractor/` | `novel_extractor` | Deduplicates overlapping chunk content |
 | `proc/_transcriber_whisper/` | `transcriber_whisper` | ASR via faster-whisper |
 | `proc/_window_aggregator/` | `window_aggregator` | Accumulates transcript into rolling windows |
-| `proc/_summarizer_mlx/` | `summarizer_mlx` | LLM summarization — native MLX (default) |
-| `proc/_summarizer_llm/` | `summarizer_llm` | LLM summarization — Ollama backend |
-| `proc/_summarizer_common/` | — (helper) | Shared keyword post-processing for both summarizer nodes (loaded via importlib, not a Juturna node) |
 | `proc/_hallucination_filter/` | `hallucination_filter` | Post-processes LLM output to remove hallucinations |
+| `proc/_summarizer_vllm/` | `summarizer_vllm` | LLM summarization — native CUDA via vLLM in-process |
+| `proc/_summarizer_common/` | — (helper) | Shared keyword post-processing (loaded via importlib, not a Juturna node) |
 | `sink/_result_transmitter/` | `result_transmitter` | Writes results locally and POSTs to endpoint |
-| `sink/_judge_llm/` | `judge_llm` | Async LLM-as-judge — forks from summarizer, scores B/K/L/C offline without blocking the live transmitter |
-| `sink/_judge_common/` | — (helper) | Shared judge prompt + B/K/L/C math, used by `judge_llm` and `tools/eval_quality.py` (loaded via importlib, not a Juturna node) |
+| `sink/_judge_common/` | — (helper) | Shared judge prompt + B/K/L/C math, used by `tools/eval_quality.py` (loaded via importlib, not a Juturna node) |
 
-## Current Model Choices
+## Judge — Offline Only
 
-| Stage | Model | Notes |
-| --------- | --------- | --------- |
-| ASR | `faster-whisper small.en` | `device: auto`, int8, English-only |
-| Summarization | `Qwen3.5-2B-OptiQ-4bit` (mlx) | Fastest MLX option; ~1GB; `temp=0.2` |
-| Summarization | `Qwen3.5-4B-OptiQ-4bit` (mlx) | Balanced MLX option; ~2GB; `temp=0.3` |
-| Summarization | `Qwen3.5-9B-OptiQ-4bit` (mlx) | Highest quality MLX; ~4.5GB; `temp=0.4` |
-| Summarization | `qwen3.5:9b-16k` (Ollama) | Ollama default; requires Ollama running |
+There is no live judge sink in the pipeline. `tools/eval_quality.py` runs **after** the pipeline exits: it loads a judge model with vLLM, iterates `results/<model>/<window>/window_*.json`, and writes `results/.../judge/window_N.json` with `B/K/L/C` scores. Sequential loading avoids VRAM co-residency.
 
-## Judge Node
+Rationale: the RTX Pro 4500 has 24 GB. A 8B+ summarizer + 7B+ judge co-resident does not fit. At submission time the judge is irrelevant (held-out evaluator scores us); during development we score sequentially.
 
-`judge_llm` is a sink that consumes summarizer output via a fork (`summarizer → transmitter` and `summarizer → judge`). It is **off by default** — opt in with `--judge <profile>` when launching the pipeline.
+Output schema: same as the live window JSON plus `B_breakdown`, `B`, `K`, `L`, `C`, `keyword_flags`, `judge_model`. Never touches the official submission file.
 
-- Async by design: incoming windows are pushed to a bounded `queue.Queue` and a background worker calls Ollama. `update()` returns immediately so the live transmitter is never blocked.
-- Backpressure handling: if the queue fills up the oldest unscored window is dropped (a warning is logged) — keeps the live monitoring view current rather than letting the judge starve the pipeline.
-- Output: `results/{summarizer_model}/{window_dur}/judge/window_N.json` with the same `from`/`to`/`summary`/`keywords`/`proc_time` plus `B_breakdown`, `B`, `K`, `L`, `C`, `keyword_flags`, `judge_model`. Doesn't touch the official submission file.
-- Use a different model than the summarizer to limit self-bias. Default profile uses `qwen3.5:4b` for cheap scoring; `ollama-qwen3.5-9b` is also provided.
+## Summarizer
 
-## Summarizer Nodes
+**`summarizer_vllm`** — Native CUDA inference via [vLLM](https://github.com/vllm-project/vllm) `LLM` class, in-process. No daemon. Requires `uv sync --extra cuda` (Linux + CUDA only).
 
-Two separate Juturna nodes — switch by changing `mark` in the pipeline config:
+- **Model source:** local filesystem path (`./models/<name>`). Never an HF id at runtime. Pipeline aborts at warmup if the directory is missing — clear error directs the user to `tools/fetch_models.sh`.
+- **Config (`config.toml` defaults):** `model_name`, `prompt_template_file` (default `summarize_prompt.txt`), `dtype` (default `float16`), `gpu_memory_utilization` (0.85), `max_model_len` (2048), `max_tokens` (150), `temperature` (0.3), `top_p` (0.9), `repetition_penalty` (1.05), `enforce_eager` (false).
+- **Output contract:** strict JSON `{"summary": ..., "keywords": [3 strings]}`. Output goes through the shared `keywords.ensure_three_keywords()` helper which guarantees the count and bans generic terms.
+- **Prompt:** `summarize_prompt.txt` — model-agnostic, includes `/no_think` to suppress thinking traces on Qwen-family models.
 
-- **`summarizer_mlx`** (default) — Native Apple Silicon inference via `mlx-lm`. No server required. Install with `uv sync --extra mlx`. Model names are HuggingFace IDs. Qwen3.5 profiles use `summarize_prompt_mlx_qwen3.txt` (includes `/no_think` to suppress chain-of-thought). Config params: `model_name`, `prompt_template_file`, `num_predict`, `temp`, `top_p`, `repetition_penalty`.
-- **`summarizer_llm`** (alternative) — Ollama backend. Requires Ollama at `http://127.0.0.1:11434`. Prompt: `summarize_prompt_ollama.txt` (includes `/no_think`). Config params: `endpoint`, `model_name`, `num_ctx`, `num_predict`.
+## Model Choices
+
+Active summarizer model is committed in `pipelines/summarizer/vllm-<name>.json` and the weights live under `./models/<name>/` (gitignored). One profile only; no MLX/Ollama variants exist.
+
+Selection criteria:
+- ≤ ~20 GB fp16 to leave VRAM headroom on the 24 GB RTX Pro 4500
+- Permissive license for redistribution in the submission Docker image
+- Strong instruction-following + reliable JSON output
+- Available on HuggingFace

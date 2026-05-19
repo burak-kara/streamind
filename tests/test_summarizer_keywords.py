@@ -1,5 +1,5 @@
-"""Tests for the shared keyword-post-processing module used by both
-summarizer nodes (summarizer_mlx, summarizer_llm).
+"""Tests for the shared keyword-post-processing module used by the
+vLLM summarizer node.
 """
 
 import importlib.util

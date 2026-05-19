@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Local quality evaluation harness for summarizer output.
+"""Offline LLM-as-judge harness for summarizer output.
 
-Reads result windows + their debug transcripts, asks a local Ollama LLM to
-score on the challenge's 5 Likert criteria, scores keyword relevance, and
-emits a per-window table with B_i / K_i / L_i and the chunk score C_i.
+Loads a judge model with vLLM in-process, walks `results/<model>/<window>/`,
+scores every window on the challenge's 5 Likert criteria, derives K and L
+per the scoring formula, and writes one judge JSON per window under a
+`judge/` subdirectory next to the source results.
 
-This harness is directional only. The official hidden judge may differ.
+The judge runs **sequentially after the summarizer pipeline exits** — at
+submission time only the summarizer occupies VRAM; the judge is an eval
+tool, not part of the live path.
+
+Directional only. The official hidden judge may differ.
 """
 
 from __future__ import annotations
@@ -19,13 +24,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Iterable
 
-import ollama
 
-
-# Load the shared scorer module by path. Mirrors the loader pattern used by
-# the in-pipeline judge node so the script and node can never drift.
-# The sys.modules registration is required so @dataclass inside the module
-# can resolve its own __module__ in Python 3.12+.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _scorer_spec = importlib.util.spec_from_file_location(
     "judge_scorer",
@@ -53,7 +52,7 @@ class Scored:
 
 
 def _read_transcript(window_path: Path) -> str:
-    stem = window_path.stem  # window_N
+    stem = window_path.stem
     candidates = [
         window_path.parent / "debug" / f"{stem}_transcript.txt",
         window_path.parent.parent / "debug" / f"{stem}_transcript.txt",
@@ -66,7 +65,6 @@ def _read_transcript(window_path: Path) -> str:
 
 def _iter_window_files(root: Path) -> Iterable[Path]:
     for p in sorted(root.rglob("window_*.json")):
-        # Skip debug artifacts and the judge node's own output dir.
         if "debug" in p.parts or "judge" in p.parts:
             continue
         if p.name.startswith("window_") and not p.stem[len("window_"):].isdigit():
@@ -74,7 +72,53 @@ def _iter_window_files(root: Path) -> Iterable[Path]:
         yield p
 
 
-def _score_one(client: ollama.Client, model: str, window: Path) -> Scored | None:
+def _load_judge_profile(profile_name: str) -> dict:
+    profile_path = _REPO_ROOT / "pipelines" / "judge" / f"{profile_name}.json"
+    if not profile_path.exists():
+        raise FileNotFoundError(
+            f"Judge profile not found: {profile_path}. Expected file under "
+            f"pipelines/judge/ with the suffix `.json`."
+        )
+    data = json.loads(profile_path.read_text())
+    cfg = data.get("configuration", data)
+    return cfg
+
+
+def _build_llm(cfg: dict):
+    from vllm import LLM, SamplingParams
+
+    model_path = Path(cfg["model_name"])
+    if not model_path.exists() or not (model_path / "config.json").exists():
+        raise FileNotFoundError(
+            f"Judge model directory not found: {model_path}. "
+            f"Run `./tools/fetch_models.sh <hf_id> {model_path.name}` first."
+        )
+
+    llm = LLM(
+        model=str(model_path),
+        dtype=cfg.get("dtype", "float16"),
+        gpu_memory_utilization=cfg.get("gpu_memory_utilization", 0.85),
+        max_model_len=cfg.get("max_model_len", 4096),
+        enforce_eager=cfg.get("enforce_eager", False),
+    )
+    sampling = SamplingParams(
+        temperature=cfg.get("temperature", 0.0),
+        top_p=cfg.get("top_p", 1.0),
+        max_tokens=cfg.get("max_tokens", 256),
+    )
+    return llm, sampling
+
+
+def _generate(llm, sampling, prompt: str) -> str:
+    out = llm.chat(
+        [{"role": "user", "content": prompt}],
+        sampling_params=sampling,
+        use_tqdm=False,
+    )
+    return out[0].outputs[0].text
+
+
+def _score_one(llm, sampling, window: Path) -> Scored | None:
     try:
         result = json.loads(window.read_text())
     except Exception as e:
@@ -84,14 +128,9 @@ def _score_one(client: ollama.Client, model: str, window: Path) -> Scored | None
     summary = result.get("summary", "")
     keywords = result.get("keywords", [])
     prompt = _scorer.build_prompt(transcript=transcript, summary=summary, keywords=keywords)
-    response = client.chat(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        options={"num_predict": 256, "num_ctx": 4096, "temperature": 0.0},
-        think=False,
-    )
     try:
-        b_breakdown, keyword_flags = _scorer.parse_judge_response(response.message.content)
+        raw = _generate(llm, sampling, prompt)
+        b_breakdown, keyword_flags = _scorer.parse_judge_response(raw)
     except (ValueError, json.JSONDecodeError) as e:
         print(f"skip {window}: judge parse failed: {e}", file=sys.stderr)
         return None
@@ -111,6 +150,28 @@ def _score_one(client: ollama.Client, model: str, window: Path) -> Scored | None
         keywords=keywords,
         transcript_len=len(transcript),
     )
+
+
+def _write_per_window(scored: list[Scored], judge_model: str) -> None:
+    """Mirror the in-pipeline judge's output layout: results/.../judge/window_N.json."""
+    for s in scored:
+        window_data = json.loads(s.path.read_text())
+        judge_dir = s.path.parent / "judge"
+        judge_dir.mkdir(parents=True, exist_ok=True)
+        out_path = judge_dir / s.path.name
+        out_path.write_text(json.dumps(
+            {
+                **window_data,
+                "B_breakdown": s.b_breakdown,
+                "B": s.b,
+                "keyword_flags": s.keyword_flags,
+                "K": s.k,
+                "L": s.l,
+                "C": s.c,
+                "judge_model": judge_model,
+            },
+            indent=2,
+        ))
 
 
 def _print_table(scored: list[Scored]) -> None:
@@ -135,18 +196,25 @@ def _print_table(scored: list[Scored]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--results-dir", type=Path, default=Path("results"))
-    parser.add_argument("--judge-model", default="qwen3.5:4b")
-    parser.add_argument("--judge-endpoint", default="http://127.0.0.1:11434")
+    parser.add_argument("results_dir", type=Path, nargs="?", default=Path("results"),
+                        help="Directory containing window_*.json files (recursive). Default: ./results")
+    parser.add_argument("--judge-profile", default=None,
+                        help="Profile name under pipelines/judge/<name>.json. Required.")
     parser.add_argument("--filter", default=None, help="substring match on window path")
-    parser.add_argument("--json-out", type=Path, default=None)
+    parser.add_argument("--json-out", type=Path, default=None,
+                        help="Optional summary JSON; per-window judge files always written.")
     args = parser.parse_args()
 
     if not args.results_dir.exists():
         print(f"results dir not found: {args.results_dir}", file=sys.stderr)
         return 1
+    if args.judge_profile is None:
+        print("--judge-profile is required (e.g. --judge-profile vllm-qwen-7b)", file=sys.stderr)
+        return 1
 
-    client = ollama.Client(host=args.judge_endpoint)
+    cfg = _load_judge_profile(args.judge_profile)
+    judge_model_id = cfg.get("model_name", args.judge_profile)
+
     windows = list(_iter_window_files(args.results_dir))
     if args.filter:
         windows = [w for w in windows if args.filter in str(w)]
@@ -154,12 +222,15 @@ def main() -> int:
         print("no window files matched", file=sys.stderr)
         return 1
 
+    llm, sampling = _build_llm(cfg)
+
     scored: list[Scored] = []
     for w in windows:
-        s = _score_one(client, args.judge_model, w)
+        s = _score_one(llm, sampling, w)
         if s is not None:
             scored.append(s)
 
+    _write_per_window(scored, judge_model=judge_model_id)
     _print_table(scored)
 
     if args.json_out:

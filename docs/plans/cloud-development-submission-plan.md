@@ -1,5 +1,7 @@
 # Cloud GPU Development & Submission Readiness Plan
 
+> **SUPERSEDED — 2026-05-19.** Replaced by [cuda-native-pipeline-base-first.md](cuda-native-pipeline-base-first.md). The Ollama-on-cloud + middleware approach assumed here is no longer the design.
+>
 > Status: Draft — 2026-04-23
 > Depends on: [submission-readiness-remaining.md](submission-readiness-remaining.md) (hard blockers #2, #3, #4)
 

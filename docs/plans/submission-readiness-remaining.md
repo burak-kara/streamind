@@ -1,5 +1,7 @@
 # STREAMIND — Submission Readiness: Remaining Items
 
+> **SUPERSEDED — 2026-05-19.** Replaced by [cuda-native-pipeline-base-first.md](cuda-native-pipeline-base-first.md). Item list predates the vLLM pivot — endpoint + Docker items will be refreshed in M3.
+
 Snapshot as of 2026-04-23. All prior plan work
 (`docs/plans/given-the-changes-in-streamed-biscuit.md` and
 `~/.claude/plans/given-the-missing-poitns-curried-bumblebee.md`) is complete
