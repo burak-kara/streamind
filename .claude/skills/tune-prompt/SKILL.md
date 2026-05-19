@@ -46,7 +46,7 @@ Action item: John to update the migration runbook by end of week."
 ## 3. Read the current prompt template
 
 ```bash
-cat plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt
+cat plugins/nodes/proc/_summarizer_llm/summarize_prompt_ollama.txt
 ```
 
 ## 4. Run the prompt against Ollama
@@ -55,7 +55,7 @@ cat plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt
 uv run python - <<'PYEOF'
 import json, urllib.request, os
 
-prompt_tmpl = open("plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt").read()
+prompt_tmpl = open("plugins/nodes/proc/_summarizer_llm/summarize_prompt_ollama.txt").read()
 sample = """The team discussed migrating the authentication service to OAuth 2.0.
 John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients.
 Sarah confirmed that the API gateway already supports PKCE flow.
@@ -64,8 +64,8 @@ Action item: John to update the migration runbook by end of week."""
 
 prompt = prompt_tmpl.replace("{transcript}", sample)
 
-# Read model from config
-cfg = json.load(open("pipelines/config.json"))
+# Read model from config-base (assembled config.json may be stale or absent)
+cfg = json.load(open("pipelines/config-base.json"))
 model = next(
     (n["configuration"]["model_name"] for n in cfg["pipeline"]["nodes"] if n["mark"] == "summarizer_llm"),
     "qwen3.5:9b-16k"
@@ -126,5 +126,5 @@ After showing output, print these guidelines if the output looks poor:
 - **Generic keywords**: Add: "Keywords must be specific noun phrases from the transcript, not generic terms like 'discussion'."
 - **Slow inference**: Shorten the prompt — every token costs latency.
 
-To edit the prompt: `Edit plugins/nodes/proc/_summarizer_llm/summarize_prompt.txt`
+To edit the prompt: `Edit plugins/nodes/proc/_summarizer_llm/summarize_prompt_ollama.txt`
 Then re-run `/tune-prompt` to compare.
