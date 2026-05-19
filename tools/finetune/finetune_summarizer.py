@@ -7,7 +7,7 @@ Defaults are sized for an RTX 2070 Super Mobile (8 GB VRAM):
   - micro-batch 1, grad-accum 8 (effective batch 8)
   - sequence length 2048 (enough for our 600-word windows + prompt + target)
 
-Usage (after `uv sync --extra finetune` and `prepare_rev16.py`):
+Usage (after `uv sync --extra dev` and `prepare_rev16.py`):
     uv run python tools/finetune/finetune_summarizer.py \
         --base-model Qwen/Qwen2.5-3B-Instruct \
         --train-file tools/finetune/data/train.jsonl \

@@ -104,7 +104,7 @@ uv sync --extra dev
 
 # --- Lab (uni-lab, RTX 4090, CUDA 12.4) — full pipeline ---
 ssh uni-lab "cd ~/streamind && git pull"
-ssh uni-lab "cd ~/streamind && uv sync --extra cuda --extra dev"
+ssh uni-lab "cd ~/streamind && uv sync --extra dev"
 
 # Populate model once (idempotent)
 ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <local_name>"
@@ -130,7 +130,7 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 ## Runtime Requirements
 
 - **Janus** running via Docker on uni-lab: `docker compose up -d` (builds from source on first run)
-- **vLLM** installed via `uv sync --extra cuda` — Linux + CUDA only. Will not install on Apple Silicon.
+- **vLLM** is a base dependency (no extra needed). `uv sync` installs it; **Linux + CUDA only — will not install on Apple Silicon**. All dev happens on `uni-lab`.
 - ASR model (`small.en` via faster-whisper) downloads automatically on first run (this is the one exception; the LLM does not auto-download).
 - LLM weights must be present under `./models/<name>/` before pipeline launch — pipeline aborts at warmup otherwise.
 - Pipeline configs assembled at launch: `config-base.json` + profile from `pipelines/summarizer/`
@@ -153,7 +153,7 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX
 - `encoding_clock_chan: "opus/48000/1"` in `config-base.json` declares mono Opus per challenge spec. Verify against actual Janus stream before submission.
 - Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
 - To inject a WAV file into pipeline: `uv run python tools/send_audio.py <file.wav>`
-- `uv sync --extra finetune` and `--extra cuda` must run on `uni-lab` — neither set of wheels installs on Apple Silicon.
+- `uv sync` and `uv sync --extra dev` must run on `uni-lab` — vLLM + torch cu124 wheels do not install on Apple Silicon.
 - `tools/finetune/` is **parked** until M4 (still references Ollama internally; do not touch yet).
 - To download YouTube video: see `docs/documentation/yt-dlp-guide.md`
 - Use `./tmp` (not `/tmp`) for temp files to avoid permission issues.

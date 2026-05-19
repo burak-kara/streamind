@@ -36,7 +36,7 @@ params match production exactly. Override the prompt file via `--prompt` to
 test a candidate without editing the on-disk template.
 
 ```bash
-ssh uni-lab "cd ~/streamind && uv run --extra cuda python - <<'PYEOF'
+ssh uni-lab "cd ~/streamind && uv run python - <<'PYEOF'
 import json, sys, time
 from pathlib import Path
 from vllm import LLM, SamplingParams

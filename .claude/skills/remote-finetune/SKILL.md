@@ -15,7 +15,7 @@ vLLM equivalents when M4 starts. Until then, treat this skill as historical.
 Sync and run finetune on uni-lab (RTX 4090, CUDA 12.4).
 
 1. Sync uncommitted changes: `rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/streamind/`
-2. Install finetune deps: `ssh uni-lab "cd ~/streamind && uv sync --extra finetune"`
+2. Install dev deps (includes finetune toolchain): `ssh uni-lab "cd ~/streamind && uv sync --extra dev"`
 3. Prepare data: `ssh uni-lab "cd ~/streamind && uv run python tools/finetune/prepare_rev16.py"` — **WILL FAIL until M4 swaps the Ollama teacher for vLLM.**
 4. Train: `ssh uni-lab "cd ~/streamind && uv run python tools/finetune/finetune_summarizer.py"`
 5. Merge adapter: `ssh uni-lab "cd ~/streamind && uv run python tools/finetune/merge_lora.py"` — outputs a merged HF dir.

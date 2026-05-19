@@ -106,10 +106,12 @@ larger model is expected to improve `B` and roughly hold or improve
 ## Submission packaging (planned, M3)
 
 - `Dockerfile` targets `nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`.
-  Installs Python 3.12 + uv, syncs `--extra cuda` (vLLM + huggingface
-  CLI), and runs `./tools/fetch_models.sh <hf_id> <local_name>` during
-  build so the resulting image carries the model weights. Zero network
-  dependency at runtime.
+  Installs Python 3.12 + uv, runs `uv sync` (vLLM ships as a base
+  dependency; no extras needed in the image), and during build runs
+  `./tools/fetch_models.sh <hf_id> <local_name>` (the script pulls
+  `huggingface-hub` from `--extra dev` for the build stage only) so the
+  resulting image carries the model weights. Zero network dependency at
+  runtime.
 - `docker-compose.yml` runs both the Janus service and the pipeline
   service. Janus forwards RTP to the pipeline container on UDP/8888.
 - Entry point: `tools/run_pipeline.sh` with the committed summarizer
