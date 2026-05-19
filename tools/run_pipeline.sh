@@ -82,6 +82,13 @@ fi
 ASSEMBLED="./tmp/config-${WINDOW}s-${SUMMARIZER}.json"
 uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED"
 
+# Disable FlashInfer sampler: it JIT-compiles a CUDA kernel on first use,
+# which needs the full CUDA toolkit (nvcc + headers, ~3 GB) and adds
+# 10-30 s of first-window latency. The native PyTorch top-k/top-p path
+# is microseconds slower per token — irrelevant next to the kernel JIT
+# cost, and our generation step dominates total latency anyway.
+export VLLM_USE_FLASHINFER_SAMPLER=0
+
 echo "Window:     ${WINDOW}s"
 echo "Summarizer: ${SUMMARIZER}  (model: ${MODEL_PATH})"
 echo ""

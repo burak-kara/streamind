@@ -32,18 +32,3 @@ dev = [
 
 [tool.setuptools]
 packages = []
-
-[tool.uv]
-# vLLM 0.8.5.post1 transitively pins opentelemetry-exporter-otlp==1.26,
-# which caps protobuf<5. Juturna's payloads_pb2.py needs protobuf>=5.26
-# (uses google.protobuf.runtime_version). We don't use the OTel exporter,
-# so override the cap and let protobuf>=5.26 win.
-override-dependencies = ["protobuf>=5.26"]
-
-[tool.uv.sources]
-torch = { index = "pytorch-cu128" }
-
-[[tool.uv.index]]
-name = "pytorch-cu128"
-url = "https://download.pytorch.org/whl/cu128"
-explicit = true
