@@ -138,7 +138,11 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 
 ## Current Model Choices
 
-See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout and the active summarizer profile. Model id is picked once and committed to `pipelines/summarizer/vllm-<name>.json`; no MLX/Ollama variants exist.
+- **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
+- **Judge (offline only):** `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` (~14 GB AWQ-int4). Profile: `pipelines/judge/vllm-qwen3.5-27b-awq.json`. Local dir: `./models/qwen3.5-27b-awq/`. Loaded sequentially by `tools/eval_quality.py` after the summarizer pipeline exits — never co-resident with the summarizer.
+- **Fallback summarizer:** `Qwen/Qwen3.5-9B` if 4B B_i averages < 15. Same prompt + tooling; just swap profile.
+
+See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX/Ollama variants exist.
 
 ## Gotchas
 

@@ -11,7 +11,7 @@ User decisions:
 - **Inference backend:** vLLM in-process (`LLM` class, no server)
 - **Legacy code:** delete MLX + Ollama entirely (no extras kept)
 - **Model packaging:** weights shipped with submission; no runtime HF download; dev-only fetch script
-- **Model identity:** TBD — picked after this plan is approved (current placeholder: `<MODEL_ID>`)
+- **Model identity:** picked 2026-05-19 — summarizer `Qwen/Qwen3.5-4B` (Apache-2.0, ~10 GB BF16); judge (offline) `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` (~14 GB AWQ-int4)
 - **Finetune:** parked — `tools/finetune/` left in place but unused until base pipeline green
 
 ---
@@ -64,12 +64,14 @@ This plan executes **M0 + M1** now. M2/M3 follow once M1 is green. M4 is gated o
 
 vLLM init (warmup): `LLM(model="./models/<name>", dtype="float16", gpu_memory_utilization=<frac>, max_model_len=2048, enforce_eager=False)`. Generation: `llm.generate([prompt], SamplingParams(temperature=0.3, top_p=0.9, max_tokens=150))`. The `model_name` config field is **always a filesystem path** — never an HF id at runtime. Same path used in dev and submission.
 
-**Base model pick (M1):** **TBD** — user selects after plan approval. Placeholder in configs and docs is `<MODEL_ID>` until decision lands. Constraints for the pick:
+**Base model pick (M1):** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16 native, ~8 GB on disk, ~10 GB with KV at 2K). Judge: `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4`. Picked 2026-05-19 against constraints:
 
-- ≤ ~20 GB fp16 to leave VRAM headroom on 24 GB Pro 4500
-- Permissive license (Apache 2.0 / MIT / Qwen / Llama community) for redistribution in the submission image
-- Strong instruction-following + JSON output reliability for the summary contract
-- Available on HuggingFace (or another permanent mirror) so `fetch_models.sh` is reproducible
+- ≤ ~20 GB fp16 to leave VRAM headroom on 24 GB Pro 4500 — **Qwen3.5-4B: ~10 GB ✓**
+- Permissive license (Apache 2.0 / MIT / Qwen / Llama community) for redistribution in the submission image — **Apache-2.0 ✓**
+- Strong instruction-following + JSON output reliability for the summary contract — **IFEval 91.5 on Qwen3.5-4B ✓**
+- Available on HuggingFace (or another permanent mirror) so `fetch_models.sh` is reproducible — **HF live ✓**
+
+Fallback (if B_i averages < 15 on offline judge): `Qwen/Qwen3.5-9B` — same family, +~2 IFEval, ~20 GB fp16, ~2 s proc_time → L_i ≈ 3.7. Same prompt + tooling.
 
 **Judge path:** offline sequential. Summarizer pipeline runs, writes `results/.../window_N.json`. After pipeline exits (or via separate run), `tools/eval_quality.py results/.../` loads judge LLM, scores each window, writes `results/.../judge/window_N.json`. Eliminates VRAM co-residency problem.
 
@@ -152,10 +154,10 @@ plugins/nodes/proc/_summarizer_vllm/
   node.json                         # Juturna manifest (match _summarizer_llm)
   summarize_prompt.txt              # single prompt (model-appropriate chat template)
 
-pipelines/summarizer/vllm-<MODEL_ID>.json   # mark: summarizer_vllm,
-                                            # model_name: ./models/<MODEL_ID>
+pipelines/summarizer/vllm-qwen3.5-4b.json   # mark: summarizer_vllm,
+                                            # model_name: ./models/qwen3.5-4b
 
-pipelines/judge/vllm-<JUDGE_MODEL_ID>.json  # consumed only by tools/eval_quality.py
+pipelines/judge/vllm-qwen3.5-27b-awq.json   # consumed only by tools/eval_quality.py
 
 tools/fetch_models.sh                       # dev-only HF download helper
 
@@ -180,9 +182,9 @@ No `_judge_vllm/` Juturna sink — judge runs offline only.
 - `plugins/nodes/proc/_summarizer_common/keywords.py` — **unchanged** (reused by new node).
 - `plugins/nodes/sink/_judge_common/scorer.py` — **unchanged** (prompt + parser + B/K/L/C math reused).
 - `pipelines/config-base.json` — verify `encoding_clock_chan: "opus/48000/1"` (mono per CHALLENGE.md). `destination_endpoint` stays empty for M1; populated in M3.
-- `tools/run_pipeline.sh` — drop MLX/Ollama profile defaults; default `--summarizer vllm-<MODEL_ID>`; **drop `--judge` flag entirely** (judge is now offline-only); drop Ollama pre-flight check; add `nvidia-smi` + local-model-path pre-flight (refuse to start if `./models/<name>` missing).
+- `tools/run_pipeline.sh` — drop MLX/Ollama profile defaults; default `--summarizer vllm-qwen3.5-4b`; **drop `--judge` flag entirely** (judge is now offline-only); drop Ollama pre-flight check; add `nvidia-smi` + local-model-path pre-flight (refuse to start if `./models/<name>` missing).
 - `tools/assemble_config.py` — drop judge merging logic; verify glob matches new summarizer profile name.
-- `tools/eval_quality.py` — rewrite as offline judge runner: load `pipelines/judge/vllm-<JUDGE_MODEL_ID>.json`, instantiate `vllm.LLM` from local path, iterate `results/<model>/<window>/window_*.json`, write `results/.../judge/window_N.json` via `_judge_common/scorer.py`. CLI: `eval_quality.py <results-dir> [--judge-profile vllm-<JUDGE_MODEL_ID>]`.
+- `tools/eval_quality.py` — rewrite as offline judge runner: load `pipelines/judge/vllm-qwen3.5-27b-awq.json`, instantiate `vllm.LLM` from local path, iterate `results/<model>/<window>/window_*.json`, write `results/.../judge/window_N.json` via `_judge_common/scorer.py`. CLI: `eval_quality.py <results-dir> [--judge-profile vllm-qwen3.5-27b-awq]`.
 - `tools/send_audio.py` — unchanged.
 - `tools/finetune/*` — **untouched** in M0/M1. Revisit in M4.
 
@@ -228,9 +230,8 @@ Not built in this plan execution; flagged so the M3 hand-off knows what to expec
 
 ## Open items requiring user input
 
-1. **Model id** — `<MODEL_ID>` placeholder in all configs/docs until you pick. Plan stays valid regardless of choice; only config values change.
-2. **Judge model id** — same; can be smaller than summarizer.
-3. **30+ min test audio** — current `tests/fixtures/youtube_15min.wav` gives only 3 windows at 300 s. CHALLENGE.md recommends ≥ 30 min (6 chunks). Need either a longer fixture or a `rev16`/`ietf` sample for M1 verification step 5.
+1. ~~**Model id**~~ — picked 2026-05-19: summarizer `Qwen/Qwen3.5-4B`, judge `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4`.
+2. **30+ min test audio** — current `tests/fixtures/youtube_15min.wav` gives only 3 windows at 300 s. CHALLENGE.md recommends ≥ 30 min (6 chunks). Need either a longer fixture or a `rev16`/`ietf` sample for M1 verification step 5.
 
 ---
 
@@ -260,7 +261,7 @@ Run on `uni-lab` (RTX 4090, CUDA 12.4):
 5. **30 s smoke pipeline:**
 
    ```bash
-   ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-<MODEL_ID>"
+   ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-qwen3.5-4b"
    # in parallel: uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
    ```
 
@@ -268,7 +269,7 @@ Run on `uni-lab` (RTX 4090, CUDA 12.4):
 6. **30 min window + offline judge** (requires 30+ min fixture — see open item 3):
 
    ```bash
-   ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s vllm-<MODEL_ID>"
+   ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s vllm-qwen3.5-4b"
    # after pipeline exits:
    ssh uni-lab "cd ~/streamind && uv run python tools/eval_quality.py results/<local_name>/300/"
    ```

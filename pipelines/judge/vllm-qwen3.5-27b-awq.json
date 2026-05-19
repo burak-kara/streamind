@@ -1,0 +1,13 @@
+{
+  "name": "judge",
+  "configuration": {
+    "model_name": "./models/qwen3.5-27b-awq",
+    "dtype": "bfloat16",
+    "gpu_memory_utilization": 0.90,
+    "max_model_len": 4096,
+    "max_tokens": 256,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "enforce_eager": false
+  }
+}
