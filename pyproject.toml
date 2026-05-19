@@ -9,21 +9,19 @@ dependencies = [
     "faster-whisper",
     "httpx",
     "numpy",
-    "vllm>=0.8.3",
-    "protobuf>=5.26",
+    "vllm",
 ]
 
 [project.optional-dependencies]
 # Everything dev-only: unit tests, audio injection, model fetching,
-# and the finetune toolchain. Submission image runs
-# `uv sync` with no extras.
+# and the finetune toolchain. Submission image runs `uv sync` with no extras.
 dev = [
     "pytest",
     "pytest-asyncio",
     "aiortc",
     "huggingface-hub",
     "torch",
-    "transformers>=4.45",
+    "transformers",
     "peft>=0.13",
     "trl>=0.12",
     "accelerate>=1.0",
@@ -43,9 +41,9 @@ packages = []
 override-dependencies = ["protobuf>=5.26"]
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu124" }
+torch = { index = "pytorch-cu128" }
 
 [[tool.uv.index]]
-name = "pytorch-cu124"
-url = "https://download.pytorch.org/whl/cu124"
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
 explicit = true
