@@ -32,7 +32,7 @@ fi
 mkdir -p "${TARGET_DIR}"
 
 echo "Downloading ${HF_ID} -> ${TARGET_DIR}" >&2
-uv run --extra dev huggingface-cli download \
+uv run --extra dev hf download \
   "${HF_ID}" \
   --local-dir "${TARGET_DIR}"
 
