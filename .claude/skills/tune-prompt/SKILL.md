@@ -1,130 +1,109 @@
 ---
 name: tune-prompt
-description: Test the current summarization prompt against a sample transcript via Ollama and show the structured output
+description: Test the current summarization prompt against a sample transcript via vLLM on uni-lab, show structured output, and measure inference latency
 disable-model-invocation: true
 ---
 
-Run these steps in order:
+vLLM only runs on uni-lab (CUDA). All steps below execute remotely.
+The active summarizer profile lives at `pipelines/summarizer/vllm-<name>.json`.
 
-## 1. Verify Ollama is reachable
-
-```bash
-curl -s http://127.0.0.1:11434/api/tags | python3 -c "import sys,json; d=json.load(sys.stdin); print('Ollama OK, models:', [m['name'] for m in d.get('models',[])])" 2>/dev/null || echo "ERROR: Ollama not running. Start with: ollama serve"
-```
-
-Stop if Ollama is unreachable.
-
-## 2. Pick a sample transcript
-
-Check if there are any result files or fixture text to use:
+## 1. Pick the active profile
 
 ```bash
-uv run python - <<'EOF'
-import json, glob
-
-# Try to use a results file first (has real pipeline output)
-files = sorted(glob.glob("results/window_*.json"))
-if files:
-    d = json.load(open(files[0]))
-    # Results don't store the raw transcript — use a fixture or hardcoded sample
-    print("USING_SAMPLE")
-else:
-    print("USING_SAMPLE")
-EOF
+ls pipelines/summarizer/vllm-*.json
 ```
 
-Use this hardcoded sample transcript for testing (representative of meeting content):
+If more than one, ask the user which to tune.
 
+## 2. Verify weights present on uni-lab
+
+```bash
+ssh uni-lab "cd ~/streamind && ls models/<name>/config.json"
 ```
-SAMPLE_TRANSCRIPT="The team discussed migrating the authentication service to OAuth 2.0.
+
+If missing: `ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <name>"`.
+
+## 3. Read the current prompt
+
+```bash
+cat plugins/nodes/proc/_summarizer_vllm/summarize_prompt.txt
+```
+
+## 4. Drive the model against a sample transcript on uni-lab
+
+The script reads the same profile JSON the pipeline uses, so prompt + sampling
+params match production exactly. Override the prompt file via `--prompt` to
+test a candidate without editing the on-disk template.
+
+```bash
+ssh uni-lab "cd ~/streamind && uv run --extra cuda python - <<'PYEOF'
+import json, sys, time
+from pathlib import Path
+from vllm import LLM, SamplingParams
+
+profile = json.loads(Path('pipelines/summarizer/vllm-<NAME>.json').read_text())
+cfg = profile['configuration']
+
+prompt_path = Path('plugins/nodes/proc/_summarizer_vllm') / cfg['prompt_template_file']
+prompt_tmpl = prompt_path.read_text()
+
+sample = '''The team discussed migrating the authentication service to OAuth 2.0.
 John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients.
 Sarah confirmed that the API gateway already supports PKCE flow.
 The group agreed to start with a staged rollout affecting 10 percent of users next Tuesday.
-Action item: John to update the migration runbook by end of week."
-```
+Action item: John to update the migration runbook by end of week.'''
 
-## 3. Read the current prompt template
+prompt = prompt_tmpl.format(transcript=sample)
 
-```bash
-cat plugins/nodes/proc/_summarizer_llm/summarize_prompt_ollama.txt
-```
-
-## 4. Run the prompt against Ollama
-
-```bash
-uv run python - <<'PYEOF'
-import json, urllib.request, os
-
-prompt_tmpl = open("plugins/nodes/proc/_summarizer_llm/summarize_prompt_ollama.txt").read()
-sample = """The team discussed migrating the authentication service to OAuth 2.0.
-John raised concerns about the token expiry defaults and suggested setting them to 24 hours for mobile clients.
-Sarah confirmed that the API gateway already supports PKCE flow.
-The group agreed to start with a staged rollout affecting 10 percent of users next Tuesday.
-Action item: John to update the migration runbook by end of week."""
-
-prompt = prompt_tmpl.replace("{transcript}", sample)
-
-# Read model from config-base (assembled config.json may be stale or absent)
-cfg = json.load(open("pipelines/config-base.json"))
-model = next(
-    (n["configuration"]["model_name"] for n in cfg["pipeline"]["nodes"] if n["mark"] == "summarizer_llm"),
-    "qwen3.5:9b-16k"
+llm = LLM(
+    model=cfg['model_name'],
+    dtype=cfg.get('dtype', 'float16'),
+    gpu_memory_utilization=cfg.get('gpu_memory_utilization', 0.85),
+    max_model_len=cfg.get('max_model_len', 2048),
+    enforce_eager=cfg.get('enforce_eager', False),
+)
+sampling = SamplingParams(
+    temperature=cfg.get('temperature', 0.3),
+    top_p=cfg.get('top_p', 0.9),
+    max_tokens=cfg.get('max_tokens', 150),
 )
 
-print(f"Model: {model}")
-print(f"Prompt length: {len(prompt)} chars\n")
-print("--- LLM OUTPUT ---")
+t0 = time.time()
+out = llm.chat([{'role': 'user', 'content': prompt}], sampling_params=sampling, use_tqdm=False)
+elapsed = time.time() - t0
+text = out[0].outputs[0].text
 
-payload = json.dumps({
-    "model": model,
-    "prompt": prompt,
-    "stream": False,
-    "format": {
-        "type": "object",
-        "properties": {
-            "summary": {"type": "string"},
-            "keywords": {"type": "array", "items": {"type": "string"}, "minItems": 3, "maxItems": 3}
-        },
-        "required": ["summary", "keywords"]
-    },
-    "options": {"stop": ["</think>"], "temperature": 0}
-}).encode()
+print(f'Model: {cfg[\"model_name\"]}')
+print(f'Inference: {elapsed*1000:.0f} ms')
+print(f'--- raw output ---\\n{text}\\n--- end ---')
 
-req = urllib.request.Request(
-    "http://127.0.0.1:11434/api/generate",
-    data=payload,
-    headers={"Content-Type": "application/json"}
-)
-resp = urllib.request.urlopen(req, timeout=120)
-result = json.loads(resp.read())
-raw = result.get("response", "")
-
-try:
-    parsed = json.loads(raw)
-    print(f"summary: {parsed.get('summary', 'MISSING')}")
-    print(f"keywords: {parsed.get('keywords', 'MISSING')}")
-    kw = parsed.get('keywords', [])
-    if len(kw) != 3:
-        print(f"WARNING: {len(kw)} keywords returned (need exactly 3)")
-    else:
-        print("keywords count: OK (3)")
-except json.JSONDecodeError:
-    print(f"RAW (not valid JSON): {raw}")
-
-eval_ms = result.get("eval_duration", 0) / 1e6
-load_ms = result.get("load_duration", 0) / 1e6
-print(f"\nTiming: load={load_ms:.0f}ms  inference={eval_ms:.0f}ms  total={(load_ms+eval_ms):.0f}ms")
+import re, json as _json
+clean = re.sub(r'<\\|[^|]+\\|>', '', text).strip()
+clean = re.sub(r'^```[a-z]*\\n?', '', clean)
+clean = re.sub(r'\\n?```$', '', clean).strip()
+m = re.search(r'\\{.*\\}', clean, re.DOTALL)
+if not m:
+    print('NO JSON FOUND'); sys.exit(0)
+parsed = _json.loads(m.group(0))
+print(f'summary:  {parsed.get(\"summary\", \"MISSING\")}')
+kws = parsed.get('keywords', [])
+print(f'keywords: {kws}')
+if len(kws) != 3:
+    print(f'WARNING: {len(kws)} keywords returned (need exactly 3)')
 PYEOF
+"
 ```
+
+Replace `<NAME>` with the actual profile name (without `.json`).
 
 ## 5. Prompt improvement tips
 
-After showing output, print these guidelines if the output looks poor:
+After showing output, suggest these if the output is weak:
 
-- **Vague summary**: Add explicit instruction: "Include specific decisions, action items, and names mentioned."
-- **Wrong keyword count**: Reinforce in prompt: "You MUST return EXACTLY 3 keywords. No more, no fewer."
-- **Generic keywords**: Add: "Keywords must be specific noun phrases from the transcript, not generic terms like 'discussion'."
-- **Slow inference**: Shorten the prompt — every token costs latency.
+- **Vague summary**: add "Include specific decisions, action items, and names mentioned."
+- **Wrong keyword count**: reinforce "You MUST return EXACTLY 3 keywords."
+- **Generic keywords**: add "Keywords must be specific noun phrases from the transcript, not generic terms like 'discussion'."
+- **Slow inference**: shorten prompt; every token costs latency (L_i depends on `proc_time`).
+- **Hallucinations**: add "Only state facts explicitly present in the transcript. Do not infer."
 
-To edit the prompt: `Edit plugins/nodes/proc/_summarizer_llm/summarize_prompt_ollama.txt`
-Then re-run `/tune-prompt` to compare.
+To edit: `Edit plugins/nodes/proc/_summarizer_vllm/summarize_prompt.txt`. Then rerun.

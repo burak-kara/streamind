@@ -44,6 +44,9 @@ streamind.egg-info/
 
 **/*_raw.wav
 
+# LLM weights (fetched via tools/fetch_models.sh; baked into Docker at build)
+models/
+
 # Fine-tuning artefacts
 tools/finetune/data/*
 !tools/finetune/data/train.jsonl

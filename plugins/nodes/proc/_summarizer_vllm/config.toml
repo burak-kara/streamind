@@ -1,0 +1,14 @@
+# Node defaults — overridden by pipeline JSON "configuration" at runtime.
+# `model_name` MUST be a local filesystem path (./models/<name>); the node
+# refuses to start if the directory is missing.
+[arguments]
+model_name = "./models/PLACEHOLDER"
+prompt_template_file = "summarize_prompt.txt"
+dtype = "float16"
+gpu_memory_utilization = 0.85
+max_model_len = 2048
+max_tokens = 150
+temperature = 0.3
+top_p = 0.9
+repetition_penalty = 1.05
+enforce_eager = false

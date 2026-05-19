@@ -1,8 +1,9 @@
-"""Keyword post-processing shared by summarizer_mlx and summarizer_llm.
+"""Keyword post-processing for the vLLM summarizer node.
 
-Extracted here because both nodes need identical banned-keyword filtering,
-transcript-derived backfill, and exact 3-keyword output. Keeping it in a
-single file means one place to tune the rules that defend K_i.
+One place to tune the rules that defend K_i: banned-keyword filtering,
+transcript-derived backfill, and exact 3-keyword output. Loaded by the
+summarizer via importlib so the helpers stay editable without touching
+the node implementation.
 """
 
 from __future__ import annotations

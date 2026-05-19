@@ -4,26 +4,28 @@ Maps `docs/` dir for agent nav. Start here for specs, plans, reference.
 
 ## Challenge
 
-- `CHALLENGE.md`: Full challenge spec — scoring formula, endpoint contract, submission format
+- `CHALLENGE.md`: Full challenge spec — scoring formula, endpoint contract, submission format. Source of truth.
+- `APPROACH.md`: Brief markdown explaining the design — shipped with the submission per challenge requirements. Updated in M3 with final numbers.
 - `images/challenge_overview.png`: Pipeline architecture diagram
 - `images/challenge_scoring.png`: Scoring breakdown diagram
 - `datasets/`: Audio transcription datasets, details + links. Don't index or include in context.
 
 ## Task Tracking
 
-- `TODO.md`: Active task list with checkable items — read before new work
+- `TODO.md`: Active milestone list (M0–M4) — read before new work
 
 ## Plans
 
-Archived impl plans in `plans/`. Historical records of completed/in-progress design decisions — understand *why* something built certain way.
+`plans/` holds active and superseded plans.
 
-- `plans/latency-optimization-and-format-fixes.md`: Latency reduction + challenge output format fixes
-- `plans/graceful-drifting-kettle.md`: Impl plan (see file)
-- `plans/piped-tumbling-glade.md`: Impl plan (see file)
+- `plans/cuda-native-pipeline-base-first.md`: **ACTIVE.** M0 cleanup + M1 base CUDA pipeline + M2/M3/M4 sketch. Native vLLM in-process; model weights ship with submission.
+- `plans/cloud-development-submission-plan.md`: superseded — predates the vLLM pivot.
+- `plans/given-the-changes-in-streamed-biscuit.md`: superseded.
+- `plans/submission-readiness-remaining.md`: superseded — to be refreshed in M3 with vLLM-era blockers.
 
-## Reports
+## Machine
 
-- `journey-into-streamind.md`: Narrative timeline of project dev history
+- `MACHINE-SPECS.md`: `uni-lab` hardware snapshot (RTX 4090, CUDA 12.4, Debian 13)
 
 ## Framework & Tool Documentation
 
