@@ -25,7 +25,7 @@ Output schema: same as the live window JSON plus `B_breakdown`, `B`, `K`, `L`, `
 
 ## Summarizer
 
-**`summarizer_vllm`** — Native CUDA inference via [vLLM](https://github.com/vllm-project/vllm) `LLM` class, in-process. No daemon. Requires `uv sync --extra cuda` (Linux + CUDA only).
+**`summarizer_vllm`** — Native CUDA inference via [vLLM](https://github.com/vllm-project/vllm) `LLM` class, in-process. No daemon. vLLM is a base dependency; `uv sync` installs it (Linux + CUDA only).
 
 - **Model source:** local filesystem path (`./models/<name>`). Never an HF id at runtime. Pipeline aborts at warmup if the directory is missing — clear error directs the user to `tools/fetch_models.sh`.
 - **Config (`config.toml` defaults):** `model_name`, `prompt_template_file` (default `summarize_prompt.txt`), `dtype` (default `float16`), `gpu_memory_utilization` (0.85), `max_model_len` (2048), `max_tokens` (150), `temperature` (0.3), `top_p` (0.9), `repetition_penalty` (1.05), `enforce_eager` (false).

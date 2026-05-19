@@ -197,7 +197,7 @@ No `_judge_vllm/` Juturna sink — judge runs offline only.
 
 ### CLAUDE.md files (M0)
 
-- `CLAUDE.md` (root): rewrite **Evaluation Environment**, **Quick Start**, **Runtime Requirements**, **Current Model Choices**, **Gotchas**, **Skills** sections. Strip all MLX + Ollama references. Quick Start: install `uv sync --extra cuda --extra dev` on uni-lab; run `./tools/fetch_models.sh <hf_id> <local_name>` once; drop Ollama daemon step; keep Janus. New gotchas: vLLM only installs on Linux + CUDA; pipeline refuses to start if `./models/<name>` missing.
+- `CLAUDE.md` (root): rewrite **Evaluation Environment**, **Quick Start**, **Runtime Requirements**, **Current Model Choices**, **Gotchas**, **Skills** sections. Strip all MLX + Ollama references. Quick Start: install `uv sync --extra dev` on uni-lab; run `./tools/fetch_models.sh <hf_id> <local_name>` once; drop Ollama daemon step; keep Janus. New gotchas: vLLM only installs on Linux + CUDA; pipeline refuses to start if `./models/<name>` missing.
 - `docs/CLAUDE.md`: drop Ollama/MLX cross-references; point to new vLLM node; mention `models/` dir.
 - `docs/documentation/CLAUDE.md`: drop Ollama doc links; keep Juturna + Janus.
 - `plugins/nodes/CLAUDE.md`: rewrite node table (single summarizer, no live judge); remove MLX/Ollama model-choice rows.
@@ -221,7 +221,7 @@ No `_judge_vllm/` Juturna sink — judge runs offline only.
 
 ### Docker / submission packaging (M3, sketch only here)
 
-- `Dockerfile` — base `nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`; install `uv`, sync `--extra cuda`; **`RUN ./tools/fetch_models.sh <hf_id> <local_name>` during build** so weights are baked into the image; entrypoint runs `tools/run_pipeline.sh`. No HF download at container start.
+- `Dockerfile` — base `nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04`; install `uv`, run `uv sync` (no extras — vLLM is a base dep; dev tooling and finetune deps stay out of the image); **`RUN ./tools/fetch_models.sh <hf_id> <local_name>` during build** so weights are baked into the image (uses `huggingface-hub` from `--extra dev` during build, not at runtime); entrypoint runs `tools/run_pipeline.sh`. No HF download at container start.
 - `docker-compose.yml` — keep Janus; drop any Ollama service; GPU passthrough on pipeline service.
 
 Not built in this plan execution; flagged so the M3 hand-off knows what to expect.
@@ -254,7 +254,7 @@ Not built in this plan execution; flagged so the M3 hand-off knows what to expec
 
 Run on `uni-lab` (RTX 4090, CUDA 12.4):
 
-1. **Install:** `ssh uni-lab "cd ~/streamind && uv sync --extra cuda --extra dev"` — succeeds without manual flags.
+1. **Install:** `ssh uni-lab "cd ~/streamind && uv sync --extra dev"` — succeeds without manual flags.
 2. **Model fetch (dev only):** `ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <local_name>"` populates `./models/<local_name>/`. Re-run is a no-op.
 3. **Import smoke:** `ssh uni-lab "cd ~/streamind && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
 4. **Unit tests:** `uv run pytest tests/ -x` locally (mocked vLLM) and on uni-lab — all pass. Includes test that asserts pipeline refuses to start when `./models/<name>` is absent.

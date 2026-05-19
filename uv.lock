@@ -3584,24 +3584,20 @@ dependencies = [
     { name = "httpx" },
     { name = "juturna" },
     { name = "numpy" },
+    { name = "vllm" },
 ]
 
 [package.optional-dependencies]
-cuda = [
-    { name = "huggingface-hub" },
-    { name = "vllm" },
-]
 dev = [
-    { name = "aiortc" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-]
-finetune = [
     { name = "accelerate" },
+    { name = "aiortc" },
     { name = "bitsandbytes" },
     { name = "datasets" },
+    { name = "huggingface-hub" },
     { name = "peft" },
     { name = "protobuf" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
     { name = "sentencepiece" },
     { name = "torch" },
     { name = "transformers" },
@@ -3610,24 +3606,24 @@ finetune = [
 
 [package.metadata]
 requires-dist = [
-    { name = "accelerate", marker = "extra == 'finetune'", specifier = ">=1.0" },
+    { name = "accelerate", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "aiortc", marker = "extra == 'dev'" },
-    { name = "bitsandbytes", marker = "extra == 'finetune'", specifier = ">=0.44" },
-    { name = "datasets", marker = "extra == 'finetune'", specifier = ">=3.0" },
+    { name = "bitsandbytes", marker = "extra == 'dev'", specifier = ">=0.44" },
+    { name = "datasets", marker = "extra == 'dev'", specifier = ">=3.0" },
     { name = "faster-whisper" },
     { name = "httpx" },
-    { name = "huggingface-hub", extras = ["cli"], marker = "extra == 'cuda'" },
+    { name = "huggingface-hub", marker = "extra == 'dev'" },
     { name = "juturna" },
     { name = "numpy" },
-    { name = "peft", marker = "extra == 'finetune'", specifier = ">=0.13" },
-    { name = "protobuf", marker = "extra == 'finetune'" },
+    { name = "peft", marker = "extra == 'dev'", specifier = ">=0.13" },
+    { name = "protobuf", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
-    { name = "sentencepiece", marker = "extra == 'finetune'" },
-    { name = "torch", marker = "extra == 'finetune'", index = "https://download.pytorch.org/whl/cu124", conflict = { package = "streamind", extra = "finetune" } },
-    { name = "transformers", marker = "extra == 'finetune'", specifier = ">=4.45" },
-    { name = "trl", marker = "extra == 'finetune'", specifier = ">=0.12" },
-    { name = "vllm", marker = "extra == 'cuda'", specifier = ">=0.8.3" },
+    { name = "sentencepiece", marker = "extra == 'dev'" },
+    { name = "torch", marker = "extra == 'dev'", index = "https://download.pytorch.org/whl/cu124" },
+    { name = "transformers", marker = "extra == 'dev'", specifier = ">=4.45" },
+    { name = "trl", marker = "extra == 'dev'", specifier = ">=0.12" },
+    { name = "vllm", specifier = ">=0.8.3" },
 ]
 
 [[package]]

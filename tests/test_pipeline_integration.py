@@ -1,7 +1,7 @@
 """Integration test: run the full vLLM pipeline through Janus WebRTC.
 
 Requires uni-lab (RTX 4090, CUDA 12.4) and:
-- `uv sync --extra cuda --extra dev`
+- `uv sync --extra dev`
 - Janus running:  `docker compose up -d`
 - Model weights present under `./models/<name>/` (run
   `./tools/fetch_models.sh <hf_id> <name>` first)
@@ -87,7 +87,7 @@ def test_full_pipeline_with_janus(pipeline_proc):
     if not _janus_available():
         pytest.skip("Janus not running — start with: docker compose up -d")
     if not _vllm_importable():
-        pytest.skip("vLLM not importable — run `uv sync --extra cuda` on a CUDA host")
+        pytest.skip("vLLM not importable — run `uv sync` on a CUDA host (uni-lab)")
 
     profile = _active_summarizer_profile()
     cfg = json.loads(profile.read_text())
