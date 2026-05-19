@@ -40,7 +40,7 @@
         "configuration": {
           "model_name": "small.en",
           "language": "en",
-          "device": "auto",
+          "device": "cpu",
           "compute_type": "int8"
         }
       },
