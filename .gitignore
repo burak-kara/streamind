@@ -39,6 +39,7 @@ dist/
 build/
 .venv/
 .pytest_cache/
+.python-version
 streamind.egg-info/
 
 **/*_raw.wav
