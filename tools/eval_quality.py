@@ -248,33 +248,97 @@ def _write_per_window(scored: list[Scored], judge_model: str) -> None:
         out_path.write_text(json.dumps(payload, indent=2))
 
 
-def _print_table(scored: list[Scored]) -> None:
+# Theoretical scoring bounds per CHALLENGE.md scoring contract.
+#   Per-chunk:
+#     B in [5, 25]   (5 Likert criteria × {1..5}; min 5 since each criterion >= 1)
+#     K in [-6, +6]  (each of 3 keywords: +2 if relevant else -2)
+#     L in [0, 10]   (10 * exp(-0.5 * proc_time), gated on B >= 10)
+#                    Realistic max ~6 at proc_time = 1-2 s (per CHALLENGE.md note).
+#     C = B + K + L  in [-6, 41]  (B/K can drag negative when summary is poor)
+#   Final audio source score:
+#     S = mean(C_i for i in chunks) + JANUS_BONUS (if Janus used)
+#   Then min-max normalised across submissions (not done here — relative metric).
+B_MAX = 25
+B_MIN = 5
+K_MAX = 6
+K_MIN = -6
+L_MAX = 10.0
+C_MAX = B_MAX + K_MAX + L_MAX
+JANUS_BONUS = 4.0  # flat +4 added to the final source score, per CHALLENGE.md
+
+
+def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
     has_wer = any(s.asr_wer is not None for s in scored)
     wer_hdr = f" {'WER':>5}" if has_wer else ""
     header = f"{'window':60} {'B':>3} {'K':>3} {'L':>5} {'C':>6} {'proc':>6}{wer_hdr}"
-    print(header)
-    print("-" * len(header))
+    lines: list[str] = [header, "-" * len(header)]
     for s in scored:
         rel = str(s.path.relative_to(Path.cwd())) if Path.cwd() in s.path.parents else str(s.path)
         rel = rel[-60:].rjust(60)
         line = f"{rel} {s.b:>3} {s.k:>3} {s.l:>5.2f} {s.c:>6.2f} {s.proc_time:>6.2f}"
         if has_wer:
             line += f" {s.asr_wer:>5.2f}" if s.asr_wer is not None else f" {'-':>5}"
-        print(line)
+        lines.append(line)
     if scored:
-        print("-" * len(header))
+        lines.append("-" * len(header))
+        avg_b = mean(s.b for s in scored)
+        avg_k = mean(s.k for s in scored)
+        avg_l = mean(s.l for s in scored)
+        avg_c = mean(s.c for s in scored)
+        avg_proc = mean(s.proc_time for s in scored)
         avg_line = (
             f"{'avg':60} "
-            f"{mean(s.b for s in scored):>3.1f} "
-            f"{mean(s.k for s in scored):>3.1f} "
-            f"{mean(s.l for s in scored):>5.2f} "
-            f"{mean(s.c for s in scored):>6.2f} "
-            f"{mean(s.proc_time for s in scored):>6.2f}"
+            f"{avg_b:>3.1f} {avg_k:>3.1f} {avg_l:>5.2f} {avg_c:>6.2f} {avg_proc:>6.2f}"
+        )
+        wer_vals = [s.asr_wer for s in scored if s.asr_wer is not None]
+        if has_wer:
+            avg_line += f" {mean(wer_vals):>5.2f}" if wer_vals else f" {'-':>5}"
+        lines.append(avg_line)
+        # Reference row: theoretical maxima per challenge scoring contract.
+        # WER has no upper bound (>1.0 possible w/ insertions); 0.0 is perfect.
+        max_line = (
+            f"{'max possible':60} "
+            f"{B_MAX:>3} {K_MAX:>3} {L_MAX:>5.2f} {C_MAX:>6.2f} {'-':>6}"
         )
         if has_wer:
-            wer_vals = [s.asr_wer for s in scored if s.asr_wer is not None]
-            avg_line += f" {mean(wer_vals):>5.2f}" if wer_vals else f" {'-':>5}"
-        print(avg_line)
+            max_line += f" {'0.00':>5}"
+        lines.append(max_line)
+        min_line = (
+            f"{'min possible':60} "
+            f"{B_MIN:>3} {K_MIN:>3} {0.0:>5.2f} {B_MIN + K_MIN + 0.0:>6.2f} {'-':>6}"
+        )
+        if has_wer:
+            min_line += f" {'-':>5}"
+        lines.append(min_line)
+        # Final audio-source score = average C across chunks + Janus bonus.
+        # min-max normalisation across submissions is applied by the challenge
+        # organisers, not here.
+        bonus = JANUS_BONUS if janus_bonus else 0.0
+        final_score = avg_c + bonus
+        lines.append("")
+        lines.append(
+            f"Final source score (avg C{' + Janus +4' if janus_bonus else ''}) = "
+            f"{final_score:.2f}   (avg_C={avg_c:.2f}, janus_bonus={bonus:.1f})"
+        )
+        lines.append(
+            f"Theoretical bounds: per-chunk C in [{B_MIN + K_MIN:.0f}, {C_MAX:.0f}];"
+            f" final source score in [{B_MIN + K_MIN + bonus:.0f}, {C_MAX + bonus:.0f}]."
+        )
+        lines.append("")
+        lines.append(
+            "Scoring contract (CHALLENGE.md):"
+            " C_i = B_i + K_i + L_i per chunk."
+            " B = sum of 5 Likert (1-5) criteria, range [5, 25]."
+            " K = 2 * (N_relevant - N_irrelevant) across 3 keywords, range [-6, +6]."
+            " L = 10 * exp(-0.5 * proc_time) iff B >= 10 else 0, capped [0, 10]"
+            " (realistic max ~6 at proc 1-2 s)."
+            " Final source score = mean(C_i) + Janus_bonus (+4 flat for using Janus)."
+            " Submission scores then min-max normalised across submissions."
+            " WER = ASR fidelity vs ground truth (lower better); independent, NOT in C."
+        )
+    return "\n".join(lines)
+
+
 
 
 def main() -> int:
@@ -292,6 +356,12 @@ def main() -> int:
                         help="Ground-truth transcript (.txt). Overrides auto-resolution from --audio.")
     parser.add_argument("--json-out", type=Path, default=None,
                         help="Optional summary JSON; per-window judge files always written.")
+    parser.add_argument("--report-out", type=Path, default=None,
+                        help="Path for the formatted score table. "
+                             "Defaults to <results_dir>/judge_report.txt.")
+    parser.add_argument("--no-janus-bonus", action="store_true",
+                        help="Exclude the +4 Janus bonus from the final source score. "
+                             "Pipeline uses Janus by design, so bonus is applied by default.")
     args = parser.parse_args()
 
     if not args.results_dir.exists():
@@ -334,14 +404,40 @@ def main() -> int:
 
     llm, sampling = _build_llm(cfg)
 
+    import time
+    total = len(windows)
     scored: list[Scored] = []
-    for w in windows:
+    t_loop = time.time()
+    for idx, w in enumerate(windows, start=1):
+        rel = str(w.relative_to(Path.cwd())) if Path.cwd() in w.parents else str(w)
+        t0 = time.time()
+        print(f"[{idx}/{total}] judging {rel}", file=sys.stderr, flush=True)
         s = _score_one(llm, sampling, w, reference_text=reference_text, total_duration=total_duration)
+        dt = time.time() - t0
         if s is not None:
             scored.append(s)
+            print(
+                f"  -> B={s.b} K={s.k} L={s.l:.2f} C={s.c:.2f} "
+                f"proc={s.proc_time:.2f}s judge_dt={dt:.2f}s"
+                + (f" WER={s.asr_wer:.2f}" if s.asr_wer is not None else ""),
+                file=sys.stderr, flush=True,
+            )
+    print(
+        f"scored {len(scored)}/{total} windows in {time.time() - t_loop:.1f}s",
+        file=sys.stderr, flush=True,
+    )
 
     _write_per_window(scored, judge_model=judge_model_id)
-    _print_table(scored)
+    table = _build_table(scored, janus_bonus=not args.no_janus_bonus)
+    print(table)
+
+    report_path = args.report_out or (args.results_dir / "judge_report.txt")
+    try:
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(table + "\n")
+        print(f"report saved: {report_path}", file=sys.stderr)
+    except OSError as e:
+        print(f"report write failed: {e}", file=sys.stderr)
 
     if args.json_out:
         args.json_out.write_text(json.dumps(
