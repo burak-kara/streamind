@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
 """
-Send a WAV file to Janus as a WebRTC audio stream.
+Send an audio file to Janus as a WebRTC audio stream.
 
 The script acts as a WebRTC publisher in Janus's VideoRoom plugin.  Once the
 WebRTC connection is established, it calls rtp_forward to instruct Janus to
 relay the audio as plain RTP to the pipeline's audio_rtp node.
 
 Flow:
-    WAV file  →  aiortc (WebRTC)  →  Janus VideoRoom
-                                           ↓  RTP/UDP
-                                    pipeline audio_rtp node (:8888)
+    audio file  →  aiortc (WebRTC)  →  Janus VideoRoom
+                                             ↓  RTP/UDP
+                                      pipeline audio_rtp node (:8888)
+
+Any container format ffmpeg can decode is accepted (wav, opus, mp3, m4a, ...).
+Duration is read via ffprobe so wav-only inspection is no longer required.
 
 Usage:
-    uv run python tools/send_audio.py tests/fixtures/sample_audio.wav
+    uv run python tools/send_audio.py docs/datasets/rev16/10_Creating_Your_Own_Lane*.opus
     uv run python tools/send_audio.py audio.wav --pipeline-host 192.168.1.10
 """
 import argparse
 import asyncio
 import logging
+import subprocess
 import time
 import uuid
-import wave
 
 import httpx
 from aiortc import RTCPeerConnection, RTCSessionDescription
@@ -36,9 +39,15 @@ def _txn() -> str:
     return uuid.uuid4().hex[:12]
 
 
-def wav_duration(path: str) -> float:
-    with wave.open(path) as w:
-        return w.getnframes() / w.getframerate()
+def audio_duration(path: str) -> float:
+    """Return audio duration in seconds via ffprobe (format-agnostic)."""
+    out = subprocess.check_output([
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        path,
+    ])
+    return float(out.strip())
 
 
 async def _poll(client: httpx.AsyncClient, session_url: str) -> dict:
@@ -54,14 +63,14 @@ async def _poll(client: httpx.AsyncClient, session_url: str) -> dict:
 # ── Main coroutine ────────────────────────────────────────────────────────────
 
 async def send_audio(
-    wav_path: str,
+    audio_path: str,
     janus_url: str = "http://localhost:8088/janus",
     room: int = 1234,
     pipeline_host: str = "host.docker.internal",
     pipeline_port: int = 8888,
 ) -> None:
-    duration = wav_duration(wav_path)
-    log.info("WAV: %s  (%.1fs)", wav_path, duration)
+    duration = audio_duration(audio_path)
+    log.info("Audio: %s  (%.1fs)", audio_path, duration)
 
     async with httpx.AsyncClient() as client:
 
@@ -95,7 +104,7 @@ async def send_audio(
 
         # ── 4. Build peer connection with WAV audio track ─────────────────────
         pc = RTCPeerConnection()
-        player = MediaPlayer(wav_path)
+        player = MediaPlayer(audio_path)
         pc.addTrack(player.audio)
 
         # Gather all ICE candidates before sending offer (non-trickle).
@@ -161,7 +170,7 @@ async def send_audio(
         event = await _poll(client, session_url)
         log.info("RTP forward active: %s", event.get("plugindata", {}).get("data", {}))
 
-        # ── 8. Stream for the duration of the WAV ────────────────────────────
+        # ── 8. Stream for the duration of the audio ──────────────────────────
         log.info("Streaming %.1fs of audio to pipeline...", duration)
 
         # Keep the Janus HTTP session alive by polling; without this the session
@@ -201,9 +210,12 @@ async def send_audio(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Stream a WAV file through Janus WebRTC to the STREAMIND pipeline."
+        description="Stream an audio file through Janus WebRTC to the STREAMIND pipeline."
     )
-    parser.add_argument("wav_path", help="Path to input WAV file (16kHz mono recommended)")
+    parser.add_argument(
+        "audio_path",
+        help="Path to input audio file (any ffmpeg-decodable format: wav, opus, mp3, m4a, ...)",
+    )
     parser.add_argument(
         "--janus-url", default="http://localhost:8088/janus",
         help="Janus HTTP API base URL (default: http://localhost:8088/janus)",
@@ -223,7 +235,7 @@ def main() -> None:
     args = parser.parse_args()
 
     asyncio.run(send_audio(
-        wav_path=args.wav_path,
+        audio_path=args.audio_path,
         janus_url=args.janus_url,
         room=args.room,
         pipeline_host=args.pipeline_host,

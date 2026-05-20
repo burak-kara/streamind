@@ -35,6 +35,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
     def __init__(self,
                  model_name: str,
                  prompt_template_file: str = "summarize_prompt.txt",
+                 warmup_transcript_file: str = "warmup_transcript.txt",
                  dtype: str = "float16",
                  gpu_memory_utilization: float = 0.85,
                  max_model_len: int = 2048,
@@ -47,6 +48,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
         super().__init__(**kwargs)
         self._model_name = model_name
         self._prompt_file = prompt_template_file
+        self._warmup_transcript_file = warmup_transcript_file
         self._dtype = dtype
         self._gpu_memory_utilization = gpu_memory_utilization
         self._max_model_len = max_model_len
@@ -93,10 +95,20 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
             repetition_penalty=self._repetition_penalty,
         )
 
+        warmup_path = Path(__file__).parent / self._warmup_transcript_file
+        warmup_transcript = (
+            warmup_path.read_text() if warmup_path.exists()
+            else "This is a placeholder transcript used only to trigger CUDA kernel JIT."
+        )
+        warmup_prompt = self._prompt_template.format(transcript=warmup_transcript)
         try:
+            self._logger.info(
+                f"Running warmup generate with {len(warmup_transcript)} char "
+                f"transcript to trigger Triton/CUDA kernel JIT before first window."
+            )
             self._llm.chat(
-                [{"role": "user", "content": "Say hello."}],
-                sampling_params=SamplingParams(max_tokens=5),
+                [{"role": "user", "content": warmup_prompt}],
+                sampling_params=self._sampling_params,
                 chat_template_kwargs={"enable_thinking": False},
                 use_tqdm=False,
             )

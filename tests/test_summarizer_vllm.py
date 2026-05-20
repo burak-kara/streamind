@@ -43,7 +43,7 @@ def _install_fake_vllm(generate_text: str):
         def __init__(self, *args, **kwargs):
             self.init_kwargs = kwargs
 
-        def chat(self, messages, sampling_params=None, use_tqdm=False):
+        def chat(self, messages, sampling_params=None, use_tqdm=False, **kwargs):
             return [_Out(generate_text)]
 
     fake.LLM = LLM
