@@ -110,7 +110,7 @@ ssh uni-lab "cd ~/streamind && uv sync --extra dev"
 ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <local_name>"
 
 # Start Janus (first run builds the Docker image — takes ~15 min)
-ssh uni-lab "cd ~/streamind && docker compose up -d"
+ssh uni-lab "cd ~/streamind && docker compose up -d janus"
 
 # Run pipeline
 ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s vllm-<local_name>"

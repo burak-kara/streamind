@@ -38,7 +38,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
                  dtype: str = "float16",
                  gpu_memory_utilization: float = 0.85,
                  max_model_len: int = 2048,
-                 max_tokens: int = 150,
+                 max_tokens: int = 256,
                  temperature: float = 0.3,
                  top_p: float = 0.9,
                  repetition_penalty: float = 1.05,
@@ -97,6 +97,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
             self._llm.chat(
                 [{"role": "user", "content": "Say hello."}],
                 sampling_params=SamplingParams(max_tokens=5),
+                chat_template_kwargs={"enable_thinking": False},
                 use_tqdm=False,
             )
         except Exception as e:
@@ -125,6 +126,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
         outputs = self._llm.chat(
             [{"role": "user", "content": prompt}],
             sampling_params=self._sampling_params,
+            chat_template_kwargs={"enable_thinking": False},
             use_tqdm=False,
         )
         return outputs[0].outputs[0].text
@@ -138,6 +140,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
         try:
             content = self._generate(prompt).strip()
             content = re.sub(r"<\|[^|]+\|>", "", content)
+            content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL)
             content = re.sub(r"^```[a-z]*\n?", "", content)
             content = re.sub(r"\n?```$", "", content)
             content = content.strip()
