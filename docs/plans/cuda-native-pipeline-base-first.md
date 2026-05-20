@@ -231,7 +231,57 @@ Not built in this plan execution; flagged so the M3 hand-off knows what to expec
 ## Open items requiring user input
 
 1. ~~**Model id**~~ — picked 2026-05-19: summarizer `Qwen/Qwen3.5-4B`, judge `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ`.
-2. **30+ min test audio** — current `tests/fixtures/youtube_15min.wav` gives only 3 windows at 300 s. CHALLENGE.md recommends ≥ 30 min (6 chunks). Need either a longer fixture or a `rev16`/`ietf` sample for M1 verification step 5.
+2. ~~**30+ min test audio**~~ — using `docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus` (~36 min).
+
+---
+
+## M1 follow-up — observability + correctness fixes (2026-05-20)
+
+First 30 s smoke + judge run on rev16 surfaced three issues that block calling M1 green:
+
+### A. Empty-summary windows (silent failures)
+
+`window_{7,19,34}.json` from 2026-05-20 30 s run show `summary=""` paired with stop-word keywords (`["I'm", "Okay", "going"]`) and `proc_time ≈ 0.12-0.22 s` — the LLM barely ran. Judge gave these B=5 (Likert floor) and K=-6, dragging C to -1.
+
+**Debug:**
+1. Read `results/<model>/30/debug/window_{7,19,34}_transcript.txt` — measure char length, inspect content.
+2. If transcript empty / silence / `"."` → root cause is upstream (ASR returning nothing for that 30 s slice, or window aggregator emitting on a silent gap).
+3. If transcript non-empty → manually run `_summarizer_vllm.update()` on that transcript and capture raw LLM output to see whether parser dropped it or LLM emitted empty JSON.
+
+**Fix paths (apply in this order):**
+1. `plugins/nodes/proc/_summarizer_vllm/summarizer_vllm.py` — guard: if transcript shorter than ~30 chars, skip the LLM call entirely and emit a sentinel `{"summary": "[insufficient content]", "keywords": ["<silence>", "<silence>", "<silence>"]}` (or whatever marker the result_transmitter and offline judge handle cleanly). Avoids burning proc_time on empty prompts.
+2. `plugins/nodes/proc/_hallucination_filter/` — log when the filter strips an entire summary; do not collapse to `summary=""` silently.
+3. `plugins/nodes/sink/_result_transmitter/result_transmitter.py` — decide policy: either drop empty-summary windows from the official results dir, or mark them `status: "failed"` so the judge can skip them cleanly. Submission spec requires `from/to/summary/keywords[3]/proc_time` — emitting an empty summary technically violates "summary"; either filter out or fill with sentinel.
+
+### B. WER unreliable at small window granularity
+
+Offline judge WER averaged 0.93 on the 30 s run; windows 19 and 34 reported WER > 1.0 — physically impossible with correct alignment, so the slicing is wrong. Proportional slice of a 5400-word flat ground-truth transcript at 30 s window granularity = ~75 words per slice; ±5 % boundary fuzz = ~270 chars = whole window misaligned. Speakers do not speak at constant words/second, so the linear map breaks down at sub-minute windows.
+
+**Fix paths (pick A + C now; B is M2+ work):**
+1. **Sliding-window WER** in `tools/eval_quality.py`: compute WER at slice positions `{−30 %, −20 %, −10 %, 0, +10 %, +20 %, +30 %}` of the window length, return the minimum. ~7× per-window jiwer call (microseconds — irrelevant next to judge LLM time). Dramatic improvement for short windows.
+2. **Forced alignment via faster-whisper word timestamps** on the ground-truth audio once, cached, slice by actual word boundaries. Highest fidelity but costs ~1× audio duration of ASR. Defer to M2 unless A still produces obviously broken numbers.
+3. **Guard**: in `eval_quality.py`, print a `WARN: WER on windows < 120 s is approximate (slice misalignment)` line when any window has `to - from < 120` and `--audio` is set.
+
+### C. Pipeline cut at 17.5 min, not 36 min
+
+Last window `to` was 1050 s while the audio fixture is 2183.6 s. Either `send_audio.py` lost the WebRTC connection mid-stream, Janus killed the session despite our keepalive, or the pipeline exited before audio finished.
+
+**Debug:**
+1. Re-run the 30 s smoke with full stdout+stderr capture: `./tools/run_pipeline.sh -w 30 -s vllm-qwen3.5-4b 2>&1 | tee tmp/pipeline.log` and `uv run python tools/send_audio.py … 2>&1 | tee tmp/send_audio.log`.
+2. Grep both logs for `ICE`, `connection`, `closed`, `disconnect`, `destroy`, `unpublish`. Janus container logs too (`docker logs janus`).
+3. Compare `total_duration` value send_audio printed against the last window `to` — confirms whether send_audio finished its `asyncio.sleep(duration)` loop or aborted early.
+
+**Fix paths (depend on debug outcome):**
+1. `tools/send_audio.py` — add periodic heartbeat log (every 60 s) showing `streamed Xs / Ys`. Visible in stdout, makes mid-stream truncation obvious without log spelunking.
+2. If WebRTC connection drops mid-stream → add reconnect logic OR widen Janus session timeout in `pipelines/audio_src/janus.yaml` (or wherever it lives) and trickle ICE keepalive.
+3. If pipeline process died → wrap launch in supervisor or capture exit code; for now confirm via Docker logs whether pipeline container restarted.
+
+### Done-bar for M1 follow-up
+
+- No empty-summary windows in 30 s or 300 s rev16 run.
+- WER avg < 0.40 on 300 s windows (CPU `small.en` baseline expectation; sliding-window slice fix should make it credible).
+- Pipeline processes full audio: last window `to` is within one window-size of `audio_duration`.
+- Re-run offline judge against the corrected 30 s and 300 s outputs; record final B/K/L/C numbers in `docs/APPROACH.md`.
 
 ---
 
