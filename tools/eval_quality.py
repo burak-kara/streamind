@@ -18,12 +18,18 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
 from typing import Iterable, Optional
+
+# FlashInfer sampler JIT-compiles kernels via nvcc at first use; uni-lab has
+# CUDA runtime but no toolkit. Same workaround `run_pipeline.sh` uses for the
+# summarizer. Must be set BEFORE the `vllm` import inside _build_llm.
+os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
 
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
