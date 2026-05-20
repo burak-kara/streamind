@@ -9,12 +9,15 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
   - [x] `_summarizer_vllm/` node + `tools/fetch_models.sh` + tests (mocked vLLM passes)
   - [x] Pick concrete model id + judge model id (summarizer: `Qwen/Qwen3.5-4B`; judge: `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4`)
   - [x] Commit `pipelines/summarizer/vllm-qwen3.5-4b.json` + `pipelines/judge/vllm-qwen3.5-27b-awq.json`
-  - [ ] Source a ≥30 min audio fixture (current `youtube_15min.wav` only yields 3 windows)
+  - [x] Source a ≥30 min audio fixture — using `docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus` (36 min, ~7×300s windows)
   - [ ] Smoke run + judge run on uni-lab
   - [ ] Use audio files under `docs/datasets/` as fixtures, not `tests/fixtures/`
   - [ ] Refactor and cleanup `Dockerfile` and `docker-compose.yml` (remove Ollama + MLX, add CUDA base, bake in weights via `tools/fetch_models.sh` during build)
+  - [ ] **Model variant audit** — `Qwen/Qwen3.5-4B` resolves as `Qwen3_5ForConditionalGeneration` (multimodal w/ Qwen2VL image processor); vision encoder cache + image-item profiling allocate wasted VRAM. Investigate text-only variants (other providers, distilled bases). Reweight against B_i quality before swap.
+  - [ ] **Extend summarizer warmup** — current `Say hello.` (max_tokens=5) warmup does NOT trigger Triton JIT for `_zero_kv_blocks_kernel`, `_compute_slot_mapping_kernel`, `_causal_conv1d_fwd_kernel` (mamba), `_fused_post_conv_kernel`. JIT fires during first real window → inflated proc_time → poisons L_i for window_0. Warmup with ~1500-token dummy transcript matching real chunk shape.
 - [ ] **M2 — Prompt + sampling tune.** Iterate `summarize_prompt.txt` and SamplingParams on the chosen model; rerun offline judge; lock the best prompt; record B/K/L/C in `docs/APPROACH.md`.
 - [ ] **M3 — Submission packaging.** Rewrite `Dockerfile` (CUDA base, weights baked via `tools/fetch_models.sh` during build), populate `destination_endpoint`, end-to-end smoke inside container, finalize `docs/APPROACH.md`, build submission bundle (code + config + sample results + Dockerfile + approach).
+  - [ ] **Bake faster-whisper into Docker image** — pipeline launch issues HTTP GET to `huggingface.co/api/models/Systran/faster-whisper-small.en` even though model is the runtime "auto-download exception". Submission container has no network; must pre-populate the HF cache during `docker build`.
 - [ ] **M4 — Finetune (later).** Rewrite `prepare_rev16.py` teacher distillation off Ollama (use vLLM in-process), run QLoRA → merge → swap merged dir into the vLLM profile, A/B against base via `tools/eval_quality.py`. Gated on M3.
 
 ## Bookmarks

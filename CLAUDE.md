@@ -103,28 +103,33 @@ uv sync --extra dev
 .venv/bin/pytest tests/
 
 # --- Lab (uni-lab, RTX 4090, CUDA 12.4) — full pipeline ---
-ssh uni-lab "cd ~/streamind && git pull"
-ssh uni-lab "cd ~/streamind && uv sync --extra dev"
+# Login once, then run commands directly. Repo lives at ~/Desktop/streamind on uni-lab.
+ssh uni-lab
+cd ~/Desktop/streamind
+
+git pull
+uv sync --extra dev
 
 # Populate model once (idempotent)
-ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <local_name>"
+./tools/fetch_models.sh <hf_id> <local_name>
 
 # Start Janus (first run builds the Docker image — takes ~15 min)
-ssh uni-lab "cd ~/streamind && docker compose up -d janus"
+docker compose up -d janus
 
 # Run pipeline
-ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s vllm-<local_name>"
-ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-<local_name>"   # short window
+./tools/run_pipeline.sh -s vllm-<local_name>
+./tools/run_pipeline.sh -w 30 -s vllm-<local_name>   # short window
 
 # Offline judge after the pipeline exits (judge model loaded sequentially,
 # summarizer must be unloaded first to free VRAM)
-ssh uni-lab "cd ~/streamind && uv run python tools/eval_quality.py results/<local_name>/300/ --judge-profile vllm-<judge_name>"
+uv run python tools/eval_quality.py results/<local_name>/300/ --judge-profile vllm-<judge_name>
 
-# Inject test audio through Janus (separate terminal, while pipeline runs)
-ssh uni-lab "cd ~/streamind && uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav"
+# Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
+# Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.
+uv run python tools/send_audio.py 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
 
-# Mid-development sync (uncommitted changes):
-rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/streamind/
+# --- From local mac, mid-development sync (uncommitted changes) ---
+rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/Desktop/streamind/
 ```
 
 ## Runtime Requirements
@@ -152,7 +157,7 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX
 - **Challenge output format**: `result_transmitter` maps internal keys to challenge-required keys: `window_start` → `from`, `window_end` → `to`, `latency` → `proc_time`. Output must contain exactly: `from`, `to`, `summary`, `keywords` (3 items), `proc_time`.
 - `encoding_clock_chan: "opus/48000/1"` in `config-base.json` declares mono Opus per challenge spec. Verify against actual Janus stream before submission.
 - Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
-- To inject a WAV file into pipeline: `uv run python tools/send_audio.py <file.wav>`
+- To inject an audio file into pipeline: `uv run python tools/send_audio.py <file>` (accepts wav, opus, mp3, m4a — anything ffmpeg decodes)
 - `uv sync` and `uv sync --extra dev` must run on `uni-lab` — vLLM + torch cu124 wheels do not install on Apple Silicon.
 - `tools/finetune/` is **parked** until M4 (still references Ollama internally; do not touch yet).
 - To download YouTube video: see `docs/documentation/yt-dlp-guide.md`

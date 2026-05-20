@@ -10,17 +10,17 @@ Active summarizer profile and model are committed in `pipelines/summarizer/vllm-
 1. Set `destination_endpoint` in `pipelines/config-base.json` (currently `""` — submission deadline blocker).
 2. Verify `encoding_clock_chan: "opus/48000/1"` (challenge specifies mono Opus).
 3. Confirm `pipelines/summarizer/vllm-<name>.json` exists and `configuration.model_name` points to a relative path under `./models/` (never an HF id at runtime).
-4. Sync to uni-lab: `rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/streamind/`
+4. Sync to uni-lab: `rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/Desktop/streamind/`
 5. Verify CUDA + vLLM on uni-lab:
-   `ssh uni-lab "cd ~/streamind && nvidia-smi && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
-6. Ensure weights present: `ssh uni-lab "cd ~/streamind && ls ./models/<name>/config.json"` — if missing, run `./tools/fetch_models.sh <hf_id> <name>`.
+   `ssh uni-lab "cd ~/Desktop/streamind && nvidia-smi && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
+6. Ensure weights present: `ssh uni-lab "cd ~/Desktop/streamind && ls ./models/<name>/config.json"` — if missing, run `./tools/fetch_models.sh <hf_id> <name>`.
 7. 30 s smoke test (audio_rtp via Janus, NOT audio_file):
-   `ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-<name>"`
-   In parallel: `ssh uni-lab "cd ~/streamind && uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav"`
-8. Pull results: `rsync -av uni-lab:~/streamind/results/ ./results/`
+   `ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-<name>"`
+   In parallel: `ssh uni-lab "cd ~/Desktop/streamind && uv run python tools/send_audio.py 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'"`
+8. Pull results: `rsync -av uni-lab:~/Desktop/streamind/results/ ./results/`
 9. Validate output JSON: keys MUST be exactly `from`, `to`, `summary`, `keywords` (length 3), `proc_time` — no extras.
 10. Offline judge (sequential — summarizer must be unloaded first):
-    `ssh uni-lab "cd ~/streamind && uv run python tools/eval_quality.py results/<name>/30/ --judge-profile vllm-<judge_name>"`
+    `ssh uni-lab "cd ~/Desktop/streamind && uv run python tools/eval_quality.py results/<name>/30/ --judge-profile vllm-<judge_name>"`
 11. Full 300 s test: at least one window fires and POSTs successfully to `destination_endpoint`.
 12. Grep guard: `rg -i 'ollama|mlx' --type py --type json -g '!tools/finetune/**' -g '!docs/**'` returns zero matches.
 13. VRAM budget during run: `nvidia-smi` peak < 24 GB.

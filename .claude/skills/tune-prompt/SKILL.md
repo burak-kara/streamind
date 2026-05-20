@@ -18,10 +18,10 @@ If more than one, ask the user which to tune.
 ## 2. Verify weights present on uni-lab
 
 ```bash
-ssh uni-lab "cd ~/streamind && ls models/<name>/config.json"
+ssh uni-lab "cd ~/Desktop/streamind && ls models/<name>/config.json"
 ```
 
-If missing: `ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <name>"`.
+If missing: `ssh uni-lab "cd ~/Desktop/streamind && ./tools/fetch_models.sh <hf_id> <name>"`.
 
 ## 3. Read the current prompt
 
@@ -36,7 +36,7 @@ params match production exactly. Override the prompt file via `--prompt` to
 test a candidate without editing the on-disk template.
 
 ```bash
-ssh uni-lab "cd ~/streamind && uv run python - <<'PYEOF'
+ssh uni-lab "cd ~/Desktop/streamind && uv run python - <<'PYEOF'
 import json, sys, time
 from pathlib import Path
 from vllm import LLM, SamplingParams
@@ -65,11 +65,17 @@ llm = LLM(
 sampling = SamplingParams(
     temperature=cfg.get('temperature', 0.3),
     top_p=cfg.get('top_p', 0.9),
-    max_tokens=cfg.get('max_tokens', 150),
+    max_tokens=cfg.get('max_tokens', 256),
+    repetition_penalty=cfg.get('repetition_penalty', 1.05),
 )
 
 t0 = time.time()
-out = llm.chat([{'role': 'user', 'content': prompt}], sampling_params=sampling, use_tqdm=False)
+out = llm.chat(
+    [{'role': 'user', 'content': prompt}],
+    sampling_params=sampling,
+    chat_template_kwargs={'enable_thinking': False},
+    use_tqdm=False,
+)
 elapsed = time.time() - t0
 text = out[0].outputs[0].text
 
@@ -79,6 +85,7 @@ print(f'--- raw output ---\\n{text}\\n--- end ---')
 
 import re, json as _json
 clean = re.sub(r'<\\|[^|]+\\|>', '', text).strip()
+clean = re.sub(r'<think>.*?</think>', '', clean, flags=re.DOTALL)
 clean = re.sub(r'^```[a-z]*\\n?', '', clean)
 clean = re.sub(r'\\n?```$', '', clean).strip()
 m = re.search(r'\\{.*\\}', clean, re.DOTALL)

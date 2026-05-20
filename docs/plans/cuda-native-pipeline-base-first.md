@@ -254,14 +254,14 @@ Not built in this plan execution; flagged so the M3 hand-off knows what to expec
 
 Run on `uni-lab` (RTX 4090, CUDA 12.4):
 
-1. **Install:** `ssh uni-lab "cd ~/streamind && uv sync --extra dev"` — succeeds without manual flags.
-2. **Model fetch (dev only):** `ssh uni-lab "cd ~/streamind && ./tools/fetch_models.sh <hf_id> <local_name>"` populates `./models/<local_name>/`. Re-run is a no-op.
-3. **Import smoke:** `ssh uni-lab "cd ~/streamind && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
+1. **Install:** `ssh uni-lab "cd ~/Desktop/streamind && uv sync --extra dev"` — succeeds without manual flags.
+2. **Model fetch (dev only):** `ssh uni-lab "cd ~/Desktop/streamind && ./tools/fetch_models.sh <hf_id> <local_name>"` populates `./models/<local_name>/`. Re-run is a no-op.
+3. **Import smoke:** `ssh uni-lab "cd ~/Desktop/streamind && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
 4. **Unit tests:** `uv run pytest tests/ -x` locally (mocked vLLM) and on uni-lab — all pass. Includes test that asserts pipeline refuses to start when `./models/<name>` is absent.
 5. **30 s smoke pipeline:**
 
    ```bash
-   ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-qwen3.5-4b"
+   ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-qwen3.5-4b"
    # in parallel: uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
    ```
 
@@ -269,9 +269,9 @@ Run on `uni-lab` (RTX 4090, CUDA 12.4):
 6. **30 min window + offline judge** (requires 30+ min fixture — see open item 3):
 
    ```bash
-   ssh uni-lab "cd ~/streamind && ./tools/run_pipeline.sh -s vllm-qwen3.5-4b"
+   ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -s vllm-qwen3.5-4b"
    # after pipeline exits:
-   ssh uni-lab "cd ~/streamind && uv run python tools/eval_quality.py results/<local_name>/300/"
+   ssh uni-lab "cd ~/Desktop/streamind && uv run python tools/eval_quality.py results/<local_name>/300/"
    ```
 
    ≥ 6 summary windows + `results/.../judge/window_*.json` with B/K/L/C scores. Sequential — summarizer LLM unloaded before judge LLM loads.
