@@ -181,11 +181,12 @@ def _score_one(
     # Per Plan 2: judge sees ASR transcript (status quo). Ref slice + WER are
     # independent ASR-fidelity signal that does NOT feed B/K/L.
     prompt = _scorer.build_prompt(transcript=transcript, summary=summary, keywords=keywords)
+    raw = _generate(llm, sampling, prompt)
     try:
-        raw = _generate(llm, sampling, prompt)
         b_breakdown, keyword_flags = _scorer.parse_judge_response(raw)
     except (ValueError, json.JSONDecodeError) as e:
         print(f"skip {window}: judge parse failed: {e}", file=sys.stderr)
+        print(f"  raw judge output (first 500 chars): {raw[:500]!r}", file=sys.stderr)
         return None
 
     proc_time = float(result.get("proc_time", 0.0))
