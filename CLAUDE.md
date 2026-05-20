@@ -147,7 +147,7 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 ## Current Model Choices
 
 - **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
-- **Judge (offline only):** `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` (~14 GB AWQ-int4). Profile: `pipelines/judge/vllm-qwen3.5-27b-awq.json`. Local dir: `./models/qwen3.5-27b-awq/`. Loaded sequentially by `tools/eval_quality.py` after the summarizer pipeline exits — never co-resident with the summarizer.
+- **Judge (offline only):** `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Picked cross-family from Qwen summarizer to avoid self-bias; text-only arch avoids vision-encoder VRAM waste. Loaded sequentially by `tools/eval_quality.py` after the summarizer pipeline exits — never co-resident with the summarizer. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: repo was not cleanly int4 (~26 GB on disk → OOM on 24 GB).
 - **Fallback summarizer:** `Qwen/Qwen3.5-9B` if 4B B_i averages < 15. Same prompt + tooling; just swap profile.
 
 See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX/Ollama variants exist.

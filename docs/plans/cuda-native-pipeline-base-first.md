@@ -11,7 +11,7 @@ User decisions:
 - **Inference backend:** vLLM in-process (`LLM` class, no server)
 - **Legacy code:** delete MLX + Ollama entirely (no extras kept)
 - **Model packaging:** weights shipped with submission; no runtime HF download; dev-only fetch script
-- **Model identity:** picked 2026-05-19 — summarizer `Qwen/Qwen3.5-4B` (Apache-2.0, ~10 GB BF16); judge (offline) `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` (~14 GB AWQ-int4)
+- **Model identity:** picked 2026-05-19 — summarizer `Qwen/Qwen3.5-4B` (Apache-2.0, ~10 GB BF16); judge (offline) `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~14 GB AWQ-int4)
 - **Finetune:** parked — `tools/finetune/` left in place but unused until base pipeline green
 
 ---
@@ -64,7 +64,7 @@ This plan executes **M0 + M1** now. M2/M3 follow once M1 is green. M4 is gated o
 
 vLLM init (warmup): `LLM(model="./models/<name>", dtype="float16", gpu_memory_utilization=<frac>, max_model_len=2048, enforce_eager=False)`. Generation: `llm.generate([prompt], SamplingParams(temperature=0.3, top_p=0.9, max_tokens=150))`. The `model_name` config field is **always a filesystem path** — never an HF id at runtime. Same path used in dev and submission.
 
-**Base model pick (M1):** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16 native, ~8 GB on disk, ~10 GB with KV at 2K). Judge: `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4`. Picked 2026-05-19 against constraints:
+**Base model pick (M1):** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16 native, ~8 GB on disk, ~10 GB with KV at 2K). Judge: `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ`. Picked 2026-05-19 against constraints:
 
 - ≤ ~20 GB fp16 to leave VRAM headroom on 24 GB Pro 4500 — **Qwen3.5-4B: ~10 GB ✓**
 - Permissive license (Apache 2.0 / MIT / Qwen / Llama community) for redistribution in the submission image — **Apache-2.0 ✓**
@@ -157,7 +157,7 @@ plugins/nodes/proc/_summarizer_vllm/
 pipelines/summarizer/vllm-qwen3.5-4b.json   # mark: summarizer_vllm,
                                             # model_name: ./models/qwen3.5-4b
 
-pipelines/judge/vllm-qwen3.5-27b-awq.json   # consumed only by tools/eval_quality.py
+pipelines/judge/vllm-mistral-small-24b-awq.json   # consumed only by tools/eval_quality.py
 
 tools/fetch_models.sh                       # dev-only HF download helper
 
@@ -184,7 +184,7 @@ No `_judge_vllm/` Juturna sink — judge runs offline only.
 - `pipelines/config-base.json` — verify `encoding_clock_chan: "opus/48000/1"` (mono per CHALLENGE.md). `destination_endpoint` stays empty for M1; populated in M3.
 - `tools/run_pipeline.sh` — drop MLX/Ollama profile defaults; default `--summarizer vllm-qwen3.5-4b`; **drop `--judge` flag entirely** (judge is now offline-only); drop Ollama pre-flight check; add `nvidia-smi` + local-model-path pre-flight (refuse to start if `./models/<name>` missing).
 - `tools/assemble_config.py` — drop judge merging logic; verify glob matches new summarizer profile name.
-- `tools/eval_quality.py` — rewrite as offline judge runner: load `pipelines/judge/vllm-qwen3.5-27b-awq.json`, instantiate `vllm.LLM` from local path, iterate `results/<model>/<window>/window_*.json`, write `results/.../judge/window_N.json` via `_judge_common/scorer.py`. CLI: `eval_quality.py <results-dir> [--judge-profile vllm-qwen3.5-27b-awq]`.
+- `tools/eval_quality.py` — rewrite as offline judge runner: load `pipelines/judge/vllm-mistral-small-24b-awq.json`, instantiate `vllm.LLM` from local path, iterate `results/<model>/<window>/window_*.json`, write `results/.../judge/window_N.json` via `_judge_common/scorer.py`. CLI: `eval_quality.py <results-dir> [--judge-profile vllm-mistral-small-24b-awq]`.
 - `tools/send_audio.py` — unchanged.
 - `tools/finetune/*` — **untouched** in M0/M1. Revisit in M4.
 
@@ -230,7 +230,7 @@ Not built in this plan execution; flagged so the M3 hand-off knows what to expec
 
 ## Open items requiring user input
 
-1. ~~**Model id**~~ — picked 2026-05-19: summarizer `Qwen/Qwen3.5-4B`, judge `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4`.
+1. ~~**Model id**~~ — picked 2026-05-19: summarizer `Qwen/Qwen3.5-4B`, judge `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ`.
 2. **30+ min test audio** — current `tests/fixtures/youtube_15min.wav` gives only 3 windows at 300 s. CHALLENGE.md recommends ≥ 30 min (6 chunks). Need either a longer fixture or a `rev16`/`ietf` sample for M1 verification step 5.
 
 ---
