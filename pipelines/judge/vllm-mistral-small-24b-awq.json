@@ -2,6 +2,7 @@
   "name": "judge",
   "configuration": {
     "model_name": "./models/mistral-small-24b-awq",
+    "tokenizer_mode": "mistral",
     "dtype": "float16",
     "gpu_memory_utilization": 0.85,
     "max_model_len": 4096,
