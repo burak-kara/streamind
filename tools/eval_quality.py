@@ -139,13 +139,19 @@ def _build_llm(cfg: dict):
             f"Run `./tools/fetch_models.sh <hf_id> {model_path.name}` first."
         )
 
-    llm = LLM(
+    llm_kwargs: dict = dict(
         model=str(model_path),
         dtype=cfg.get("dtype", "float16"),
         gpu_memory_utilization=cfg.get("gpu_memory_utilization", 0.85),
         max_model_len=cfg.get("max_model_len", 4096),
         enforce_eager=cfg.get("enforce_eager", False),
     )
+    # Optional tokenizer mode — needed for Mistral models whose HF tokenizer
+    # regex is broken (emits raw BPE `Ġ`/`Ċ` tokens). `tokenizer_mode="mistral"`
+    # uses mistral_common's tekken tokenizer, bypassing the HF regex bug.
+    if "tokenizer_mode" in cfg:
+        llm_kwargs["tokenizer_mode"] = cfg["tokenizer_mode"]
+    llm = LLM(**llm_kwargs)
     sampling = SamplingParams(
         temperature=cfg.get("temperature", 0.0),
         top_p=cfg.get("top_p", 1.0),
