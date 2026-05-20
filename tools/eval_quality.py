@@ -18,11 +18,12 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
-from typing import Iterable
+from typing import Iterable, Optional
 
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -49,6 +50,9 @@ class Scored:
     summary: str
     keywords: list[str]
     transcript_len: int
+    asr_wer: Optional[float] = None
+    asr_text: str = ""
+    reference_slice: str = ""
 
 
 def _read_transcript(window_path: Path) -> str:
@@ -61,6 +65,41 @@ def _read_transcript(window_path: Path) -> str:
         if c.exists():
             return c.read_text()
     return ""
+
+
+def _audio_duration(path: Path) -> float:
+    out = subprocess.check_output([
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        str(path),
+    ])
+    return float(out.strip())
+
+
+def _slice_proportional(text: str, start_sec: float, end_sec: float, total_sec: float) -> str:
+    """Char-proportional slice. Approximates time-aligned segment of a flat
+    transcript (no timestamps). Boundary fuzz ±10% — speech rate non-uniform.
+    """
+    if total_sec <= 0 or not text:
+        return ""
+    L = len(text)
+    start = max(0, min(L, int(start_sec / total_sec * L)))
+    end = max(0, min(L, int(end_sec / total_sec * L)))
+    if end <= start:
+        return ""
+    return text[start:end]
+
+
+def _compute_wer(reference: str, hypothesis: str) -> Optional[float]:
+    if not reference.strip() or not hypothesis.strip():
+        return None
+    try:
+        import jiwer
+    except ImportError:
+        print("jiwer not installed; skip WER. Add to dev extra.", file=sys.stderr)
+        return None
+    return float(jiwer.wer(reference, hypothesis))
 
 
 def _iter_window_files(root: Path) -> Iterable[Path]:
@@ -118,7 +157,13 @@ def _generate(llm, sampling, prompt: str) -> str:
     return out[0].outputs[0].text
 
 
-def _score_one(llm, sampling, window: Path) -> Scored | None:
+def _score_one(
+    llm,
+    sampling,
+    window: Path,
+    reference_text: str = "",
+    total_duration: float = 0.0,
+) -> Scored | None:
     try:
         result = json.loads(window.read_text())
     except Exception as e:
@@ -127,6 +172,8 @@ def _score_one(llm, sampling, window: Path) -> Scored | None:
     transcript = _read_transcript(window)
     summary = result.get("summary", "")
     keywords = result.get("keywords", [])
+    # Per Plan 2: judge sees ASR transcript (status quo). Ref slice + WER are
+    # independent ASR-fidelity signal that does NOT feed B/K/L.
     prompt = _scorer.build_prompt(transcript=transcript, summary=summary, keywords=keywords)
     try:
         raw = _generate(llm, sampling, prompt)
@@ -137,6 +184,15 @@ def _score_one(llm, sampling, window: Path) -> Scored | None:
 
     proc_time = float(result.get("proc_time", 0.0))
     score = _scorer.compute_score(b_breakdown, keyword_flags, proc_time)
+
+    asr_wer: Optional[float] = None
+    reference_slice = ""
+    if reference_text and total_duration > 0:
+        start_sec = float(result.get("from", 0.0))
+        end_sec = float(result.get("to", 0.0))
+        reference_slice = _slice_proportional(reference_text, start_sec, end_sec, total_duration)
+        asr_wer = _compute_wer(reference_slice, transcript)
+
     return Scored(
         path=window,
         proc_time=proc_time,
@@ -149,6 +205,9 @@ def _score_one(llm, sampling, window: Path) -> Scored | None:
         summary=summary,
         keywords=keywords,
         transcript_len=len(transcript),
+        asr_wer=asr_wer,
+        asr_text=transcript,
+        reference_slice=reference_slice,
     )
 
 
@@ -159,32 +218,39 @@ def _write_per_window(scored: list[Scored], judge_model: str) -> None:
         judge_dir = s.path.parent / "judge"
         judge_dir.mkdir(parents=True, exist_ok=True)
         out_path = judge_dir / s.path.name
-        out_path.write_text(json.dumps(
-            {
-                **window_data,
-                "B_breakdown": s.b_breakdown,
-                "B": s.b,
-                "keyword_flags": s.keyword_flags,
-                "K": s.k,
-                "L": s.l,
-                "C": s.c,
-                "judge_model": judge_model,
-            },
-            indent=2,
-        ))
+        payload = {
+            **window_data,
+            "B_breakdown": s.b_breakdown,
+            "B": s.b,
+            "keyword_flags": s.keyword_flags,
+            "K": s.k,
+            "L": s.l,
+            "C": s.c,
+            "judge_model": judge_model,
+        }
+        if s.asr_wer is not None:
+            payload["asr_wer"] = s.asr_wer
+            payload["asr_transcript"] = s.asr_text
+            payload["reference_slice"] = s.reference_slice
+        out_path.write_text(json.dumps(payload, indent=2))
 
 
 def _print_table(scored: list[Scored]) -> None:
-    header = f"{'window':60} {'B':>3} {'K':>3} {'L':>5} {'C':>6} {'proc':>6}"
+    has_wer = any(s.asr_wer is not None for s in scored)
+    wer_hdr = f" {'WER':>5}" if has_wer else ""
+    header = f"{'window':60} {'B':>3} {'K':>3} {'L':>5} {'C':>6} {'proc':>6}{wer_hdr}"
     print(header)
     print("-" * len(header))
     for s in scored:
         rel = str(s.path.relative_to(Path.cwd())) if Path.cwd() in s.path.parents else str(s.path)
         rel = rel[-60:].rjust(60)
-        print(f"{rel} {s.b:>3} {s.k:>3} {s.l:>5.2f} {s.c:>6.2f} {s.proc_time:>6.2f}")
+        line = f"{rel} {s.b:>3} {s.k:>3} {s.l:>5.2f} {s.c:>6.2f} {s.proc_time:>6.2f}"
+        if has_wer:
+            line += f" {s.asr_wer:>5.2f}" if s.asr_wer is not None else f" {'-':>5}"
+        print(line)
     if scored:
         print("-" * len(header))
-        print(
+        avg_line = (
             f"{'avg':60} "
             f"{mean(s.b for s in scored):>3.1f} "
             f"{mean(s.k for s in scored):>3.1f} "
@@ -192,6 +258,10 @@ def _print_table(scored: list[Scored]) -> None:
             f"{mean(s.c for s in scored):>6.2f} "
             f"{mean(s.proc_time for s in scored):>6.2f}"
         )
+        if has_wer:
+            wer_vals = [s.asr_wer for s in scored if s.asr_wer is not None]
+            avg_line += f" {mean(wer_vals):>5.2f}" if wer_vals else f" {'-':>5}"
+        print(avg_line)
 
 
 def main() -> int:
@@ -201,6 +271,12 @@ def main() -> int:
     parser.add_argument("--judge-profile", default=None,
                         help="Profile name under pipelines/judge/<name>.json. Required.")
     parser.add_argument("--filter", default=None, help="substring match on window path")
+    parser.add_argument("--audio", type=Path, default=None,
+                        help="Source audio file used in the run. Enables ASR WER scoring. "
+                             "Reference text auto-resolved to sibling <stem>.txt unless "
+                             "--reference is given.")
+    parser.add_argument("--reference", type=Path, default=None,
+                        help="Ground-truth transcript (.txt). Overrides auto-resolution from --audio.")
     parser.add_argument("--json-out", type=Path, default=None,
                         help="Optional summary JSON; per-window judge files always written.")
     args = parser.parse_args()
@@ -222,11 +298,32 @@ def main() -> int:
         print("no window files matched", file=sys.stderr)
         return 1
 
+    reference_text = ""
+    total_duration = 0.0
+    if args.audio is not None:
+        if not args.audio.exists():
+            print(f"audio not found: {args.audio}", file=sys.stderr)
+            return 1
+        try:
+            total_duration = _audio_duration(args.audio)
+        except Exception as e:
+            print(f"ffprobe failed on {args.audio}: {e}", file=sys.stderr)
+            return 1
+        ref_path = args.reference or args.audio.with_suffix(".txt")
+        if ref_path.exists():
+            reference_text = ref_path.read_text()
+            print(f"WER enabled: ref={ref_path} duration={total_duration:.1f}s", file=sys.stderr)
+        else:
+            print(f"reference not found: {ref_path}; WER disabled", file=sys.stderr)
+    elif args.reference is not None:
+        print("--reference requires --audio (need duration for proportional slice)", file=sys.stderr)
+        return 1
+
     llm, sampling = _build_llm(cfg)
 
     scored: list[Scored] = []
     for w in windows:
-        s = _score_one(llm, sampling, w)
+        s = _score_one(llm, sampling, w, reference_text=reference_text, total_duration=total_duration)
         if s is not None:
             scored.append(s)
 
@@ -247,6 +344,7 @@ def main() -> int:
                     "C": s.c,
                     "summary": s.summary,
                     "keywords": s.keywords,
+                    "asr_wer": s.asr_wer,
                 }
                 for s in scored
             ],

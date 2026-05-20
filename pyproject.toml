@@ -28,6 +28,7 @@ dev = [
     "bitsandbytes>=0.44",
     "datasets>=3.0",
     "sentencepiece",
+    "jiwer",
 ]
 
 [tool.setuptools]

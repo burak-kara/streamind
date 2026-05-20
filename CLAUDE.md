@@ -121,8 +121,11 @@ docker compose up -d janus
 ./tools/run_pipeline.sh -w 30 -s vllm-<local_name>   # short window
 
 # Offline judge after the pipeline exits (judge model loaded sequentially,
-# summarizer must be unloaded first to free VRAM)
-uv run python tools/eval_quality.py results/<local_name>/300/ --judge-profile vllm-<judge_name>
+# summarizer must be unloaded first to free VRAM).
+# --audio enables ASR WER vs ground-truth .txt sibling (independent signal; not part of B/K/L).
+uv run python tools/eval_quality.py results/<local_name>/300/ \
+  --judge-profile vllm-<judge_name> \
+  --audio 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
 
 # Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
 # Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.

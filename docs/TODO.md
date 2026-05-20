@@ -11,6 +11,7 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
   - [x] Commit `pipelines/summarizer/vllm-qwen3.5-4b.json` + `pipelines/judge/vllm-qwen3.5-27b-awq.json`
   - [x] Source a ≥30 min audio fixture — using `docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus` (36 min, ~7×300s windows)
   - [ ] Smoke run + judge run on uni-lab
+  - [x] Offline judge: ASR WER vs rev16 ground-truth `.txt` (independent signal — does NOT affect B/K/L). `--audio` + `--reference` flags on `eval_quality.py`. Per Plan 2: ASR errors are scored separately so summarizer skill isolated from ASR fidelity.
   - [ ] Use audio files under `docs/datasets/` as fixtures, not `tests/fixtures/`
   - [ ] Refactor and cleanup `Dockerfile` and `docker-compose.yml` (remove Ollama + MLX, add CUDA base, bake in weights via `tools/fetch_models.sh` during build)
   - [ ] **Model variant audit** — `Qwen/Qwen3.5-4B` resolves as `Qwen3_5ForConditionalGeneration` (multimodal w/ Qwen2VL image processor); vision encoder cache + image-item profiling allocate wasted VRAM. Investigate text-only variants (other providers, distilled bases). Reweight against B_i quality before swap.
