@@ -11,6 +11,8 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
   - [x] Commit `pipelines/summarizer/vllm-qwen3.5-4b.json` + `pipelines/judge/vllm-qwen3.5-27b-awq.json`
   - [ ] Source a ≥30 min audio fixture (current `youtube_15min.wav` only yields 3 windows)
   - [ ] Smoke run + judge run on uni-lab
+  - [ ] Use audio files under `docs/datasets/` as fixtures, not `tests/fixtures/`
+  - [ ] Refactor and cleanup `Dockerfile` and `docker-compose.yml` (remove Ollama + MLX, add CUDA base, bake in weights via `tools/fetch_models.sh` during build)
 - [ ] **M2 — Prompt + sampling tune.** Iterate `summarize_prompt.txt` and SamplingParams on the chosen model; rerun offline judge; lock the best prompt; record B/K/L/C in `docs/APPROACH.md`.
 - [ ] **M3 — Submission packaging.** Rewrite `Dockerfile` (CUDA base, weights baked via `tools/fetch_models.sh` during build), populate `destination_endpoint`, end-to-end smoke inside container, finalize `docs/APPROACH.md`, build submission bundle (code + config + sample results + Dockerfile + approach).
 - [ ] **M4 — Finetune (later).** Rewrite `prepare_rev16.py` teacher distillation off Ollama (use vLLM in-process), run QLoRA → merge → swap merged dir into the vLLM profile, A/B against base via `tools/eval_quality.py`. Gated on M3.
