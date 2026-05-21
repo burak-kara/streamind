@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 """Merge a LoRA adapter into the base model and save full FP16 weights.
 
-The merged model is what `convert_hf_to_gguf.py` then turns into a GGUF for
-Ollama. Has to be run on CPU OR a GPU big enough to hold the *unquantized*
-base — for Qwen2.5-3B that's ~6 GB FP16. The RTX 2070 (8 GB) can do this
-but it'll be tight; passing --device cpu is the safe default.
+The merged directory is a standard HuggingFace model that vLLM loads directly
+— point a `pipelines/summarizer/vllm-*.json` profile's `model_name` at it
+(e.g. write the output to `./models/<name>-ft`). No GGUF/quantization step.
+
+Needs enough memory to hold the *unquantized* base: Qwen3.5-4B is ~8 GB FP16,
+so `--device cuda` is fine on the 24 GB lab GPU. Use `--device cpu` if VRAM is
+occupied by another process.
+
+Usage:
+    uv run python tools/finetune/merge_lora.py \
+        --adapter-dir tools/finetune/runs/qwen3.5-4b-rev16-r16 \
+        --output-dir ./models/qwen3.5-4b-ft --device cuda
 """
 from __future__ import annotations
 
@@ -21,7 +29,7 @@ def main() -> int:
                         help="Directory written by finetune_summarizer.py (contains adapter/ + run_config.json).")
     parser.add_argument("--output-dir", type=Path, required=True,
                         help="Where to write the merged FP16 model.")
-    parser.add_argument("--device", default="cpu", choices=["cpu", "cuda"])
+    parser.add_argument("--device", default="cuda", choices=["cpu", "cuda"])
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -48,8 +56,9 @@ def main() -> int:
         base_model,
         torch_dtype=torch.float16,
         device_map=args.device,
+        trust_remote_code=True,
     )
-    tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=True)
+    tokenizer = AutoTokenizer.from_pretrained(base_model, use_fast=True, trust_remote_code=True)
 
     logger.info("Attaching adapter %s", adapter)
     merged = PeftModel.from_pretrained(base, str(adapter))
