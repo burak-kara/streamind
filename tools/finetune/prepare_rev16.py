@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Distill a fine-tuning dataset from the rev16 podcast corpus.
 
+SUPERSEDED (Ollama-era). This produced the committed
+`tools/finetune/data/{train,val,test}.jsonl` using an Ollama teacher + judge.
+Ollama is no longer a dependency, so this script will not run as-is. The
+committed JSONLs are the canonical training data; keep the deployed prompt in
+sync with them via `rewrap_prompts.py`. To regenerate from scratch, port the
+teacher/judge calls to vLLM in-process (M4 in
+`docs/plans/cuda-native-pipeline-base-first.md`).
+
 For each episode directory under `datasets/rev16/<episode>/transcript.txt`, we:
   1. Slice the *gold* reference transcript into windows by word count
      (proxy for the 300s production window — avoids ASR noise in the labels).

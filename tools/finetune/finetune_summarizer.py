@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
-"""QLoRA fine-tune a summarizer on the rev16 distilled JSONL.
+"""QLoRA fine-tune the vLLM summarizer base on the rev16 distilled JSONL.
 
-Defaults are sized for an RTX 2070 Super Mobile (8 GB VRAM):
-  - 4-bit NF4 base + LoRA in fp16
-  - Qwen2.5-3B-Instruct as the base (small enough to leave headroom)
+The base defaults to the *deployed* weights under `./models/qwen3.5-4b` so the
+fine-tuned model is a drop-in for the vLLM summarizer profile. Merge the
+resulting adapter with `merge_lora.py` into `./models/<name>-ft/`, point a new
+`pipelines/summarizer/vllm-*.json` at it, and A/B against the base via the live
+pipeline + `tools/eval_quality.py`.
+
+Defaults (sized for a 24 GB GPU; QLoRA keeps it comfortable):
+  - 4-bit NF4 base + LoRA in bf16
   - micro-batch 1, grad-accum 8 (effective batch 8)
-  - sequence length 2048 (enough for our 600-word windows + prompt + target)
+  - sequence length 2048 (covers the ~600-word windows + prompt + target)
 
-Usage (after `uv sync --extra dev` and `prepare_rev16.py`):
+The training prompt is whatever is baked into the JSONL `user` turns — keep
+those in sync with the deployed prompt via `rewrap_prompts.py`.
+
+Usage (after `uv sync --extra dev`, `fetch_models.sh`, `rewrap_prompts.py`):
     uv run python tools/finetune/finetune_summarizer.py \
-        --base-model Qwen/Qwen2.5-3B-Instruct \
-        --train-file tools/finetune/data/train.jsonl \
-        --val-file tools/finetune/data/val.jsonl \
-        --output-dir tools/finetune/runs/qwen2.5-3b-rev16-r16
+        --base-model ./models/qwen3.5-4b \
+        --output-dir tools/finetune/runs/qwen3.5-4b-rev16-r16
 
 Resume from a previous run by passing the same --output-dir.
 """
@@ -33,10 +39,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def _build_dataset(train_file: Path, val_file: Path | None, tokenizer, max_seq: int):
-    """Load JSONL, render via Qwen2.5 chat template, return tokenized HF datasets.
+    """Load JSONL, render via the model chat template, return tokenized datasets.
 
-    The chat template is what the model will see at inference time when called
-    through Ollama, so training-time and inference-time prompts must match.
+    The rendered text must match what vLLM produces at inference. The deployed
+    summarizer node calls `chat(..., chat_template_kwargs={"enable_thinking":
+    False})`, so we render with the same flag here. Qwen3.5 templates accept it;
+    templates that don't are tolerated via the fallback below.
     """
     from datasets import load_dataset
 
@@ -48,9 +56,16 @@ def _build_dataset(train_file: Path, val_file: Path | None, tokenizer, max_seq: 
     def render(example):
         # Drop our `_meta` block so it can't bleed into the model's input.
         msgs = example["messages"]
-        text = tokenizer.apply_chat_template(
-            msgs, tokenize=False, add_generation_prompt=False,
-        )
+        try:
+            text = tokenizer.apply_chat_template(
+                msgs, tokenize=False, add_generation_prompt=False,
+                enable_thinking=False,
+            )
+        except TypeError:
+            # Older/other templates don't accept enable_thinking.
+            text = tokenizer.apply_chat_template(
+                msgs, tokenize=False, add_generation_prompt=False,
+            )
         return {"text": text}
 
     rendered = raw.map(render, remove_columns=raw["train"].column_names)
@@ -69,9 +84,9 @@ def _build_dataset(train_file: Path, val_file: Path | None, tokenizer, max_seq: 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--base-model", default="Qwen/Qwen2.5-3B-Instruct",
-                        help="HF model ID. Use a 3B base for the RTX 2070; bump to 7B once you "
-                             "move to the RTX 4090.")
+    parser.add_argument("--base-model", default="./models/qwen3.5-4b",
+                        help="Local dir of the deployed base (default) or an HF id. Defaults to "
+                             "the vLLM summarizer's weights so the merged adapter is a drop-in.")
     parser.add_argument("--train-file", type=Path, default=REPO_ROOT / "tools/finetune/data/train.jsonl")
     parser.add_argument("--val-file", type=Path, default=REPO_ROOT / "tools/finetune/data/val.jsonl")
     parser.add_argument("--output-dir", type=Path, required=True)
@@ -131,9 +146,10 @@ def main() -> int:
             bnb_4bit_compute_dtype=torch.bfloat16,
         )
 
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model, use_fast=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.base_model, use_fast=True, trust_remote_code=True)
     if tokenizer.pad_token is None:
-        # Qwen2.5 has no default pad token — re-use eos so the collator
+        # Qwen has no default pad token — re-use eos so the collator
         # doesn't insert a token the model has never seen.
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -142,6 +158,7 @@ def main() -> int:
         quantization_config=quant_config,
         torch_dtype=torch.bfloat16 if not quant_config else None,
         device_map="auto",
+        trust_remote_code=True,
     )
     model.config.use_cache = False  # incompatible with gradient checkpointing
     if quant_config is not None:
