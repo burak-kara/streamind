@@ -93,7 +93,10 @@ def test_produces_summary_and_three_keywords(tmp_path, reload_node):
     node._name = "test"
     node.transmit = MagicMock()
     node.warmup()
-    node.update(_make_window_message("We covered the Q3 roadmap."))
+    node.update(_make_window_message(
+        "We covered the Q3 roadmap, including the migration milestones, "
+        "team capacity, and the cutover plan for next quarter."
+    ))
 
     assert node.transmit.call_count == 1
     out = node.transmit.call_args[0][0].payload
@@ -116,27 +119,85 @@ def test_malformed_response_pads_keywords(tmp_path, reload_node):
     node._name = "test"
     node.transmit = MagicMock()
     node.warmup()
-    node.update(_make_window_message("Some meeting content."))
+    node.update(_make_window_message(
+        "Some meeting content describing project plans, action items, "
+        "owners, and the agreed timeline for delivery."
+    ))
 
     out = node.transmit.call_args[0][0].payload
     assert len(out["keywords"]) == 3
 
 
-def test_non_json_output_recovers_empty_summary(tmp_path, reload_node):
+def test_non_json_output_falls_back_to_extractive(tmp_path, reload_node):
     _install_fake_vllm("totally not JSON, just chatty text from a confused model")
     model_dir = _populate_fake_model_dir(tmp_path)
 
     from summarizer_vllm import SummarizerVLLM
 
+    long_transcript = (
+        "We covered the migration timeline today. "
+        "John raised concerns about token expiry defaults. "
+        "Sarah confirmed PKCE flow on the gateway. "
+        "Action item: John updates the runbook by Friday."
+    )
+
     node = SummarizerVLLM(model_name=str(model_dir))
     node._name = "test"
     node.transmit = MagicMock()
     node.warmup()
-    node.update(_make_window_message("Transcript text."))
+    node.update(_make_window_message(long_transcript))
 
     out = node.transmit.call_args[0][0].payload
-    assert out["summary"] == ""
+    # Extractive fallback returns verbatim transcript content; should not be
+    # a generic sentinel, and the first sentence should appear in the summary.
+    assert out["summary"] != ""
+    assert "migration timeline" in out["summary"]
     assert len(out["keywords"]) == 3
+
+
+def test_short_transcript_skips_llm_and_uses_extractive(tmp_path, reload_node):
+    _install_fake_vllm(json.dumps({
+        "summary": "this should not appear",
+        "keywords": ["a", "b", "c"],
+    }))
+    model_dir = _populate_fake_model_dir(tmp_path)
+
+    from summarizer_vllm import SummarizerVLLM
+
+    node = SummarizerVLLM(model_name=str(model_dir), min_transcript_chars=80)
+    node._name = "test"
+    node.transmit = MagicMock()
+    node.warmup()
+    short = "I'm not going to include the read. Okay."
+    node.update(_make_window_message(short))
+
+    out = node.transmit.call_args[0][0].payload
+    # LLM output must not leak through; extractive returns the whole short transcript.
+    assert "this should not appear" not in out["summary"]
+    assert out["summary"] == short.strip()
+    assert len(out["keywords"]) == 3
+
+
+def test_llm_returns_empty_summary_field_uses_extractive(tmp_path, reload_node):
+    _install_fake_vllm(json.dumps({"summary": "", "keywords": ["alpha", "beta", "gamma"]}))
+    model_dir = _populate_fake_model_dir(tmp_path)
+
+    from summarizer_vllm import SummarizerVLLM
+
+    long_transcript = (
+        "Plenty of substantive transcript content goes here for the summarizer. "
+        "Second sentence with another meaningful clause."
+    )
+
+    node = SummarizerVLLM(model_name=str(model_dir))
+    node._name = "test"
+    node.transmit = MagicMock()
+    node.warmup()
+    node.update(_make_window_message(long_transcript))
+
+    out = node.transmit.call_args[0][0].payload
+    assert out["summary"] != ""
+    assert "Plenty of substantive" in out["summary"]
 
 
 def test_strips_chatml_tokens_and_code_fences(tmp_path, reload_node):
@@ -157,7 +218,10 @@ def test_strips_chatml_tokens_and_code_fences(tmp_path, reload_node):
     node._name = "test"
     node.transmit = MagicMock()
     node.warmup()
-    node.update(_make_window_message("Transcript."))
+    node.update(_make_window_message(
+        "Realistic transcript content with enough characters to bypass the "
+        "short-transcript guard threshold and exercise the JSON parser."
+    ))
 
     out = node.transmit.call_args[0][0].payload
     assert out["summary"] == "Wrapped output."

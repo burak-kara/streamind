@@ -189,11 +189,30 @@ async def send_audio(
                     log.warning("Keepalive poll error: %s", e)
                     await asyncio.sleep(5)
 
+        # Heartbeat: print elapsed/total every 60s so mid-stream truncation
+        # is visible in stdout without log spelunking. Also surfaces WebRTC
+        # connection state at each tick — if it flips off "connected", you
+        # see the moment it happened.
+        async def _heartbeat_loop():
+            t_start = time.time()
+            while True:
+                await asyncio.sleep(60.0)
+                elapsed = time.time() - t_start
+                log.info(
+                    "streamed %.0fs / %.0fs (%.0f%%)  pc.state=%s",
+                    elapsed, duration, 100.0 * elapsed / max(duration, 1e-9),
+                    pc.connectionState,
+                )
+
         keepalive_task = asyncio.create_task(_keepalive_loop())
+        heartbeat_task = asyncio.create_task(_heartbeat_loop())
         try:
             await asyncio.sleep(duration)
         finally:
             keepalive_task.cancel()
+            heartbeat_task.cancel()
+        log.info("streaming loop completed after %.1fs (target %.1fs)",
+                 duration, duration)
 
         # ── 9. Tear down ─────────────────────────────────────────────────────
         await client.post(handle_url, json={
