@@ -97,6 +97,13 @@ def _slice_proportional(text: str, start_sec: float, end_sec: float, total_sec: 
     return text[start:end]
 
 
+# Slice offsets (fractions of window length) to try around the proportional
+# anchor. Non-uniform speech rate + chunked ground-truth flat text mean the
+# anchor is rarely exactly right; the min-WER over these positions is a
+# robust approximation of the true alignment.
+_SLIDE_OFFSETS = (-0.30, -0.20, -0.10, 0.0, 0.10, 0.20, 0.30)
+
+
 def _compute_wer(reference: str, hypothesis: str) -> Optional[float]:
     if not reference.strip() or not hypothesis.strip():
         return None
@@ -106,6 +113,41 @@ def _compute_wer(reference: str, hypothesis: str) -> Optional[float]:
         print("jiwer not installed; skip WER. Add to dev extra.", file=sys.stderr)
         return None
     return float(jiwer.wer(reference, hypothesis))
+
+
+def _sliding_wer(
+    reference_text: str,
+    start_sec: float,
+    end_sec: float,
+    total_sec: float,
+    hypothesis: str,
+) -> tuple[Optional[float], str]:
+    """Try several slice positions around the proportional anchor and pick
+    the minimum WER. Returns (best_wer, best_slice).
+
+    Speakers do not speak at constant words/sec, so the proportional slice is
+    only an anchor — the true segment can land ±10-30 % of the window length
+    away. Trying a handful of offsets is microseconds of compute (the slow
+    part is the judge LLM) and dramatically reduces false-positive WER
+    inflation on short windows.
+    """
+    if not reference_text or total_sec <= 0 or not hypothesis.strip():
+        return None, ""
+    win_len = max(0.0, end_sec - start_sec)
+    best_wer: Optional[float] = None
+    best_slice = ""
+    for off_frac in _SLIDE_OFFSETS:
+        shift = win_len * off_frac
+        s = max(0.0, start_sec + shift)
+        e = min(total_sec, end_sec + shift)
+        ref_slice = _slice_proportional(reference_text, s, e, total_sec)
+        wer = _compute_wer(ref_slice, hypothesis)
+        if wer is None:
+            continue
+        if best_wer is None or wer < best_wer:
+            best_wer = wer
+            best_slice = ref_slice
+    return best_wer, best_slice
 
 
 def _iter_window_files(root: Path) -> Iterable[Path]:
@@ -203,8 +245,9 @@ def _score_one(
     if reference_text and total_duration > 0:
         start_sec = float(result.get("from", 0.0))
         end_sec = float(result.get("to", 0.0))
-        reference_slice = _slice_proportional(reference_text, start_sec, end_sec, total_duration)
-        asr_wer = _compute_wer(reference_slice, transcript)
+        asr_wer, reference_slice = _sliding_wer(
+            reference_text, start_sec, end_sec, total_duration, transcript,
+        )
 
     return Scored(
         path=window,
@@ -396,6 +439,23 @@ def main() -> int:
         if ref_path.exists():
             reference_text = ref_path.read_text()
             print(f"WER enabled: ref={ref_path} duration={total_duration:.1f}s", file=sys.stderr)
+            # Warn once if any window is too short for proportional slicing to
+            # be trustworthy. Proportional slicing of a flat (untimestamped)
+            # ground-truth on sub-120 s windows is structurally noisy because
+            # word-rate variance dominates the slice boundary.
+            short_windows = [
+                w for w in windows
+                if (lambda j: (j.get("to", 0) - j.get("from", 0)) < 120)(
+                    json.loads(w.read_text())
+                )
+            ]
+            if short_windows:
+                print(
+                    f"WARN: {len(short_windows)}/{len(windows)} window(s) are < 120s; "
+                    f"WER is approximate at this granularity (proportional slice + "
+                    f"sliding ±30% search). Treat values as directional, not absolute.",
+                    file=sys.stderr,
+                )
         else:
             print(f"reference not found: {ref_path}; WER disabled", file=sys.stderr)
     elif args.reference is not None:
