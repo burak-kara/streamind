@@ -1,0 +1,23 @@
+window                                                         B   K     L      C   proc
+----------------------------------------------------------------------------------------
+          results/._models_qwen3.5-4b/30_tommy/window_0.json  25   6  6.00  37.00   1.02
+          results/._models_qwen3.5-4b/30_tommy/window_1.json  21   2  9.36  32.36   0.13
+         results/._models_qwen3.5-4b/30_tommy/window_10.json  24   2  6.65  32.65   0.82
+         results/._models_qwen3.5-4b/30_tommy/window_11.json  21   2  9.42  32.42   0.12
+          results/._models_qwen3.5-4b/30_tommy/window_2.json  23   2  9.01  34.01   0.21
+          results/._models_qwen3.5-4b/30_tommy/window_3.json  25   6  5.81  36.81   1.09
+          results/._models_qwen3.5-4b/30_tommy/window_4.json  21   6  8.91  35.91   0.23
+          results/._models_qwen3.5-4b/30_tommy/window_5.json  24   2  7.37  33.37   0.61
+          results/._models_qwen3.5-4b/30_tommy/window_6.json  22   2  7.47  31.47   0.58
+          results/._models_qwen3.5-4b/30_tommy/window_7.json   9   6  0.00  15.00   0.13
+          results/._models_qwen3.5-4b/30_tommy/window_8.json  22   6  7.55  35.55   0.56
+          results/._models_qwen3.5-4b/30_tommy/window_9.json  25   6  7.29  38.29   0.63
+----------------------------------------------------------------------------------------
+avg                                                          21.8 4.0  7.07  32.90   0.51
+max possible                                                  25   6 10.00  41.00      -
+min possible                                                   5  -6  0.00  -1.00      -
+
+Final source score (avg C + Janus +4) = 36.90   (avg_C=32.90, janus_bonus=4.0)
+Theoretical bounds: per-chunk C in [-1, 41]; final source score in [3, 45].
+
+Scoring contract (CHALLENGE.md): C_i = B_i + K_i + L_i per chunk. B = sum of 5 Likert (1-5) criteria, range [5, 25]. K = 2 * (N_relevant - N_irrelevant) across 3 keywords, range [-6, +6]. L = 10 * exp(-0.5 * proc_time) iff B >= 10 else 0, capped [0, 10] (realistic max ~6 at proc 1-2 s). Final source score = mean(C_i) + Janus_bonus (+4 flat for using Janus). Submission scores then min-max normalised across submissions. WER = ASR fidelity vs ground truth (lower better); independent, NOT in C.
