@@ -1,0 +1,31 @@
+{
+  "from": 360.0,
+  "to": 390.0,
+  "summary": "The meeting discusses the Google CP advisory committee website at googlecp.prx.org, identifying Jenna Weiss-Berman and Amit Dashi as co-chairs.",
+  "keywords": [
+    "Google CP",
+    "advisory committee",
+    "Jenna Weiss-Berman"
+  ],
+  "proc_time": 0.5826711654663086,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.472648667501051,
+  "C": 36.47264866750105,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9318181818181818,
+  "asr_transcript": "because if you go to the website for this outside of the TechCrunch article, And if you just want to go to that white right now, it would be Google CP. Google cp.prx.org. Google cp.prx.org. Google C as in cat, P as in Paul, .prx.org. and if you scroll to the bottom it says advisatory This advisory committee is Jenna Weiss-Berman, the co-chair. and Amit Dashi is a co-chair um who I haven't heard of um it's jenna weiss berman of",
+  "reference_slice": " of the co-founder of Pineapple Street media. If you scroll all the way down, you'll see on the bottom the advisory committee, so it looks like the people that will be choosing everyone after they submit is Genna Wise Berman. She's a co-chair um, of course she's the Co-founder of Pineapple Street media. And then the other person is a Ahmed Dashi who was the other co-chair, and he is a serial entrepreneur who had started companies and the technology and consumer Internet space. He's now branded out "
+}

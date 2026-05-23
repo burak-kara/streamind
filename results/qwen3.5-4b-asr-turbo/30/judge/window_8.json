@@ -1,0 +1,31 @@
+{
+  "from": 240.0,
+  "to": 270.0,
+  "summary": "The transcript discusses Google Podcasts' recent announcement to team up with PRX, noting concerns about their podcasting efforts despite the new partnership.",
+  "keywords": [
+    "Google Podcasts",
+    "PRX",
+    "podcasting"
+  ],
+  "proc_time": 0.5221490859985352,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.702235027050933,
+  "C": 38.70223502705093,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.6444444444444445,
+  "asr_transcript": "sad. And Carrie of PRX is one of those people. Only Carrie. of PRX give me to talk about Google Podcasts in an- nice way lately you know since they announced their foray into podcasting this summer. Um, I'm talking about how much they aren't doing or what I don't think is to be great about what they're doing because it didn't feel like they were really trying well it was announced this week that Google Podcasts is teaming up with PRX. This is from the TechCrunch article on PRX.",
+  "reference_slice": "e way. Lately, you know, since they announced their new foray into podcasting this summer, um, I'm talking about how much they aren't doing or what I don't think is gonna be great about what they're doing because it didn't feel like they were really trying. Well, it was announced this week that Google podcasts is teaming up with PRX. This is from the tech crunch article on PRX teaming up with Google. PRX is teaming up with Google, the idea is to focus on empowering and training underrepresented peo"
+}
