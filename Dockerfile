@@ -43,7 +43,7 @@ RUN chmod +x tools/fetch_models.sh \
 # points to this path inside the container.
 RUN uv run python -c "\
 from huggingface_hub import snapshot_download; \
-snapshot_download('Systran/faster-whisper-small.en', local_dir='./models/faster-whisper-small.en')"
+snapshot_download('deepdml/faster-whisper-large-v3-turbo-ct2', local_dir='./models/faster-whisper-large-v3-turbo')"
 
 
 COPY plugins/ ./plugins/

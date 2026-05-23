@@ -19,9 +19,11 @@ Eight sequential Juturna nodes, wired in `pipelines/config-base.json`:
    `encoding_clock_chan: "opus/48000/1"`.
 2. `audio_chunker` — splits the live stream into 5 s overlapping chunks
    (1 s overlap) so the ASR sees audio incrementally, not as one blob.
-3. `transcriber_whisper` — faster-whisper `small.en`, `device: auto`,
-   int8. Cheap on CPU, fast on GPU. English-only because the challenge
-   transcripts are English.
+3. `transcriber_whisper` — faster-whisper `large-v3-turbo`, `device: cpu`,
+   int8. OpenAI's distilled large-v3 (~809M params) — near large-v3 WER
+   at half the size. Runs on CPU to avoid VRAM contention with vLLM;
+   processes 5 s chunks in ~2-3 s on modern CPU. `language: "en"` set
+   explicitly (multilingual model, no `.en` suffix).
 4. `hallucination_filter` — post-processes ASR output to drop known
    hallucinatory sentences before aggregation.
 5. `novel_extractor` — deduplicates the overlapping ASR output, keeps
@@ -43,9 +45,11 @@ Eight sequential Juturna nodes, wired in `pipelines/config-base.json`:
   local dev and the evaluation environment — no environment-specific code
   paths. This earns the flat `+4` audio-level bonus at zero architectural
   cost.
-- **ASR model — faster-whisper `small.en`.** Accuracy/latency sweet spot
-  on English audio. `medium` adds measurable latency without a quality
-  win big enough to matter for a 1–2 sentence summary.
+- **ASR model — faster-whisper `large-v3-turbo`.** OpenAI's distilled
+  large-v3 (~809M params, ~1.5 GB int8). Near-identical WER to
+  large-v3 at half the compute. Runs on CPU (int8) to keep GPU VRAM
+  free for vLLM; processes 5 s chunks well within real-time on
+  uni-lab/production CPUs. Better transcripts feed higher B_i.
 - **Summarizer backend — vLLM in-process.** Chosen over Ollama (server),
   MLX (Apple-only), and raw `transformers` (slower):
   - **No daemon.** Inference is a Python library call. The submission

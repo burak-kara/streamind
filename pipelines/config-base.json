@@ -38,7 +38,7 @@
         "type": "proc",
         "mark": "transcriber_whisper",
         "configuration": {
-          "model_name": "small.en",
+          "model_name": "large-v3-turbo",
           "language": "en",
           "device": "cpu",
           "compute_type": "int8"

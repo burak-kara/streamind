@@ -16,7 +16,7 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
 
     def __init__(
         self,
-        model_name: str = "small.en",
+        model_name: str = "large-v3-turbo",
         language: str = "en",
         device: str = "auto",
         compute_type: str = "int8",

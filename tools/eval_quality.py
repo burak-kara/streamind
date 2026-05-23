@@ -377,8 +377,21 @@ def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
             " (realistic max ~6 at proc 1-2 s)."
             " Final source score = mean(C_i) + Janus_bonus (+4 flat for using Janus)."
             " Submission scores then min-max normalised across submissions."
-            " WER = ASR fidelity vs ground truth (lower better); independent, NOT in C."
         )
+        if has_wer:
+            lines.append("")
+            lines.append(
+                "WER scale: 0.00 = perfect | 0.01-0.10 excellent | 0.10-0.20 good"
+            )
+            lines.append(
+                "           0.20-0.30 fair | 0.30-0.50 poor | >0.50 very poor"
+            )
+            lines.append(
+                "           >1.00 possible (insertions exceed reference word count)"
+            )
+            lines.append(
+                "           Lower is better. Independent of B/K/L scoring."
+            )
     return "\n".join(lines)
 
 
