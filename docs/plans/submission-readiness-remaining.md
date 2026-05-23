@@ -34,9 +34,9 @@ local).
 4. **CUDA `proc_time` unknown.** Measured 3.10s is MLX on Apple Silicon.
    RTX Pro 4500 `proc_time` will differ; `L_i` target is 2.2–6.1 at 1–3 s.
 5. **No held-out-style validation.** `tools/eval_quality.py` only run on a
-   120 s slice of `tests/fixtures/youtube_15min.wav`. `docs/datasets/rev16/`
+   120 s slice of `tests/fixtures/youtube_15min.wav`. `datasets/rev16/`
    (ground-truth `.txt` transcripts, 30 podcast episodes) and
-   `docs/datasets/ietf/` (10 conference sessions) untouched.
+   `datasets/ietf/` (10 conference sessions) untouched.
 6. **Judge calibration unknown.** Local `qwen3.5:9b` judge returned
    ceiling-25/25 on every window. Real hidden judge almost certainly
    scores lower. No way to calibrate without a scoring sample from the

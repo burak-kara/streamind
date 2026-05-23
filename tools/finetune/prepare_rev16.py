@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Distill a fine-tuning dataset from the rev16 podcast corpus.
 
-For each `(*.opus, *.txt)` pair under `docs/datasets/rev16/`, we:
+For each `(*.opus, *.txt)` pair under `datasets/rev16/`, we:
   1. Slice the *gold* reference transcript into windows by word count
      (proxy for the 300s production window — avoids ASR noise in the labels).
   2. Ask a strong teacher (default `qwen3.5:9b-16k` via Ollama) for a
