@@ -158,7 +158,7 @@ Pick the best combination; apply to both prompt files.
 
 ### 3.3 Dataset testing
 
-Run the full pipeline against the `rev16` and `ietf` datasets in `docs/datasets/` using the production-ready profile. Use `tools/eval_quality.py` to score all windows. Identify and fix any patterns of keyword failure or summary quality drops.
+Run the full pipeline against the `rev16` and `ietf` datasets in `datasets/` using the production-ready profile. Use `tools/eval_quality.py` to score all windows. Identify and fix any patterns of keyword failure or summary quality drops.
 
 ---
 

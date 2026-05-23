@@ -89,7 +89,8 @@ tools/
   eval_quality.py     # Offline judge harness — uses vLLM, runs after pipeline exits
   send_audio.py       # Inject a WAV file through Janus for local testing
   finetune/           # QLoRA workflow on rev16 (CUDA only) — PARKED until M4
-tests/                # Unit + integration tests, fixtures/
+datasets/             # Audio corpora (rev16, ietf) — gitignored large files
+tests/                # Unit + integration tests
 results/              # Output JSON files written by result_transmitter
 docs/                 # Challenge spec, plans, approach write-up
 .claude/skills/       # Project-specific Claude Code skills
@@ -125,11 +126,11 @@ docker compose up -d janus
 # --audio enables ASR WER vs ground-truth .txt sibling (independent signal; not part of B/K/L).
 uv run python tools/eval_quality.py results/<local_name>/300/ \
   --judge-profile vllm-<judge_name> \
-  --audio 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
+  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
 
 # Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
 # Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.
-uv run python tools/send_audio.py 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
+uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
 
 # --- From local mac, mid-development sync (uncommitted changes) ---
 rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/Desktop/streamind/
