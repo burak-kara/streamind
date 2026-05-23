@@ -4,8 +4,6 @@ services:
     ports:
       - "8088:8088"
       - "10000-10050:10000-10050/udp"
-    # host.docker.internal:host-gateway is required on Linux;
-    # Docker Desktop on Mac/Windows resolves it automatically.
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -16,7 +14,7 @@ services:
     depends_on:
       - janus
     environment:
-      SUMMARIZER_PROFILE: ollama-qwen3.5-4b
+      SUMMARIZER_PROFILE: vllm-qwen3.5-4b
       WINDOW_SECONDS: "300"
     ports:
       - "8888:8888/udp"
@@ -24,8 +22,6 @@ services:
       - ./results:/app/results
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # GPU passthrough for RTX Pro 4500 at evaluation time. Harmless on hosts
-    # without NVIDIA runtime when started via `docker compose --profile gpu`.
     deploy:
       resources:
         reservations:
