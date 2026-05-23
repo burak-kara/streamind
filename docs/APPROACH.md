@@ -1,6 +1,6 @@
 # STREAMIND — Approach
 
-> **Status: in flight.** Numbers in this file describe the legacy MLX/Ollama prototype and will be replaced with native-CUDA vLLM measurements during M2 (prompt tune) and M3 (submission packaging). Pipeline architecture below already reflects the M0/M1 cleanup.
+> **Status: in flight.** Pipeline runs on native-CUDA vLLM. Measured performance section will be updated during M2 (prompt tune) and M3 (submission packaging).
 
 ## Challenge restatement
 

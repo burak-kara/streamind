@@ -16,12 +16,9 @@ Maps `docs/` dir for agent nav. Start here for specs, plans, reference.
 
 ## Plans
 
-`plans/` holds active and superseded plans.
+`plans/` holds active plans.
 
 - `plans/cuda-native-pipeline-base-first.md`: **ACTIVE.** M0 cleanup + M1 base CUDA pipeline + M2/M3/M4 sketch. Native vLLM in-process; model weights ship with submission.
-- `plans/cloud-development-submission-plan.md`: superseded — predates the vLLM pivot.
-- `plans/given-the-changes-in-streamed-biscuit.md`: superseded.
-- `plans/submission-readiness-remaining.md`: superseded — to be refreshed in M3 with vLLM-era blockers.
 
 ## Machine
 

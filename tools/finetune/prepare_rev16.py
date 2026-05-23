@@ -41,9 +41,9 @@ import ollama
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-REV16_DIR = REPO_ROOT / "docs" / "datasets" / "rev16"
+REV16_DIR = REPO_ROOT / "datasets" / "rev16"
 PROMPT_TEMPLATE_FILE = (
-    REPO_ROOT / "plugins" / "nodes" / "proc" / "_summarizer_llm" / "summarize_prompt_ollama.txt"
+    REPO_ROOT / "plugins" / "nodes" / "proc" / "_summarizer_vllm" / "summarize_prompt.txt"
 )
 DEFAULT_OUT_DIR = REPO_ROOT / "tools" / "finetune" / "data"
 
