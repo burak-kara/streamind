@@ -43,7 +43,8 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
 
     @staticmethod
     def _sanitize_model_name(name: str) -> str:
-        return name.replace(":", "-").replace("/", "_")
+        clean = Path(name).name if "/" in name else name
+        return clean.replace(":", "-")
 
     def update(self, message: Message[ObjectPayload]):
         window_id = message.payload.get("window_id", 0)
