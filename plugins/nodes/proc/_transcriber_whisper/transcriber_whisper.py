@@ -2,6 +2,7 @@ import gc
 import time
 import typing
 import logging
+from pathlib import Path
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -33,9 +34,16 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
     def configure(self):
         pass
 
+    def _resolve_model_path(self) -> str:
+        local = Path(f"./models/faster-whisper-{self._model_name}")
+        if local.is_dir():
+            return str(local)
+        return self._model_name
+
     def warmup(self):
+        resolved = self._resolve_model_path()
         self._model = WhisperModel(
-            self._model_name,
+            resolved,
             device=self._device,
             compute_type=self._compute_type,
         )
