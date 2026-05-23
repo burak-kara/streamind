@@ -1,0 +1,28 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "",
+  "keywords": [
+    "It's",
+    "Yeah",
+    "Jared"
+  ],
+  "proc_time": 0.008742094039916992,
+  "B_breakdown": {
+    "factual_consistency": 1,
+    "relevance": 1,
+    "coherence": 1,
+    "fluency": 1,
+    "conciseness": 1
+  },
+  "B": 5,
+  "keyword_flags": [
+    false,
+    false,
+    true
+  ],
+  "K": -2,
+  "L": 0.0,
+  "C": 3.0,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

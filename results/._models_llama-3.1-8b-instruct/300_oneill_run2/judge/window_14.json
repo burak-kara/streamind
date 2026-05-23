@@ -1,0 +1,28 @@
+{
+  "from": 4200.0,
+  "to": 4500.0,
+  "summary": "The group discusses a potential book project with actor Tyler Gray, a former Navy SEAL, and considers nominating Rob O'Neill for the 'Brosman of the Year' award.",
+  "keywords": [
+    "book project",
+    "Tyler Gray",
+    "Brosman of the Year"
+  ],
+  "proc_time": 1.3322153091430664,
+  "B_breakdown": {
+    "factual_consistency": 3,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 3
+  },
+  "B": 18,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.137042056469486,
+  "C": 29.137042056469486,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

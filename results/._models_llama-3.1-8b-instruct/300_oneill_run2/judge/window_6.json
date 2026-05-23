@@ -1,0 +1,28 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "The speaker discusses the importance of recognizing and sharing stories of heroism within the military community, citing a perceived gap in recognition and reward for heroic actions.",
+  "keywords": [
+    "heroism",
+    "military recognition",
+    "storytelling"
+  ],
+  "proc_time": 1.1897897720336914,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.5162054585328715,
+  "C": 34.51620545853287,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

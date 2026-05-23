@@ -1,0 +1,28 @@
+{
+  "from": 900.0,
+  "to": 1200.0,
+  "summary": "The speakers discuss public speaking techniques, including the importance of alcohol consumption, and recount a story about seeing David Packard at a Rolling Stones concert where he performed 'American Badass.' The conversation highlights the chaos of the event and Packard's background as a Navy SEAL who led the raid on Osama bin Laden.",
+  "keywords": [
+    "public speaking",
+    "Navy SEAL",
+    "David Packard"
+  ],
+  "proc_time": 0.9227104187011719,
+  "B_breakdown": {
+    "factual_consistency": 2,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 4,
+    "conciseness": 3
+  },
+  "B": 16,
+  "keyword_flags": [
+    true,
+    true,
+    false
+  ],
+  "K": 2,
+  "L": 6.304287034512454,
+  "C": 24.304287034512456,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

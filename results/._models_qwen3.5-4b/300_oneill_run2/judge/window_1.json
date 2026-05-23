@@ -1,0 +1,28 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "The host promotes four holiday gift brands\u2014Ghost Bed, Bison Union, Grill Your Ass Off, and Grenade Soap\u2014each offering a specific discount code for 'Drinking Bros' listeners, before introducing guest Rob O'Neil of Lonestars.",
+  "keywords": [
+    "Ghost Bed",
+    "Bison Union",
+    "Grenade Soap"
+  ],
+  "proc_time": 0.7910888195037842,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.733133810810425,
+  "C": 36.73313381081042,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

@@ -1,0 +1,28 @@
+{
+  "from": 3900.0,
+  "to": 4200.0,
+  "summary": "",
+  "keywords": [
+    "It's",
+    "You're",
+    "I'm"
+  ],
+  "proc_time": 0.00389862060546875,
+  "B_breakdown": {
+    "factual_consistency": 1,
+    "relevance": 1,
+    "coherence": 1,
+    "fluency": 1,
+    "conciseness": 1
+  },
+  "B": 5,
+  "keyword_flags": [
+    false,
+    false,
+    false
+  ],
+  "K": -6,
+  "L": 0.0,
+  "C": -1.0,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

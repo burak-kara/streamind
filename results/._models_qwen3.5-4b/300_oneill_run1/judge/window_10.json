@@ -1,0 +1,28 @@
+{
+  "from": 3000.0,
+  "to": 3300.0,
+  "summary": "John Lennon discusses the 'Strawberry Fields' song and his support for veteran John James in Michigan, while also sharing personal anecdotes about hunting elk and his combat experiences in Iraq and Afghanistan.",
+  "keywords": [
+    "Strawberry Fields",
+    "John James",
+    "combat experiences"
+  ],
+  "proc_time": 0.6740467548370361,
+  "B_breakdown": {
+    "factual_consistency": 3,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 4,
+    "conciseness": 3
+  },
+  "B": 17,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.138921507520614,
+  "C": 30.138921507520614,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

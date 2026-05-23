@@ -1,0 +1,28 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The speaker and their team raided Osama bin Laden's compound, with the speaker taking the shots that killed him. The team then secured the area and found computers.",
+  "keywords": [
+    "Osama bin Laden",
+    "compound raid",
+    "sniper fire"
+  ],
+  "proc_time": 1.2653441429138184,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.311705773085059,
+  "C": 34.31170577308506,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

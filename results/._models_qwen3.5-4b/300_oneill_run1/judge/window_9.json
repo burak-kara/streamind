@@ -1,0 +1,28 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The speakers discuss the transition from military service to civilian life, emphasizing that veterans possess valuable leadership skills and MBAs that should be leveraged by employers rather than feared, while also sharing personal anecdotes about meeting celebrities like Dave Grohl and Paul McCartney.",
+  "keywords": [
+    "veteran employment",
+    "Dave Grohl",
+    "Bin Laden raid"
+  ],
+  "proc_time": 0.8141796588897705,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.655843985389859,
+  "C": 34.65584398538986,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

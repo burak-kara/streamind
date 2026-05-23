@@ -1,0 +1,28 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The speaker describes a raid on Osama bin Laden's compound, where they took shots at him and killed him. The team then secured the area and found computers.",
+  "keywords": [
+    "Osama bin Laden",
+    "raid on bin Laden's compound",
+    "Delta Force"
+  ],
+  "proc_time": 1.3164889812469482,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    false
+  ],
+  "K": 2,
+  "L": 5.177594687415397,
+  "C": 29.177594687415397,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
