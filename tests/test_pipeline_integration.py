@@ -19,7 +19,8 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).parent.parent
-SAMPLE_WAV = REPO_ROOT / "tests" / "fixtures" / "sample_audio_15min.wav"
+REV16_DIR = REPO_ROOT / "docs" / "datasets" / "rev16"
+SAMPLE_AUDIO = REV16_DIR / "14_Coming_Soon:_Season_2.opus"
 RESULTS_DIR = REPO_ROOT / "results"
 SEND_AUDIO = REPO_ROOT / "tools" / "send_audio.py"
 
@@ -82,8 +83,8 @@ def pipeline_proc():
 @pytest.mark.integration
 def test_full_pipeline_with_janus(pipeline_proc):
     """End-to-end: WAV → Janus → audio_rtp → pipeline → results/window_N.json."""
-    if not SAMPLE_WAV.exists():
-        pytest.skip(f"Test fixture not found: {SAMPLE_WAV}")
+    if not SAMPLE_AUDIO.exists():
+        pytest.skip(f"Test fixture not found: {SAMPLE_AUDIO}")
     if not _janus_available():
         pytest.skip("Janus not running — start with: docker compose up -d")
     if not _vllm_importable():
@@ -95,9 +96,8 @@ def test_full_pipeline_with_janus(pipeline_proc):
     if not (model_path / "config.json").exists():
         pytest.skip(f"Model weights missing at {model_path} — run tools/fetch_models.sh")
 
-    # Stream the WAV through Janus; blocks until the full file is sent.
     subprocess.run(
-        [sys.executable, str(SEND_AUDIO), str(SAMPLE_WAV)],
+        [sys.executable, str(SEND_AUDIO), str(SAMPLE_AUDIO)],
         check=True,
         timeout=900,
     )

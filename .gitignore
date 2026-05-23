@@ -43,6 +43,7 @@ build/
 streamind.egg-info/
 
 **/*_raw.wav
+tests/fixtures/*.wav
 
 # LLM weights (fetched via tools/fetch_models.sh; baked into Docker at build)
 models/
