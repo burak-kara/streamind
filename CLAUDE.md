@@ -140,7 +140,7 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 
 - **Janus** running via Docker on uni-lab: `docker compose up -d` (builds from source on first run)
 - **vLLM** is a base dependency (no extra needed). `uv sync` installs it; **Linux + CUDA only — will not install on Apple Silicon**. All dev happens on `uni-lab`.
-- ASR model (`small.en` via faster-whisper) downloads automatically on first run (this is the one exception; the LLM does not auto-download).
+- ASR model (`large-v3-turbo` via faster-whisper) is baked into Docker at build time or fetched locally via `snapshot_download`. In dev, transcriber auto-resolves `./models/faster-whisper-large-v3-turbo` if present, otherwise falls back to HF download.
 - LLM weights must be present under `./models/<name>/` before pipeline launch — pipeline aborts at warmup otherwise.
 - Pipeline configs assembled at launch: `config-base.json` + profile from `pipelines/summarizer/`
 - `audio_rtp` node listens on `0.0.0.0:8888`; Janus forwards RTP to that port

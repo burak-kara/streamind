@@ -4,6 +4,7 @@ set -euo pipefail
 # Default values
 WINDOW=300
 SUMMARIZER=""
+ASR=""
 
 usage() {
   cat <<EOF
@@ -12,11 +13,13 @@ Usage: $0 [OPTIONS]
 Options:
   -w, --window <seconds>      Window duration in seconds (default: 300)
   -s, --summarizer <profile>  Summarizer profile under pipelines/summarizer/<profile>.json (required)
+  -a, --asr <model>           Override ASR model_name (e.g. small.en, large-v3-turbo)
   -h, --help                  Show this help message
 
 Examples:
   $0 -s vllm-qwen3-8b
   $0 --window 30 --summarizer vllm-qwen3-8b
+  $0 -s vllm-qwen3-8b --asr small.en
 
 Judge runs offline after the pipeline exits:
   uv run python tools/eval_quality.py results/<model>/<window>/ --judge-profile <judge_profile>
@@ -31,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -s|--summarizer)
       SUMMARIZER="$2"
+      shift 2
+      ;;
+    -a|--asr)
+      ASR="$2"
       shift 2
       ;;
     -h|--help)
@@ -80,7 +87,12 @@ if [[ ! -f "${MODEL_PATH}/config.json" ]]; then
 fi
 
 ASSEMBLED="./tmp/config-${WINDOW}s-${SUMMARIZER}.json"
-uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED"
+ASR_ARGS=""
+if [[ -n "${ASR}" ]]; then
+  ASR_ARGS="--asr ${ASR}"
+  ASSEMBLED="./tmp/config-${WINDOW}s-${SUMMARIZER}-asr-${ASR}.json"
+fi
+uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED" ${ASR_ARGS}
 
 # Disable FlashInfer sampler: it JIT-compiles a CUDA kernel on first use,
 # which needs the full CUDA toolkit (nvcc + headers, ~3 GB) and adds
@@ -91,5 +103,8 @@ export VLLM_USE_FLASHINFER_SAMPLER=0
 
 echo "Window:     ${WINDOW}s"
 echo "Summarizer: ${SUMMARIZER}  (model: ${MODEL_PATH})"
+if [[ -n "${ASR}" ]]; then
+  echo "ASR:        ${ASR}  (override)"
+fi
 echo ""
 uv run python -m juturna launch --config "$ASSEMBLED"
