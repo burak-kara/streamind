@@ -66,7 +66,7 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 - [`docs/CHALLENGE.md`](docs/CHALLENGE.md) — official challenge spec (scoring contract source of truth)
 - [`docs/CLAUDE.md`](docs/CLAUDE.md) — docs folder navigation
 - [`docs/documentation/CLAUDE.md`](docs/documentation/CLAUDE.md) — Juturna/Janus reference
-- [`docs/plans/cuda-native-pipeline-base-first.md`](docs/plans/cuda-native-pipeline-base-first.md) — active M0/M1 plan
+- [`docs/plans/cuda-native-pipeline-base-first.md`](docs/plans/cuda-native-pipeline-base-first.md) — active plan (M0/M1 done, M2–M4 ahead)
 
 ## Directory Structure
 
@@ -88,7 +88,7 @@ tools/
   run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <s> --summarizer <profile>
   eval_quality.py     # Offline judge harness — uses vLLM, runs after pipeline exits
   send_audio.py       # Inject a WAV file through Janus for local testing
-  finetune/           # QLoRA workflow on rev16 (CUDA only) — PARKED until M4
+  finetune/           # QLoRA data prep + training on rev16 — PARKED until M4 (Ollama refs remain)
 datasets/             # Audio corpora (rev16, ietf) — gitignored large files
 tests/                # Unit + integration tests
 results/              # Output JSON files written by result_transmitter
@@ -163,7 +163,8 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX
 - Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
 - To inject an audio file into pipeline: `uv run python tools/send_audio.py <file>` (accepts wav, opus, mp3, m4a — anything ffmpeg decodes)
 - `uv sync` and `uv sync --extra dev` must run on `uni-lab` — vLLM + torch cu124 wheels do not install on Apple Silicon.
-- `tools/finetune/` is **parked** until M4 (still references Ollama internally; do not touch yet).
+- **ASR model override**: `./tools/run_pipeline.sh -a <model>` overrides ASR model without editing config-base.json. Useful for A/B comparisons (e.g. `-a small.en` vs default `large-v3-turbo`).
+- `tools/finetune/` is **parked** until M4 (`prepare_rev16.py` and `eval_finetuned.py` still use `ollama` Python client — will be rewritten to vLLM in M4).
 - To download YouTube video: see `docs/documentation/yt-dlp-guide.md`
 - Use `./tmp` (not `/tmp`) for temp files to avoid permission issues.
 
