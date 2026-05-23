@@ -1,0 +1,31 @@
+{
+  "from": 390.0,
+  "to": 420.0,
+  "summary": "The advisory committee for Pineapple Street Media will select its members after submissions, featuring Jenna Weiss Berman as co-chair alongside Dashi, a serial entrepreneur.",
+  "keywords": [
+    "Pineapple Street Media",
+    "advisory committee",
+    "Jenna Weiss Berman"
+  ],
+  "proc_time": 0.6241919994354248,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.319112615810751,
+  "C": 36.31911261581075,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9361702127659575,
+  "asr_transcript": "the co-founder of Pineapple Street Media. If you scroll all the way down. you'll see on the bottom, the advisory committee. So it looks like the people. will be choosing everyone after they submit is Jenna Weiss Berman. She's a co-chair. And, of course, she's a co- of course she's the co-founder of pineapple street media and then the other person is a Dashi who is the other co-chair and he is a serial entrepreneur who has started companies in the technology.",
+  "reference_slice": "nna at Pineapple Street, I mean those are the two people I would pick if I was to do something. So anyhow, moving on, I'll be in Boston the first weekend in November for the sound education conference, talking about building online communities and I'm thinking about doing a meetup. Anybody in Boston let me know. I mean even if there's only one person I am down to meet up, go to breakfast or maybe go get a drink or something. It's hard for me to take in content about police killings, movies, books,"
+}

@@ -1,0 +1,31 @@
+{
+  "from": 270.0,
+  "to": 300.0,
+  "summary": "PRX is launching a program in January to empower underrepresented individuals by providing free educational tools, seed funding, training, and mentorship to 12 selected teams, with applications available until November 18th.",
+  "keywords": [
+    "PRX",
+    "Google",
+    "underrepresented people"
+  ],
+  "proc_time": 0.6371853351593018,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.27171689592805,
+  "C": 38.27171689592805,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.8390804597701149,
+  "asr_transcript": "teaming up with Google. PRX is teaming up with Google. idea is to focus on empowering and training under a- and training underrepresented people, offering free educational tools and showcasing their. work. As a part of the program, which kicks off in January, 12 teams will receive seed funding, training, and... mentorship. Those who are interested can apply until November 18th. And of course I'll link that to",
+  "reference_slice": "ple offering free educational tools and showcasing their work as a part of the program which kicks off in January, 12 teams will receive seed funding, training and mentorship. Those who are interested can apply until November, 18th. And of course I'll link that to, I'll link that in the show notes. So it saying they're going to have 12 teams. All teams are gonna receive seed funding, training and mentorship. So uh, it looks like they're almost doing, it feels like they're almost doing what Spotify"
+}

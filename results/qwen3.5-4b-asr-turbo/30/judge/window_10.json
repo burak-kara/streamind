@@ -1,0 +1,31 @@
+{
+  "from": 300.0,
+  "to": 330.0,
+  "summary": "The speaker announces that 12 teams will receive seed funding, training, and mentorships, noting the initiative resembles Spotify's past efforts but on a larger scale without exclusive focus on women. The speaker plans to inquire about conducting an interview for more details and encourages applications.",
+  "keywords": [
+    "seed funding",
+    "mentorships",
+    "12 teams"
+  ],
+  "proc_time": 0.7844617366790771,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.755481332800097,
+  "C": 37.755481332800095,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9313725490196079,
+  "asr_transcript": "I'll link that in the show notes so it's saying they're gonna have 12 teams All teams are going to receive seed funding, training, and mentorships. So it looks like they're almost doing, it feels like they're almost doing what Spotify was kind of doing before. but not necessarily focusing just on what just on women um and they're doing it in a bigger way um i don't have more information on this. Maybe I'll inquire to see if somebody liked to do an interview to talk about this a little bit more but it sounds interesting and I do hope you all apply so",
+  "reference_slice": " was kind of doing before, but not, not necessarily focusing just on women um, and they're doing it in a bigger way. Um, I don't have more information on this, maybe I'll inquire to see if somebody like to do an interview to talk about this a little bit more, but it sounds interesting and I do hope you all apply. So of course, as I said, I'll link that in the show notes. Um, so that you can apply and look to see more information on it. Um, I literally only read up on this um, as I was writing the "
+}

@@ -1,1 +1,0 @@
-{"summary": "The discussion clarified that GitOps has been cancelled following its enablement phase. The speaker attempted to align the audience on recent events, noting that GitOps was featured at KubeCon while platform and CI/CD topics were covered at Google Next and ReInvent.", "keywords": ["GitOps", "cancelled", "KubeCon"]}

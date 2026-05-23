@@ -1,0 +1,35 @@
+window                                                         B   K     L      C   proc   WER
+----------------------------------------------------------------------------------------------
+               results/qwen3.5-4b-asr-turbo/30/window_0.json  24   6  6.99  36.99   0.72  0.24
+               results/qwen3.5-4b-asr-turbo/30/window_1.json  23   2  7.36  32.36   0.61  0.31
+              results/qwen3.5-4b-asr-turbo/30/window_10.json  25   6  6.76  37.76   0.78  0.93
+              results/qwen3.5-4b-asr-turbo/30/window_11.json  23   6  7.86  36.86   0.48  0.91
+              results/qwen3.5-4b-asr-turbo/30/window_12.json  23   6  7.47  36.47   0.58  0.93
+              results/qwen3.5-4b-asr-turbo/30/window_13.json  23   6  7.32  36.32   0.62  0.94
+              results/qwen3.5-4b-asr-turbo/30/window_14.json  25   6  7.59  38.59   0.55  0.95
+              results/qwen3.5-4b-asr-turbo/30/window_15.json  24   6  7.25  37.25   0.64  0.98
+              results/qwen3.5-4b-asr-turbo/30/window_16.json  25   2  7.29  34.29   0.63  0.95
+              results/qwen3.5-4b-asr-turbo/30/window_17.json  25   2  7.11  34.11   0.68  0.99
+              results/qwen3.5-4b-asr-turbo/30/window_18.json  20   6  7.10  33.10   0.68  0.93
+               results/qwen3.5-4b-asr-turbo/30/window_2.json  25   6  7.04  38.04   0.70  0.24
+               results/qwen3.5-4b-asr-turbo/30/window_3.json  25   6  6.86  37.86   0.75  0.44
+               results/qwen3.5-4b-asr-turbo/30/window_4.json  25   6  7.82  38.82   0.49  0.31
+               results/qwen3.5-4b-asr-turbo/30/window_5.json  24   6  7.00  37.00   0.71  0.38
+               results/qwen3.5-4b-asr-turbo/30/window_6.json  25  -2  7.12  30.12   0.68  0.53
+               results/qwen3.5-4b-asr-turbo/30/window_7.json  19  -2  9.38  26.38   0.13  0.57
+               results/qwen3.5-4b-asr-turbo/30/window_8.json  25   6  7.70  38.70   0.52  0.64
+               results/qwen3.5-4b-asr-turbo/30/window_9.json  25   6  6.95  37.95   0.73  0.91
+----------------------------------------------------------------------------------------------
+avg                                                          23.8 4.5  7.37  35.73   0.62  0.69
+max possible                                                  25   6 10.00  41.00      -  0.00
+min possible                                                   5  -6  0.00  -1.00      -     -
+
+Final source score (avg C + Janus +4) = 39.73   (avg_C=35.73, janus_bonus=4.0)
+Theoretical bounds: per-chunk C in [-1, 41]; final source score in [3, 45].
+
+Scoring contract (CHALLENGE.md): C_i = B_i + K_i + L_i per chunk. B = sum of 5 Likert (1-5) criteria, range [5, 25]. K = 2 * (N_relevant - N_irrelevant) across 3 keywords, range [-6, +6]. L = 10 * exp(-0.5 * proc_time) iff B >= 10 else 0, capped [0, 10] (realistic max ~6 at proc 1-2 s). Final source score = mean(C_i) + Janus_bonus (+4 flat for using Janus). Submission scores then min-max normalised across submissions.
+
+WER scale: 0.00 = perfect | 0.01-0.10 excellent | 0.10-0.20 good
+           0.20-0.30 fair | 0.30-0.50 poor | >0.50 very poor
+           >1.00 possible (insertions exceed reference word count)
+           Lower is better. Independent of B/K/L scoring.

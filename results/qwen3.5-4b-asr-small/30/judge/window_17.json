@@ -1,0 +1,31 @@
+{
+  "from": 510.0,
+  "to": 540.0,
+  "summary": "The host thanks the guest, Five of Latinos Who Lunch, for using color-coded pods and announces his upcoming visit to Colorado where the host plans to organize a meetup.",
+  "keywords": [
+    "color-coded pods",
+    "Five of Latinos Who Lunch",
+    "Colorado meetup"
+  ],
+  "proc_time": 0.6017277240753174,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.40178532285107,
+  "C": 36.40178532285107,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9611650485436893,
+  "asr_transcript": "so I appreciate you using pods in color. Please keep using it. it really does help. Today's interview is with 5v5 of Latina. I love you five of Latinos who lunch. I have really fun talking to him. I hope you enjoy this. interview and he'll be in Colorado later this month, so if I organize a meetup or anything while he's in town, of course. I'll put that on the next podcast and across my social media so So to start with thank you for joining me today, and what do you like to go by?",
+  "reference_slice": "ng. Uh, uh, you know what? I don't even, I don't even know anymore. That's the status bar. <laugh> I don't even know who I am Barry help me. <laugh> What is your name? Um. <laugh> What does people call you? Well, my legal name is Justin Favela, but my, my internet name is FavyFav. Okay. So in FavyFav is like my high school nickname that just kind of stuck. So um, a lot of people call me Favy. That's my, that's, that's uh, you can call me Favy or Justin. Okay. Well I call you Favy in my head and I f"
+}

@@ -1,0 +1,31 @@
+{
+  "from": 450.0,
+  "to": 480.0,
+  "summary": "The speaker invites anyone in Boston to join a meetup for breakfast or drinks to discuss their difficulty processing content about police killings, specifically mentioning the Van Dyke trial covered by the podcast '16 Shots'.",
+  "keywords": [
+    "Boston meetup",
+    "Van Dyke trial",
+    "16 Shots podcast"
+  ],
+  "proc_time": 0.6428804397583008,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.2510397553511465,
+  "C": 37.251039755351144,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.978021978021978,
+  "asr_transcript": "and I'm thinking about doing a meetup. Anybody in Boston, let me know. I mean, even if there's only one person I am down to meet up go to breakfast or maybe go a drink or something. It's hard for me. to take in content about police killings, movies, books, any of it. Um, but if you heard about the Van Dyke trial out of Chicago, there is a podcast covering it called 16. shots and I will link that in the episode notes they've been covering the entire trial",
+  "reference_slice": "nstagram and your post in your stories really using it allover social media Twitter it's been used so many times, Facebook it's used a lot, I appreciate it, I appreciate you spreading the word um, Instagram is a huge place for podcast and the hashtag kept this people fine other podcast and uh, then they find, you know, the community of podcast and fellows so I appreciate you using pods and color. Please keep using it, it really does help. Today's interview is with FavyFav of Latinos Who Lunch. I ha"
+}

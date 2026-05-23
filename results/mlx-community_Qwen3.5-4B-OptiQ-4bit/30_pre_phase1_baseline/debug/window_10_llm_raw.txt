@@ -1,8 +1,0 @@
-{
-  "summary": "The discussion highlights the difficulty GitLab faces in making product announcements due to its fully public roadmap, which exposes unfinished features. The speaker notes that new features often take time to become usable and asks for examples of initiatives from the past year that have evolved into full-fledged capabilities.",
-  "keywords": [
-    "GitLab",
-    "public roadmap",
-    "product announcements"
-  ]
-}

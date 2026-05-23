@@ -1,0 +1,31 @@
+{
+  "from": 270.0,
+  "to": 300.0,
+  "summary": "PRX is teaming up with Google to launch a program in January that provides seed funding, training, and mentorship to 12 teams focused on empowering underrepresented people through free educational tools; applications for this initiative are open until November 18th.",
+  "keywords": [
+    "PRX",
+    "Google",
+    "underrepresented people"
+  ],
+  "proc_time": 0.7287707328796387,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.946234585887084,
+  "C": 37.94623458588708,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9101123595505618,
+  "asr_transcript": "article on prx teaming up with google prx is team PRX is teaming up with Google. The idea is to focus on empowering and training under and training underrepresented people, offering free educational tools and showcasing their work as a part of the program, which kicks off in January. 12 teams will receive seed funding training. and mentorship. Those who are interested can apply. did can apply until november 18th and of course i'll link that to",
+  "reference_slice": " their work as a part of the program which kicks off in January, 12 teams will receive seed funding, training and mentorship. Those who are interested can apply until November, 18th. And of course I'll link that to, I'll link that in the show notes. So it saying they're going to have 12 teams. All teams are gonna receive seed funding, training and mentorship. So uh, it looks like they're almost doing, it feels like they're almost doing what Spotify was kind of doing before, but not, not necessaril"
+}

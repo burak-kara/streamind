@@ -1,0 +1,31 @@
+{
+  "from": 90.0,
+  "to": 120.0,
+  "summary": "The speaker attended Get Grown Live in Philadelphia, the He-Man Woman Haters Club event in New York City, and the Gifted Sounds Network one-year celebration, where they met Mickey from Wandering Blurds.",
+  "keywords": [
+    "Get Grown Live",
+    "He-Man Woman Haters Club",
+    "Gifted Sounds Network"
+  ],
+  "proc_time": 0.7037339210510254,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.033736922183159,
+  "C": 38.03373692218316,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.4845360824742268,
+  "asr_transcript": "podcast events. I was able to go to Get Grown Live. getting grown live in Philadelphia. The He-Man Woman Haters Club. that was in New York City. I was also able to attend the gifted town. the Gifted Sounds Network celebration of their one year. I was able to... meet Mickey of Wandering Blurds. Who has done episodes out of Denver and on Denver and spends time here? It was a reminder that there are podcasts being created all around.",
+  "reference_slice": "fferent podcasts events. I was able to go to get Ingrown live in Philadelphia. Um, the He-man woman haters club that was in New York City. I was also able to attend the gifted towns network celebration um, of their one year I was able to meet Mickey of wandering blurts who has done episodes out of Denver and on Denver and spends time here. Um, it was a reminder that there are podcasts being created all around us and it started maybe in Brooklyn and going to an event there to find out about a person"
+}

@@ -1,8 +1,0 @@
-{
-  "summary": "The team discussed strategies for making public roadmap announcements at GitLab, agreeing to bundle minor features into significant releases rather than highlighting individual micro-features. They decided to leverage the foundation from GitLab 14.0, specifically for vulnerability management, while organizing new features into three key buckets: UX, integrations, and incident management. The conversation also covered excitement levels for specific features like Epic Boards and milestone burnout charts, aiming to provide the PR team with a cohesive narrative for upcoming press releases.",
-  "keywords": [
-    "public roadmap",
-    "vulnerability management",
-    "feature bundling"
-  ]
-}

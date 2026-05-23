@@ -1,0 +1,31 @@
+{
+  "from": 180.0,
+  "to": 210.0,
+  "summary": "The meeting congratulated Dr. Joy and Therapy for Black Girls on reaching two million downloads in under two years, noting that the podcast completed its first year in April.",
+  "keywords": [
+    "Therapy for Black Girls",
+    "Maisie Media",
+    "Dr. Joy"
+  ],
+  "proc_time": 0.5821645259857178,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    false,
+    true
+  ],
+  "K": 2,
+  "L": 7.474541876704331,
+  "C": 31.47454187670433,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.5913978494623656,
+  "asr_transcript": "and what the network will do in the episode notes so that you click and check out her podcast, Switch Pivoter Quit, and the first podcast on Maisie Media, a Millie. Congratulations to Dr. Joy who just celebrated. two million downloads in under two years. Her first year completing four therapy for black girls was in April of this year's that is a feat that I haven't seen done by many, especially in. independent space. So congrats to Dr. Joy and the therapy for black girls.",
+  "reference_slice": "at you can click and check out her podcast which pivot or quit and the first podcast on Maisie media, A Milli. Congratulations to dr Joy who just celebrated 2 million downloads in under two years, her first year completing full Therapy For Black Girls was in April of this year. So that is a feat that I haven't seen done by many, especially in the independent space. So congrats to dr joy and the Therapy For Black Girls podcasts. And, if you haven't checked it out, obviously, obviously you can see th"
+}
