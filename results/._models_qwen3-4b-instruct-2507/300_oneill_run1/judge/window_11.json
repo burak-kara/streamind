@@ -1,0 +1,28 @@
+{
+  "from": 3300.0,
+  "to": 3600.0,
+  "summary": "",
+  "keywords": [
+    "It's",
+    "got",
+    "Yeah"
+  ],
+  "proc_time": 0.004499197006225586,
+  "B_breakdown": {
+    "factual_consistency": 1,
+    "relevance": 1,
+    "coherence": 1,
+    "fluency": 1,
+    "conciseness": 1
+  },
+  "B": 5,
+  "keyword_flags": [
+    false,
+    false,
+    false
+  ],
+  "K": -6,
+  "L": 0.0,
+  "C": -1.0,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

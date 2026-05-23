@@ -1,0 +1,28 @@
+{
+  "from": 3300.0,
+  "to": 3600.0,
+  "summary": "The speaker recounts a chaotic firefight in Ramadi where a young soldier carried a Carl Gustaf weapon despite his size, and discusses a past DUI arrest involving Ambien-induced drowsiness that resulted in a mugshot before charges were dropped. He also mentions his high school connections to local police officers and references Roseanne Barr's public discussion of her own Ambien-related incident.",
+  "keywords": [
+    "Ramadi firefight",
+    "Carl Gustaf weapon",
+    "Ambien DUI"
+  ],
+  "proc_time": 1.0733458995819092,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.846903139456181,
+  "C": 34.84690313945618,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

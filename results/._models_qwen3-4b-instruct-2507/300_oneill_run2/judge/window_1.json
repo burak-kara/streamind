@@ -1,0 +1,28 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "The meeting announced promotional codes for GhostBed, Bison Union, GrillYourAssOff, and GrenadeSoap, with 'drinking bros' offering 20% off at GhostBed and GrenadeSoap, and 20% off at Bison Union and 15% off at GrillYourAssOff. Rob O'Neil was confirmed as a guest on the Drinking Bro's podcast after being highly requested over three years.",
+  "keywords": [
+    "cooling mattresses",
+    "Bison Union",
+    "GrenadeSoap.com"
+  ],
+  "proc_time": 1.2804334163665771,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 4,
+    "conciseness": 3
+  },
+  "B": 18,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.271781678403466,
+  "C": 29.271781678403464,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

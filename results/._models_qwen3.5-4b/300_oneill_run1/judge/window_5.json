@@ -1,0 +1,28 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The speaker recounts the tactical execution of the raid on Osama bin Laden, detailing the engagement with Khalid Sheikh Mohammed, the neutralization of bin Laden while protecting his wife, and the subsequent handling of the two-year-old son. After reflecting on the emotional weight of the operation and the irony of later encountering the sniper responsible for the Captain Phillips hijacking, the speaker emphasizes the importance of team coordination and the transition from combat to administrative duties.",
+  "keywords": [
+    "Osama bin Laden",
+    "Khalid Sheikh Mohammed",
+    "Captain Phillips"
+  ],
+  "proc_time": 1.214421033859253,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.448686530572344,
+  "C": 35.448686530572346,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

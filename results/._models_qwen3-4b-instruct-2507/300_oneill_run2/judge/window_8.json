@@ -1,0 +1,28 @@
+{
+  "from": 2400.0,
+  "to": 2700.0,
+  "summary": "The speaker discusses the operation to locate and eliminate Osama bin Laden, emphasizing the secrecy and planning involved, including coordination with Pakistan and concerns over U.S. military capabilities. The mission culminated in the killing of bin Laden in May, followed by the loss of 31 American lives in August when a helicopter was shot down, leading to the speaker extending their service to continue combat operations and later founding Grateful Nation due to post-mission challenges in transitioning out of military life.",
+  "keywords": [
+    "sniper coverage",
+    "Area 51",
+    "bin Laden"
+  ],
+  "proc_time": 1.2666585445404053,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.308216062576908,
+  "C": 35.30821606257691,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

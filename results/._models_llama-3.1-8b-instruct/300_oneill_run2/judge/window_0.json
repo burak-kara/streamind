@@ -1,0 +1,28 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "The hosts of Drinking Bros discuss their upcoming interview with Rob O'Neil, the man who killed Osama bin Laden, and thank their sponsor Led by Iron for facilitating the interview.",
+  "keywords": [
+    "Rob O'Neil",
+    "Led by Iron",
+    "Black Rifle Coffee"
+  ],
+  "proc_time": 1.2915537357330322,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    false
+  ],
+  "K": 2,
+  "L": 5.242551069190094,
+  "C": 30.242551069190093,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

@@ -1,0 +1,28 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "The host introduces Robin O'Neil, a former Navy SEAL who killed Osama bin Laden, as a guest on Drinking Bros, crediting sponsors Led By Iron for facilitating the interview. The episode also features promotional segments for Black Rifle Coffee, Strike Force Energy, and Ghostbed.",
+  "keywords": [
+    "Robin O'Neil",
+    "Osama bin Laden",
+    "Led By Iron"
+  ],
+  "proc_time": 0.863915205001831,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.4923690212260174,
+  "C": 35.49236902122602,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
