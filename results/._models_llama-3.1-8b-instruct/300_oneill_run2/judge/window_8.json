@@ -1,0 +1,28 @@
+{
+  "from": 2400.0,
+  "to": 2700.0,
+  "summary": "The speaker shares personal experiences as a Navy SEAL, including the raid on Osama bin Laden's compound and the loss of 31 American lives in a subsequent helicopter crash.",
+  "keywords": [
+    "Osama bin Laden",
+    "Navy SEAL",
+    "Area 51"
+  ],
+  "proc_time": 1.2982161045074463,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.225116220389899,
+  "C": 34.2251162203899,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

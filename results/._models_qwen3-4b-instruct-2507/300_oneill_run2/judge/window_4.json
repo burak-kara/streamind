@@ -1,0 +1,28 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The speaker reflects on shooting Osama bin Laden during a raid, describing the intense psychological impact and fear of retaliation, including concerns about internal threats and blowback. Action items include maintaining strict security measures and addressing the emotional aftermath of the operation.",
+  "keywords": [
+    "Osama bin Laden",
+    "sniper fire",
+    "security measures"
+  ],
+  "proc_time": 0.7903590202331543,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 21,
+  "keyword_flags": [
+    true,
+    false,
+    true
+  ],
+  "K": 2,
+  "L": 6.735591177201298,
+  "C": 29.7355911772013,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

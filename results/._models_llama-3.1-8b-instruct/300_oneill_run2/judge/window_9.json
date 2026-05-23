@@ -1,0 +1,28 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The speaker discussed their military experience and how it prepared them for leadership roles, citing their ability to adapt in high-pressure situations. They also shared stories about meeting celebrities, including Kid Rock and Dave Grohl.",
+  "keywords": [
+    "veteran community",
+    "post-traumatic stress disorder",
+    "leadership skills"
+  ],
+  "proc_time": 1.4697456359863281,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    false,
+    true
+  ],
+  "K": 2,
+  "L": 4.795664473196831,
+  "C": 28.79566447319683,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

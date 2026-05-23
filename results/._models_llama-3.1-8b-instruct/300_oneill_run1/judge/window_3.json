@@ -1,0 +1,28 @@
+{
+  "from": 900.0,
+  "to": 1200.0,
+  "summary": "The speaker shared a story about being introduced on stage by Kid Rock during a Rolling Stones concert, and later revealed himself as the Navy SEAL who killed Osama bin Laden. The speaker discussed the aftermath of the mission and how it became public knowledge.",
+  "keywords": [
+    "Osama bin Laden",
+    "Navy SEAL",
+    "Rolling Stones"
+  ],
+  "proc_time": 1.540933609008789,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 4.627969821642641,
+  "C": 34.627969821642644,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

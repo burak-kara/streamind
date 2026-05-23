@@ -1,0 +1,28 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "The transcript is an introduction to the second season of the podcast 'Crime Town,' which explores the history of Detroit under Mayor Kwame Kilpatrick, covering his political career, imprisonment, and the racial tensions surrounding him.",
+  "keywords": [
+    "Detroit",
+    "Kwame Kilpatrick",
+    "Crime Town"
+  ],
+  "proc_time": 0.6747007369995117,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.13658752547445,
+  "C": 35.136587525474454,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

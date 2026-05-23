@@ -1,0 +1,28 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "The hosts discussed and promoted various sponsorships, including Ghost Bed, Bison Union, Grill Your Ass Off, and Grenade Soap, offering promo codes for discounts.",
+  "keywords": [
+    "Ghost Bed",
+    "Bison Union",
+    "Grenade Soap"
+  ],
+  "proc_time": 1.2234361171722412,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.4241816190081895,
+  "C": 34.42418161900819,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

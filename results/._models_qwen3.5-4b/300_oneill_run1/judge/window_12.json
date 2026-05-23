@@ -1,0 +1,28 @@
+{
+  "from": 3600.0,
+  "to": 3900.0,
+  "summary": "The speaker discusses his background as a former Navy SEAL and his current work with a non-profit foundation that provides individualized programs for veterans, noting a recent expansion beyond just operations. He shares personal anecdotes about meeting his wife at a speaking engagement and interacting with fellow service members, including a story about a SEAL who retired early.",
+  "keywords": [
+    "Navy SEAL",
+    "non-profit foundation",
+    "veterans"
+  ],
+  "proc_time": 0.9564468860626221,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.19883672819526,
+  "C": 35.19883672819526,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

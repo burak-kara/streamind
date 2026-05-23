@@ -1,0 +1,28 @@
+{
+  "from": 3600.0,
+  "to": 3900.0,
+  "summary": "The speaker shares personal anecdotes about his experiences, including being arrested and working with SWAT teams. He discusses his passion for helping veterans transition to civilian life through his non-profit organization.",
+  "keywords": [
+    "SWAT teams",
+    "veteran transition",
+    "non-profit organization"
+  ],
+  "proc_time": 1.3336436748504639,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 20,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.133374578894712,
+  "C": 31.13337457889471,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

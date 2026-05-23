@@ -1,0 +1,28 @@
+{
+  "from": 600.0,
+  "to": 900.0,
+  "summary": "The group celebrates Ross's service in the food industry, with Dakota Meyer sharing a story about making chicken Parm at Olive Garden and creating a limited-edition Navy Seal cologne as a humorous project. Rob and others discuss the creation of a fake Calvin Klein commercial featuring the Navy Seal bottle, which became a viral moment, and Rob mentions being a former Navy member on an Apache helicopter. Rob also introduces Grateful Nation (YGN), a foundation that places special operations veterans into private sector roles through a nine-month mentorship program.",
+  "keywords": [
+    "Navy Seal cologne",
+    "Grateful Nation",
+    "Apache helicopter"
+  ],
+  "proc_time": 1.4594993591308594,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 4.820296368575708,
+  "C": 32.82029636857571,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

@@ -1,0 +1,28 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The speaker discussed their military experience and how it prepared them for civilian life, highlighting the skills they developed in combat and their ability to adapt to new environments. They also talked about their involvement in the veteran community and the importance of raising awareness about mental health issues.",
+  "keywords": [
+    "veteran community",
+    "mental health issues",
+    "combat experience"
+  ],
+  "proc_time": 1.6072373390197754,
+  "B_breakdown": {
+    "factual_consistency": 3,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 3
+  },
+  "B": 18,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 4.477059294789456,
+  "C": 28.477059294789456,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

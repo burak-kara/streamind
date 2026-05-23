@@ -1,0 +1,28 @@
+{
+  "from": 4200.0,
+  "to": 4500.0,
+  "summary": "The group discussed having Tyler Gray, an actor on the CEO team, author a book as a 'fake SEAL' to promote a potential book and movie, with the book titled 'The West Seal Story' priced at $74,000. Rob O'Neill was recognized as the 'Drinking Bro of the Year' and will have his name engraved on the Brosman trophy; his organization, RobertJoneal.com, is highlighted as a source for speaking engagements, testimonials, and apparel. Dinner is scheduled for the group, with Ross Patterson hosting.",
+  "keywords": [
+    "fake seal",
+    "The West Seal Story",
+    "Drinking Bro of the Year"
+  ],
+  "proc_time": 1.5603740215301514,
+  "B_breakdown": {
+    "factual_consistency": 3,
+    "relevance": 3,
+    "coherence": 4,
+    "fluency": 4,
+    "conciseness": 3
+  },
+  "B": 17,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 4.583202924617572,
+  "C": 27.583202924617574,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
