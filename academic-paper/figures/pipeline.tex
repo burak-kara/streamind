@@ -4,8 +4,8 @@
 % Bottom row (R→L): novel extractor → window aggregator → summarizer →
 %                   result sink → Challenge endpoint
 \def\nodeW{18mm}
-\def\nodeH{10mm}
-\def\nodeGap{6mm}
+\def\nodeH{8mm}
+\def\nodeGap{16mm}
 \def\rowSep{10mm}
 
 \begin{tikzpicture}[
@@ -84,7 +84,7 @@
     \draw[arrow] (sink)   -- node[edgelbl]{POST JSON} (endpoint);
 
     % --- Note above chunker.
-    \node[notelbl, above=1.5mm of chunker]
+    \node[notelbl, above=0.5mm of chunker]
         {1\,s overlap, 4\,s advance};
 
     % --- Legend below endpoint, chained relatively, tiles match node styles.
