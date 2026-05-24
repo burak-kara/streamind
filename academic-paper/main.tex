@@ -31,9 +31,9 @@
 \begin{abstract}
     Real-time meeting intelligence requires streaming summarization systems that produce coherent outputs under strict latency constraints.
     This paper presents our approach to the STREAMIND Grand Challenge, which scores pipeline outputs using a composite metric $C_i = B_i + K_i + L_i$ where the latency bonus~$L_i$ is gated on summary quality $B_i \ge 10$.
-    We describe a seven-node Juturna pipeline that ingests live Opus/\gls{rtp} audio via the Janus \gls{webrtc} gateway, transcribes incrementally with faster-whisper, deduplicates overlapping \gls{asr} chunks, and summarizes \num{300}-second rolling windows with Qwen3.5-4B via vLLM.
-    Three contributions target specific scoring terms: (1)~streaming chunk deduplication preserves temporal coherence across overlapping \gls{asr} outputs; (2)~a keyword guarantee algorithm converts the worst-case keyword penalty from $-6$ to a floor of~$0$; and (3)~quality-gated latency optimization through prompt engineering and thinking-mode suppression achieves average processing times of \SI{0.6}{\second} while maintaining summary quality at ceiling.
-    \todo{Update headline numbers after 300\,s benchmark.}
+    We describe a seven-node Juturna pipeline that ingests live Opus/\gls{rtp} audio via the Janus \gls{webrtc} gateway, transcribes incrementally with faster-whisper, deduplicates overlapping \gls{asr} chunks, and summarizes \SI{300}{\second} rolling windows with \todo{Qwen3.5-4B (pending model sweep)} via vLLM.
+    Three contributions target specific scoring terms: (1)~streaming chunk deduplication preserves temporal coherence across overlapping \gls{asr} outputs; (2)~a keyword guarantee algorithm converts the worst-case keyword penalty from $-6$ to a floor of~$0$; and (3)~quality-gated latency optimization through prompt engineering and thinking-mode suppression achieves average processing times of \todo{\SI{0.6}{\second} (\SI{30}{\second} window data; update after \SI{300}{\second} benchmark)} while maintaining summary quality at ceiling.
+    \todo{Update headline numbers after \SI{300}{\second} benchmark.}
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -48,7 +48,7 @@
 
 Live-audio intelligence systems that produce real-time summaries of meetings, podcasts, and conference sessions are increasingly valuable as remote communication grows.
 Unlike batch summarization, which operates on complete transcripts after the fact, streaming summarization must produce incremental outputs under strict latency constraints while maintaining coherence across overlapping audio segments.
-The STREAMIND Grand Challenge~\cite{streamind-challenge} formalizes this task: systems receive a live Opus-encoded mono audio stream via \gls{rtp}, produce structured summaries and keywords every \num{300}~seconds, and are scored on summary quality, keyword relevance, and processing latency.
+The STREAMIND Grand Challenge~\cite{streamind-challenge} formalizes this task: systems receive a live Opus-encoded mono audio stream via \gls{rtp}, produce structured summaries and keywords every \SI{300}{\second}, and are scored on summary quality, keyword relevance, and processing latency.
 
 The challenge defines a per-chunk composite score $C_i = B_i + K_i + L_i$ that creates a non-trivial optimization landscape.
 $B_i$ sums five Likert-scale quality criteria (factual consistency, relevance, coherence, fluency, and conciseness), ranging from \num{5} to~\num{25}.
@@ -61,9 +61,9 @@ These constraints dictate our design principle: \emph{quality first, latency sec
 \ssection{Contributions.}
 We present three contributions, each targeting a specific scoring term:
 \begin{enumerate}[leftmargin=*, nosep]
-    \item A streaming chunk deduplication strategy that preserves temporal coherence across overlapping \SI{5}{\second} \gls{asr} chunks while keeping the aggregated \num{300}-second window non-redundant.
+    \item A streaming chunk deduplication strategy that preserves temporal coherence across overlapping \SI{5}{\second} \gls{asr} chunks while keeping the aggregated \SI{300}{\second} window non-redundant.
     \item A keyword guarantee algorithm that strips banned generic terms and back-fills missing slots from transcript proper nouns, converting the worst-case $K_i = -6$ into a floor of $K_i = 0$.
-    \item Quality-gated latency optimization through prompt engineering and thinking-mode suppression, achieving average processing times of \SI{0.6}{\second} ($L_i \approx 7.4$) while maintaining $B_i$ at \num{23}--\num{25}.
+    \item Quality-gated latency optimization through prompt engineering and thinking-mode suppression, achieving average processing times of \todo{\SI{0.6}{\second} ($L_i \approx 7.4$) while maintaining $B_i$ at \num{23}--\num{25} (\SI{30}{\second} window data; update after \SI{300}{\second} benchmark and model sweep)}.
 \end{enumerate}
 
 \ssection{Paper roadmap.}
@@ -102,7 +102,7 @@ Every component is justified against one or more terms of the scoring formula $C
 \begin{figure*}[t]
     \centering
     \input{figures/pipeline}
-    \caption{End-to-end STREAMIND pipeline. Janus delivers mono Opus/\gls{rtp} into \texttt{audio\_rtp}; chunks slide every \SI{4}{\second} through \gls{asr}; deduplication and hallucination filtering precede a \num{300}\,s aggregation buffer; the summarizer emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
+    \caption{End-to-end STREAMIND pipeline. Janus delivers mono Opus/\gls{rtp} into \texttt{audio\_rtp}; chunks slide every \SI{4}{\second} through \gls{asr}; deduplication and hallucination filtering precede a \SI{300}{\second} aggregation buffer; the summarizer emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
     \label{fig:pipeline}
 \end{figure*}
 
@@ -127,9 +127,10 @@ The \texttt{audio\_chunker} node buffers the continuous audio stream into \SI{5}
 Each chunk is transcribed by the \texttt{transcriber\_whisper} node running faster-whisper~\cite{faster-whisper} with int8 quantization on \gls{cpu}, reserving \gls{gpu} \gls{vram} entirely for the summarizer.
 Previous-text conditioning is disabled to prevent hallucination propagation across chunks, and \gls{vad} filtering via Silero~\cite{silero-vad} skips silence segments.
 
-We evaluated two model variants on \num{19} windows of a \num{36}-minute podcast episode (\cref{tab:asr-comparison}): \texttt{small.en} (\num{244}\,M parameters, English-only) and \texttt{large-v3-turbo} (\num{809}\,M, multilingual distillation of large-v3).
+We evaluated two model variants on \num{19} windows of a \num{36}-minute podcast episode (\cref{tab:asr-comparison}): \texttt{small.en} (\SI{244}{\M} parameters, English-only) and \texttt{large-v3-turbo} (\SI{809}{\M}, multilingual distillation of large-v3).
 Both achieve identical average \gls{wer} of \num{0.69}, yet \texttt{small.en} produces a higher composite score ($\bar{C} = 36.00$ vs.\ $35.73$) due to superior keyword stability ($\bar{K} = 4.9$ vs.\ $4.5$).
 This demonstrates that transcription accuracy is not the pipeline bottleneck: downstream keyword extraction stability has a larger impact on the final score than raw \gls{wer}.
+\todo{Final ASR model choice pending \SI{300}{\second} window A/B test on multiple audio files.}
 
 \subsection{Hallucination Filter}
 \label{sec:arch:halluc}
@@ -146,7 +147,7 @@ The \SI{1}{\second} overlap between consecutive chunks means that roughly one se
 The \texttt{novel\_extractor} node performs word-level overlap detection: for overlap lengths from \num{10} words down to~\num{1}, it compares the suffix of the previous chunk with the prefix of the current chunk.
 An exact match returns the overlap length immediately; a \texttt{SequenceMatcher} fallback with similarity threshold \num{0.8} handles minor \gls{asr} variations in the overlap region (\eg \quotes{the quick brown} vs.\ \quotes{the quicker brown}).
 Only the novel words beyond the detected overlap are emitted.
-Without this deduplication, the \num{300}-second window would contain approximately \num{20}\,\% redundant text, wasting context budget and biasing summaries toward repeated phrases.
+Without this deduplication, the \SI{300}{\second} window would contain approximately \SI{20}{\percent} redundant text, wasting context budget and biasing summaries toward repeated phrases.
 
 \begin{figure}[t]
     \centering
@@ -158,7 +159,7 @@ Without this deduplication, the \num{300}-second window would contain approximat
 \subsection{Window Aggregation}
 \label{sec:arch:window}
 
-The \texttt{window\_aggregator} node concatenates novel transcript segments into a rolling \num{300}-second context window.
+The \texttt{window\_aggregator} node concatenates novel transcript segments into a rolling \SI{300}{\second} context window.
 A window is flushed when $t_{\text{chunk\_end}} \ge t_{\text{window\_start}} + 300$.
 On pipeline shutdown, partial windows are emitted to avoid data loss at stream end.
 
@@ -166,7 +167,7 @@ On pipeline shutdown, partial windows are emitted to avoid data loss at stream e
 \label{sec:arch:summ}
 
 The \texttt{summarizer\_vllm} node loads model weights from a local filesystem path at warmup using vLLM's in-process \texttt{LLM} class~\cite{vllm}\td no daemon, no middleware, no network dependency at runtime.
-We use Qwen3.5-4B~\cite{qwen3} in bfloat16 precision, requiring approximately \SI{10}{\giga\byte} of \gls{vram} with KV cache at \num{2048} context length.
+We use \todo{Qwen3.5-4B (pending model sweep; may become 2B or 9B)}~\cite{qwen3} in bfloat16 precision, requiring approximately \todo{\SI{10}{\giga\byte} of \gls{vram}} with KV cache at \num{2048} context length.
 
 The summarization prompt is designed with explicit alignment to the five Likert evaluation criteria.
 \quotes{1--2 sentences. Be concise and specific} targets \emph{conciseness} and \emph{coherence}.
@@ -243,12 +244,12 @@ A \texttt{docker-compose.yml} file orchestrates two services: Janus forwards \gl
         \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}       & \textbf{Target} \\
         \midrule
         audio\_rtp       & source        & Opus/48k, port 8888           & $+4$            \\
-        audio\_chunker   & proc          & 5\,s chunk, 1\,s overlap      & ---             \\
+        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap      & ---             \\
         transcriber      & proc          & int8, \gls{cpu}, \gls{vad} on & $B_i$           \\
         halluc.\ filter  & proc          & 11 exact patterns             & $B_i$           \\
         novel\_extractor & proc          & 10 words, sim $\ge 0.8$       & $B_i$           \\
-        window\_agg.     & proc          & 300\,s rolling                & ---             \\
-        summarizer       & proc          & Qwen3.5-4B, $T\!=\!0.3$       & $B_i, L_i$      \\
+        window\_agg.     & proc          & \SI{300}{\second} rolling     & ---             \\
+        summarizer       & proc          & \todo{Qwen3.5-4B}, $T\!=\!0.3$       & $B_i, L_i$      \\
         transmitter      & sink          & JSON + HTTP POST              & ---             \\
         \bottomrule
     \end{tabular}
@@ -268,7 +269,7 @@ Following the G-Eval paradigm~\cite{geval}, the judge scores each summary on the
 All experiments run on an NVIDIA RTX 4090 (\SI{24}{\giga\byte}, CUDA 12.4).
 
 \gls{wer} is measured independently using jiwer against ground-truth transcripts.
-Because the ground-truth text lacks timestamps, we employ proportional character-based alignment with a sliding-window search ($\pm 30$\,\% offsets) to find the best-matching reference segment for each window.
+Because the ground-truth text lacks timestamps, we employ proportional character-based alignment with a sliding-window search ($\pm\SI{30}{\percent}$ offsets) to find the best-matching reference segment for each window.
 \gls{wer} is an independent signal of \gls{asr} quality and is not part of the $B_i / K_i / L_i$ scoring.
 
 \subsection{ASR Model Comparison}
@@ -281,7 +282,7 @@ This suggests that the summarizer's ability to extract coherent keywords depends
 
 \begin{table}[t]
     \centering
-    \caption{\gls{asr} model comparison (19 windows, \SI{30}{\second}, Qwen3.5-4B summarizer). Higher is better for $B$, $K$, $L$, $C$; lower for $t_{\text{proc}}$ and \gls{wer}.}
+    \caption{\gls{asr} model comparison (19 windows, \SI{30}{\second}, \todo{Qwen3.5-4B} summarizer). Higher is better for $B$, $K$, $L$, $C$; lower for $t_{\text{proc}}$ and \gls{wer}. \todo{Re-run with \SI{300}{\second} windows and final model.}}
     \label{tab:asr-comparison}
     \footnotesize
     \begin{tabular}{@{}lcc@{}}
@@ -302,12 +303,13 @@ This suggests that the summarizer's ability to extract coherent keywords depends
 \subsection{End-to-End Scoring}
 \label{sec:eval:scoring}
 
-\todo{Per-window $B_i / K_i / L_i / C_i$ at \num{300}\,s windows and audio-level mean. Requires 300\,s benchmark run (Experiment~1).}
+\todo{Per-window $B_i / K_i / L_i / C_i$ at \SI{300}{\second} windows and audio-level mean. Requires \SI{300}{\second} benchmark run (Experiment~1).}
 
 \subsection{Outlier Analysis}
 \label{sec:eval:outlier}
 
 Window~\num{7} (covering seconds \num{210}--\num{240}) is consistently the worst performer across both \gls{asr} configurations: $C_i = 33.38$ with \texttt{small.en} ($B\!=\!22$, $K\!=\!2$) and $C_i = 26.38$ with \texttt{large-v3-turbo} ($B\!=\!19$, $K\!=\!{-2}$).
+\todo{Numbers from \SI{30}{\second} windows; verify outlier pattern holds at \SI{300}{\second}.}
 This segment contains a topic transition with informal speech, where the summarizer struggles to produce a coherent summary of fragmented conversational content.
 The larger \gls{asr} model captures more of the difficult content, which the summarizer then handles worse\td producing lower~$B_i$ and generating keywords judged as irrelevant.
 This demonstrates that per-window score variance is primarily content-driven rather than model-driven.
@@ -348,15 +350,15 @@ This incentivizes conservative keyword strategies at the expense of topical spec
 
 The current summarization prompt is static across all windows.
 Content-adaptive prompting that detects topic transitions or speaker changes could improve~$B_i$ on difficult windows such as window~\num{7}.
-Several avenues for future work remain: mixture-of-experts models (activating \num{3}\,B parameters per token from \num{30}\,B total capacity) could offer quality closer to a large model at the decode speed of a small one; encoder-decoder summarization models could achieve sub-\SI{100}{\milli\second} inference if their summary quality clears the $B_i \ge 10$ gate; and structured-output decoding could eliminate JSON parsing failures entirely.
+Several avenues for future work remain: mixture-of-experts models (activating \SI{3}{\B} parameters per token from \SI{30}{\B} total capacity) could offer quality closer to a large model at the decode speed of a small one; encoder-decoder summarization models could achieve sub-\SI{100}{\milli\second} inference if their summary quality clears the $B_i \ge 10$ gate; and structured-output decoding could eliminate JSON parsing failures entirely.
 
 % =====================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
 We presented a seven-node Juturna pipeline for the STREAMIND Grand Challenge that processes live Opus/\gls{rtp} audio into structured summaries and keywords in real time.
-Three contributions target specific scoring terms: streaming chunk deduplication preserves transcript coherence~($B_i$), a keyword guarantee algorithm floors the keyword penalty at zero~($K_i$), and quality-gated latency optimization achieves \SI{0.6}{\second} average processing time~($L_i$) while maintaining summary quality at ceiling.
-\todo{Final headline score from \num{300}\,s benchmark.}
+Three contributions target specific scoring terms: streaming chunk deduplication preserves transcript coherence~($B_i$), a keyword guarantee algorithm floors the keyword penalty at zero~($K_i$), and quality-gated latency optimization achieves \todo{\SI{0.6}{\second}} average processing time~($L_i$) while maintaining summary quality at ceiling.
+\todo{Final headline score from \SI{300}{\second} benchmark.}
 
 % =====================================================================
 \bibliographystyle{IEEEtran}
