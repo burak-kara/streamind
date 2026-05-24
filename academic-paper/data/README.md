@@ -7,10 +7,9 @@ Each CSV is regenerated from `results/*/window_*.json` via
 
 | File | Source | Used by |
 |------|--------|---------|
-| `phase1-ablation.csv` (TODO) | Pre-Phase-1 + Post-Phase-1 runs on `youtube_15min.wav`, 30\,s windows | `figures/phase1-ablation.tex`, Table T3 |
-| `model-sweep.csv` (TODO) | Per-profile runs (Qwen3.5 2B/4B/9B × MLX/CUDA) on `youtube_15min.wav`, 300\,s windows | `figures/model-sweep.tex`, Table T2 |
-| `per-window.csv` (TODO) | CUDA Qwen3.5-4B on `youtube_15min.wav`, 300\,s windows | Table T4 (per-window scores) |
-| `component-ablation.csv` (TODO) | Four single-component removals on the CUDA path | Table T5 ($\Delta$ vs full pipeline) |
+| `model-sweep.csv` (TODO) | Per-profile runs (Qwen3.5 2B/4B/9B, CUDA) on rev16, 300 s windows | `figures/model-sweep.tex` |
+| `per-window.csv` (TODO) | CUDA Qwen3.5-4B on rev16, 300 s windows | Table in §5.3 |
+| `component-ablation.csv` (TODO) | Four single-component removals on CUDA path | Table in §5.5 |
 
 CSV schema (uniform):
 
@@ -22,6 +21,4 @@ profile,window,from_s,to_s,proc_time_s,B,K,L,C
 formula (max 6). `L = 10 * exp(-0.5 * proc_time)` if `B >= 10`, else 0.
 `C = B + K + L`. Audio-level score = mean(C) + 4 (Janus bonus).
 
-**Status**: All CSVs are placeholders pending the CUDA benchmark pass.
-See the paper plan at `/Users/burak/.claude/plans/inherited-bouncing-reef.md`
-§9 for the dependency chain.
+**Status**: All CSVs are placeholders pending benchmark runs on uni-lab.

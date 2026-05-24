@@ -1,33 +1,27 @@
-% F5 — Quality vs latency across Qwen3.5 sizes on MLX and CUDA.
-% TODO: replace placeholder Y values with measured values from
-%       data/model-sweep.csv once benchmarks land for each profile.
-%       Current values are illustrative only.
+% F5 — Quality vs latency across Qwen3.5 sizes on CUDA (RTX 4090).
+% TODO: replace placeholder Y values with measured values once
+%       2B/4B/9B benchmarks land. Current values are illustrative only.
 \begin{tikzpicture}
     \begin{axis}[
         width=0.95\columnwidth,
         height=4.6cm,
         ybar=1pt,
-        bar width=6pt,
-        enlargelimits=0.2,
+        bar width=10pt,
+        enlargelimits=0.25,
         ylabel={$C_i$ (per chunk)},
         symbolic x coords={2B, 4B, 9B},
         xtick=data,
         nodes near coords,
         nodes near coords style={font=\tiny, /pgf/number format/.cd, fixed, precision=1, /tikz/.cd},
+        ymin=0, ymax=42,
         legend style={
             at={(0.5,1.05)}, anchor=south, legend columns=-1,
             font=\scriptsize, inner sep=2pt,
         },
-        ymin=0, ymax=42,
     ]
-        \addplot[fill=line1!50, draw=line1] coordinates {
-            (2B, 30.5) (4B, 33.1) (9B, 31.1)
-        };
-        \addlegendentry{MLX (Apple Silicon)}
-
         \addplot[fill=line3!60, draw=line3] coordinates {
             (2B, 0) (4B, 0) (9B, 0)
         };
-        \addlegendentry{CUDA (RTX Pro 4500) — TODO}
+        \addlegendentry{CUDA (RTX 4090) --- TODO}
     \end{axis}
 \end{tikzpicture}
