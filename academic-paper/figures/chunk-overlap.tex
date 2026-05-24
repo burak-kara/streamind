@@ -16,7 +16,7 @@
 \def\unitWmm{5.5}           % horizontal mm per second
 \def\unitW{\unitWmm mm}     % matching dimension for x scaling
 
-\def\barHmm{5}              % chunk bar height (mm)
+\def\barHmm{4}              % chunk bar height (mm)
 \def\rowGapMm{2}            % vertical gap between stacked chunks (mm)
 \def\axisYOffMm{5}          % gap between axis line and first chunk (mm)
 
@@ -69,10 +69,10 @@
           anchor=south west] at (c2o.south east) (c2n) {chunk 2};
 
     % Legend row above the top chunk, chained relatively.
-    \node[novel, minimum width=3.5mm,
-          above=4mm of c2o.north west, anchor=south west] (legN) {};
+    \node[novel, minimum width=3mm, minimum height=3mm,
+          above=4mm of c2o.north west, anchor=south west, xshift=-8mm] (legN) {};
     \node[anchor=west, right=1mm of legN] (legNlbl) {novel (emitted)};
-    \node[overlap, minimum width=3.5mm,
+    \node[overlap, minimum width=3mm, minimum height=3mm,
           right=4mm of legNlbl.east, anchor=west] (legO) {};
     \node[anchor=west, right=1mm of legO] {overlap (discarded)};
 \end{tikzpicture}

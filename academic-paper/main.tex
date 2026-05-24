@@ -238,8 +238,8 @@ A \texttt{docker-compose.yml} file orchestrates two services: Janus forwards \gl
     \caption{Pipeline nodes with key parameters and scoring targets.}
     \label{tab:nodes}
     \setlength{\tabcolsep}{3pt}
-    \footnotesize
-    \begin{tabular}{@{}llll@{}}
+    \small
+    \begin{tabularx}{0.95\columnwidth}{@{}l l l X@{}}
         \toprule
         \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}       & \textbf{Target} \\
         \midrule
@@ -252,7 +252,7 @@ A \texttt{docker-compose.yml} file orchestrates two services: Janus forwards \gl
         summarizer       & proc          & \todo{Qwen3.5-4B}, $T\!=\!0.3$       & $B_i, L_i$      \\
         transmitter      & sink          & JSON + HTTP POST              & ---             \\
         \bottomrule
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 % =====================================================================
@@ -284,8 +284,8 @@ This suggests that the summarizer's ability to extract coherent keywords depends
     \centering
     \caption{\gls{asr} model comparison (19 windows, \SI{30}{\second}, \todo{Qwen3.5-4B} summarizer). Higher is better for $B$, $K$, $L$, $C$; lower for $t_{\text{proc}}$ and \gls{wer}. \todo{Re-run with \SI{300}{\second} windows and final model.}}
     \label{tab:asr-comparison}
-    \footnotesize
-    \begin{tabular}{@{}lcc@{}}
+    \small
+    \begin{tabularx}{0.8\columnwidth}{@{}X S S@{}}
         \toprule
         \textbf{Metric}             & \textbf{small.en}    & \textbf{large-v3-turbo} \\
         \midrule
@@ -297,7 +297,7 @@ This suggests that the summarizer's ability to extract coherent keywords depends
         Avg $t_{\text{proc}}$ (s)   & \num{0.60}           & \num{0.62}              \\
         Avg \gls{wer}               & \num{0.69}           & \num{0.69}              \\
         \bottomrule
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
 \subsection{End-to-End Scoring}
