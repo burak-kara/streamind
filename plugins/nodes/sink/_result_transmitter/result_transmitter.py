@@ -50,7 +50,8 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
         window_id = message.payload.get("window_id", 0)
         model_name = message.payload.get("model_name", "unknown")
         window_duration = int(round(
-            message.payload.get("window_end", 0.0) - message.payload.get("window_start", 0.0)
+            message.payload.get("window_duration",
+                                message.payload.get("window_end", 0.0) - message.payload.get("window_start", 0.0))
         ))
 
         safe_model = self._sanitize_model_name(model_name)
