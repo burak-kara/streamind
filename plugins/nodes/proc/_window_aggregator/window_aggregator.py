@@ -88,6 +88,7 @@ class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
             "window_id": self._window_id,
             "window_start": self._window_start,
             "window_end": window_end,
+            "window_duration": self._window_duration,
             "full_transcript": " ".join(self._texts),
             "trigger_time": wall_time,
         })
