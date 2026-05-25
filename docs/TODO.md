@@ -19,5 +19,5 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
 
 - [vLLM](https://github.com/vllm-project/vllm)
 - [Qwen on HuggingFace](https://huggingface.co/Qwen)
-- [rev16 dataset (Whisper subset)](https://huggingface.co/datasets/distil-whisper/rev16/tree/main/whisper_subset)
+- [rev16 dataset (Whisper subset)](https://huggingface.co/datasets/distil-whisper/rev16/tree/main/whisper_subset) — now per-episode dirs with `chunks.json` ground truth
 - [MeetingBank dataset](https://meetingbank.github.io/)
