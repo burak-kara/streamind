@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Distill a fine-tuning dataset from the rev16 podcast corpus.
 
-For each `(*.opus, *.txt)` pair under `datasets/rev16/`, we:
+For each episode directory under `datasets/rev16/<episode>/transcript.txt`, we:
   1. Slice the *gold* reference transcript into windows by word count
      (proxy for the 300s production window — avoids ASR noise in the labels).
   2. Ask a strong teacher (default `qwen3.5:9b-16k` via Ollama) for a
@@ -101,7 +101,7 @@ def _read_prompt_template() -> str:
 
 
 def _episode_key(p: Path) -> str:
-    return p.stem
+    return p.parent.name
 
 
 def _split_into_windows(transcript: str, window_words: int, stride_words: int | None) -> list[str]:
@@ -340,7 +340,7 @@ def main() -> int:
         logger.error("rev16 dir not found: %s", args.rev16_dir)
         return 1
 
-    txt_files = sorted(args.rev16_dir.glob("*.txt"))
+    txt_files = sorted(args.rev16_dir.glob("*/transcript.txt"))
     if args.max_episodes:
         txt_files = txt_files[: args.max_episodes]
     if not txt_files:

@@ -15,7 +15,7 @@ Any container format ffmpeg can decode is accepted (wav, opus, mp3, m4a, ...).
 Duration is read via ffprobe so wav-only inspection is no longer required.
 
 Usage:
-    uv run python tools/send_audio.py datasets/rev16/10_Creating_Your_Own_Lane*.opus
+    uv run python tools/send_audio.py datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus
     uv run python tools/send_audio.py audio.wav --pipeline-host 192.168.1.10
 """
 import argparse
