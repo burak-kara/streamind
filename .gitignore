@@ -45,9 +45,6 @@ streamind.egg-info/
 **/*_raw.wav
 tests/fixtures/*.wav
 
-# Dataset audio files (large; fetched separately, not committed)
-datasets/**/*.opus
-
 # LLM weights (fetched via tools/fetch_models.sh; baked into Docker at build)
 models/
 
