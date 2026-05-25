@@ -59,6 +59,8 @@ class Scored:
     asr_wer: Optional[float] = None
     asr_text: str = ""
     reference_slice: str = ""
+    gt_rouge_l: Optional[float] = None
+    gt_keyword_jaccard: Optional[float] = None
 
 
 def _read_transcript(window_path: Path) -> str:
@@ -150,6 +152,50 @@ def _sliding_wer(
     return best_wer, best_slice
 
 
+def _lcs_length(a: list[str], b: list[str]) -> int:
+    m, n = len(a), len(b)
+    if m == 0 or n == 0:
+        return 0
+    prev = [0] * (n + 1)
+    for i in range(1, m + 1):
+        cur = [0] * (n + 1)
+        for j in range(1, n + 1):
+            if a[i - 1] == b[j - 1]:
+                cur[j] = prev[j - 1] + 1
+            else:
+                cur[j] = max(prev[j], cur[j - 1])
+        prev = cur
+    return prev[n]
+
+
+def _rouge_l_f1(reference: str, hypothesis: str) -> float:
+    ref_tokens = reference.lower().split()
+    hyp_tokens = hypothesis.lower().split()
+    if not ref_tokens or not hyp_tokens:
+        return 0.0
+    lcs = _lcs_length(ref_tokens, hyp_tokens)
+    precision = lcs / len(hyp_tokens)
+    recall = lcs / len(ref_tokens)
+    if precision + recall == 0:
+        return 0.0
+    return 2 * precision * recall / (precision + recall)
+
+
+def _keyword_jaccard(ref_keywords: list[str], hyp_keywords: list[str]) -> float:
+    a = {k.lower().strip() for k in ref_keywords}
+    b = {k.lower().strip() for k in hyp_keywords}
+    if not a and not b:
+        return 1.0
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def _load_ground_truth(path: Path) -> dict[tuple[int, int], dict]:
+    chunks = json.loads(path.read_text())
+    return {(int(c["from"]), int(c["to"])): c for c in chunks}
+
+
 def _iter_window_files(root: Path) -> Iterable[Path]:
     for p in sorted(root.rglob("window_*.json")):
         if "debug" in p.parts or "judge" in p.parts:
@@ -217,6 +263,7 @@ def _score_one(
     window: Path,
     reference_text: str = "",
     total_duration: float = 0.0,
+    ground_truth: dict[tuple[int, int], dict] | None = None,
 ) -> Scored | None:
     try:
         result = json.loads(window.read_text())
@@ -249,6 +296,17 @@ def _score_one(
             reference_text, start_sec, end_sec, total_duration, transcript,
         )
 
+    gt_rouge_l: Optional[float] = None
+    gt_keyword_jaccard: Optional[float] = None
+    if ground_truth is not None:
+        win_key = (int(result.get("from", 0)), int(result.get("to", 0)))
+        gt_chunk = ground_truth.get(win_key)
+        if gt_chunk:
+            gt_rouge_l = _rouge_l_f1(gt_chunk.get("summary", ""), summary)
+            gt_keyword_jaccard = _keyword_jaccard(
+                gt_chunk.get("highlights", []), keywords,
+            )
+
     return Scored(
         path=window,
         proc_time=proc_time,
@@ -264,6 +322,8 @@ def _score_one(
         asr_wer=asr_wer,
         asr_text=transcript,
         reference_slice=reference_slice,
+        gt_rouge_l=gt_rouge_l,
+        gt_keyword_jaccard=gt_keyword_jaccard,
     )
 
 
@@ -288,6 +348,10 @@ def _write_per_window(scored: list[Scored], judge_model: str) -> None:
             payload["asr_wer"] = s.asr_wer
             payload["asr_transcript"] = s.asr_text
             payload["reference_slice"] = s.reference_slice
+        if s.gt_rouge_l is not None:
+            payload["gt_rouge_l"] = s.gt_rouge_l
+        if s.gt_keyword_jaccard is not None:
+            payload["gt_keyword_jaccard"] = s.gt_keyword_jaccard
         out_path.write_text(json.dumps(payload, indent=2))
 
 
@@ -312,8 +376,10 @@ JANUS_BONUS = 4.0  # flat +4 added to the final source score, per CHALLENGE.md
 
 def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
     has_wer = any(s.asr_wer is not None for s in scored)
+    has_gt = any(s.gt_rouge_l is not None for s in scored)
     wer_hdr = f" {'WER':>5}" if has_wer else ""
-    header = f"{'window':60} {'B':>3} {'K':>3} {'L':>5} {'C':>6} {'proc':>6}{wer_hdr}"
+    gt_hdr = f" {'R-L':>5} {'K-J':>5}" if has_gt else ""
+    header = f"{'window':60} {'B':>3} {'K':>3} {'L':>5} {'C':>6} {'proc':>6}{wer_hdr}{gt_hdr}"
     lines: list[str] = [header, "-" * len(header)]
     for s in scored:
         rel = str(s.path.relative_to(Path.cwd())) if Path.cwd() in s.path.parents else str(s.path)
@@ -321,6 +387,9 @@ def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
         line = f"{rel} {s.b:>3} {s.k:>3} {s.l:>5.2f} {s.c:>6.2f} {s.proc_time:>6.2f}"
         if has_wer:
             line += f" {s.asr_wer:>5.2f}" if s.asr_wer is not None else f" {'-':>5}"
+        if has_gt:
+            line += f" {s.gt_rouge_l:>5.3f}" if s.gt_rouge_l is not None else f" {'-':>5}"
+            line += f" {s.gt_keyword_jaccard:>5.3f}" if s.gt_keyword_jaccard is not None else f" {'-':>5}"
         lines.append(line)
     if scored:
         lines.append("-" * len(header))
@@ -336,15 +405,20 @@ def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
         wer_vals = [s.asr_wer for s in scored if s.asr_wer is not None]
         if has_wer:
             avg_line += f" {mean(wer_vals):>5.2f}" if wer_vals else f" {'-':>5}"
+        gt_rl_vals = [s.gt_rouge_l for s in scored if s.gt_rouge_l is not None]
+        gt_kj_vals = [s.gt_keyword_jaccard for s in scored if s.gt_keyword_jaccard is not None]
+        if has_gt:
+            avg_line += f" {mean(gt_rl_vals):>5.3f}" if gt_rl_vals else f" {'-':>5}"
+            avg_line += f" {mean(gt_kj_vals):>5.3f}" if gt_kj_vals else f" {'-':>5}"
         lines.append(avg_line)
-        # Reference row: theoretical maxima per challenge scoring contract.
-        # WER has no upper bound (>1.0 possible w/ insertions); 0.0 is perfect.
         max_line = (
             f"{'max possible':60} "
             f"{B_MAX:>3} {K_MAX:>3} {L_MAX:>5.2f} {C_MAX:>6.2f} {'-':>6}"
         )
         if has_wer:
             max_line += f" {'0.00':>5}"
+        if has_gt:
+            max_line += f" {'1.000':>5} {'1.000':>5}"
         lines.append(max_line)
         min_line = (
             f"{'min possible':60} "
@@ -352,6 +426,8 @@ def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
         )
         if has_wer:
             min_line += f" {'-':>5}"
+        if has_gt:
+            min_line += f" {'0.000':>5} {'0.000':>5}"
         lines.append(min_line)
         # Final audio-source score = average C across chunks + Janus bonus.
         # min-max normalisation across submissions is applied by the challenge
@@ -392,6 +468,20 @@ def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
             lines.append(
                 "           Lower is better. Independent of B/K/L scoring."
             )
+        if has_gt:
+            lines.append("")
+            lines.append(
+                "Ground-truth (R-L = ROUGE-L F1, K-J = keyword Jaccard):"
+            )
+            lines.append(
+                "  R-L: 0.000 = no overlap | 1.000 = identical summary. Higher is better."
+            )
+            lines.append(
+                "  K-J: 0.000 = no keyword overlap | 1.000 = identical set. Higher is better."
+            )
+            lines.append(
+                "  Independent diagnostic signal, not part of B/K/L scoring."
+            )
     return "\n".join(lines)
 
 
@@ -415,6 +505,9 @@ def main() -> int:
     parser.add_argument("--report-out", type=Path, default=None,
                         help="Path for the formatted score table. "
                              "Defaults to <results_dir>/judge_report.txt.")
+    parser.add_argument("--ground-truth", type=Path, default=None,
+                        help="Path to chunks.json with reference summaries/keywords. "
+                             "Auto-discovered from --audio parent dir if not specified.")
     parser.add_argument("--no-janus-bonus", action="store_true",
                         help="Exclude the +4 Janus bonus from the final source score. "
                              "Pipeline uses Janus by design, so bonus is applied by default.")
@@ -483,6 +576,19 @@ def main() -> int:
         print("--reference requires --audio (need duration for proportional slice)", file=sys.stderr)
         return 1
 
+    ground_truth: dict[tuple[int, int], dict] | None = None
+    gt_path = args.ground_truth
+    if gt_path is None and args.audio is not None:
+        auto_gt = args.audio.parent / "chunks.json"
+        if auto_gt.exists():
+            gt_path = auto_gt
+    if gt_path is not None:
+        if gt_path.exists():
+            ground_truth = _load_ground_truth(gt_path)
+            print(f"Ground-truth loaded: {gt_path} ({len(ground_truth)} chunks)", file=sys.stderr)
+        else:
+            print(f"ground-truth not found: {gt_path}", file=sys.stderr)
+
     llm, sampling = _build_llm(cfg)
 
     import time
@@ -493,14 +599,18 @@ def main() -> int:
         rel = str(w.relative_to(Path.cwd())) if Path.cwd() in w.parents else str(w)
         t0 = time.time()
         print(f"[{idx}/{total}] judging {rel}", file=sys.stderr, flush=True)
-        s = _score_one(llm, sampling, w, reference_text=reference_text, total_duration=total_duration)
+        s = _score_one(llm, sampling, w, reference_text=reference_text, total_duration=total_duration, ground_truth=ground_truth)
         dt = time.time() - t0
         if s is not None:
             scored.append(s)
+            gt_str = ""
+            if s.gt_rouge_l is not None:
+                gt_str = f" R-L={s.gt_rouge_l:.3f} K-J={s.gt_keyword_jaccard:.3f}"
             print(
                 f"  -> B={s.b} K={s.k} L={s.l:.2f} C={s.c:.2f} "
                 f"proc={s.proc_time:.2f}s judge_dt={dt:.2f}s"
-                + (f" WER={s.asr_wer:.2f}" if s.asr_wer is not None else ""),
+                + (f" WER={s.asr_wer:.2f}" if s.asr_wer is not None else "")
+                + gt_str,
                 file=sys.stderr, flush=True,
             )
     print(
