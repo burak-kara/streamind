@@ -10,6 +10,7 @@ dependencies = [
     "httpx",
     "numpy",
     "vllm",
+    "nvidia-cublas-cu12",
 ]
 
 [project.optional-dependencies]
