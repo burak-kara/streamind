@@ -94,6 +94,21 @@ if [[ -n "${ASR}" ]]; then
 fi
 uv run python tools/assemble_config.py "$WINDOW" "$SUMMARIZER" "$ASSEMBLED" ${ASR_ARGS}
 
+# CTranslate2 (faster-whisper backend) links against system libcublas.so.12.
+# Locate it from pip-installed nvidia packages or system paths.
+CUBLAS_DIR=$(uv run python -c "
+import importlib.util, pathlib
+for pkg in ('nvidia.cublas', 'nvidia.cuda_runtime'):
+    spec = importlib.util.find_spec(pkg)
+    if spec and spec.submodule_search_locations:
+        lib = pathlib.Path(spec.submodule_search_locations[0]) / 'lib'
+        if lib.is_dir():
+            print(lib); break
+" 2>/dev/null)
+if [ -n "${CUBLAS_DIR:-}" ] && [ -d "$CUBLAS_DIR" ]; then
+  export LD_LIBRARY_PATH="${CUBLAS_DIR}:${LD_LIBRARY_PATH:-}"
+fi
+
 # Disable FlashInfer sampler: it JIT-compiles a CUDA kernel on first use,
 # which needs the full CUDA toolkit (nvcc + headers, ~3 GB) and adds
 # 10-30 s of first-window latency. The native PyTorch top-k/top-p path
