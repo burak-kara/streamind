@@ -69,7 +69,8 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 300.0
+          "window_duration": 300.0,
+          "flush_timeout": 10.0
         }
       },
       {
