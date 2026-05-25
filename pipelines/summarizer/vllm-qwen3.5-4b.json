@@ -8,7 +8,7 @@
     "dtype": "bfloat16",
     "gpu_memory_utilization": 0.85,
     "max_model_len": 2048,
-    "max_tokens": 256,
+    "max_tokens": 384,
     "temperature": 0.3,
     "top_p": 0.9,
     "repetition_penalty": 1.05,
