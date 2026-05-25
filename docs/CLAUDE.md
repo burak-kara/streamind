@@ -8,7 +8,7 @@ Maps `docs/` dir for agent nav. Start here for specs, plans, reference.
 - `APPROACH.md`: Brief markdown explaining the design — shipped with the submission per challenge requirements. Updated in M3 with final numbers.
 - `images/challenge_overview.png`: Pipeline architecture diagram
 - `images/challenge_scoring.png`: Scoring breakdown diagram
-- `../datasets/`: Audio transcription datasets (moved to project root). Don't index or include in context.
+- `../datasets/`: Audio corpora. rev16: per-episode dirs (`audio.opus`, `transcript.txt`, `chunks.json`). IETF: flat (`*.opus`, `*.opus.txt`). Audio gitignored; text/json tracked.
 
 ## Task Tracking
 
