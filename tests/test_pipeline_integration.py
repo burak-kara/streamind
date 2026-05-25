@@ -20,7 +20,7 @@ import pytest
 
 REPO_ROOT = Path(__file__).parent.parent
 REV16_DIR = REPO_ROOT / "datasets" / "rev16"
-SAMPLE_AUDIO = REV16_DIR / "14_Coming_Soon:_Season_2.opus"
+SAMPLE_AUDIO = REV16_DIR / "14_Coming_Soon:_Season_2" / "audio.opus"
 RESULTS_DIR = REPO_ROOT / "results"
 SEND_AUDIO = REPO_ROOT / "tools" / "send_audio.py"
 

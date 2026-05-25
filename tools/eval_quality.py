@@ -448,7 +448,15 @@ def main() -> int:
         except Exception as e:
             print(f"ffprobe failed on {args.audio}: {e}", file=sys.stderr)
             return 1
-        ref_path = args.reference or args.audio.with_suffix(".txt")
+        if args.reference:
+            ref_path = args.reference
+        else:
+            candidates = [
+                args.audio.parent / "transcript.txt",
+                args.audio.with_suffix(".txt"),
+                Path(str(args.audio) + ".txt"),
+            ]
+            ref_path = next((c for c in candidates if c.exists()), candidates[0])
         if ref_path.exists():
             reference_text = ref_path.read_text()
             print(f"WER enabled: ref={ref_path} duration={total_duration:.1f}s", file=sys.stderr)
