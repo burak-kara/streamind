@@ -214,6 +214,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
             "window_id": message.payload.get("window_id", 0),
             "window_start": message.payload.get("window_start", 0.0),
             "window_end": message.payload.get("window_end", 0.0),
+            "window_duration": message.payload.get("window_duration", 0.0),
             "summary": summary,
             "keywords": keywords,
             "latency": latency,

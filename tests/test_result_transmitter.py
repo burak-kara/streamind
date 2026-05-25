@@ -56,6 +56,37 @@ class TestResultTransmitter:
             assert "window_end" not in data
             assert "latency" not in data
 
+    def test_partial_window_uses_configured_duration_for_folder(self):
+        from result_transmitter import ResultTransmitter
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            node = ResultTransmitter(results_dir=tmpdir)
+            node._name = "test_tx"
+            node.warmup()
+
+            payload = ObjectPayload.from_dict({
+                "window_id": 7,
+                "window_start": 2100.0,
+                "window_end": 2183.6,
+                "window_duration": 300.0,
+                "summary": "Partial window summary.",
+                "keywords": ["partial", "window", "test"],
+                "latency": 0.8,
+                "model_name": "test-model",
+            })
+            msg = Message[ObjectPayload](creator="test", version=1, payload=payload)
+            node.update(msg)
+
+            result_file = os.path.join(tmpdir, "test-model", "300", "window_7.json")
+            assert os.path.exists(result_file), (
+                f"Partial window should land in 300/ folder, not "
+                f"{int(round(2183.6 - 2100.0))}/"
+            )
+            with open(result_file) as f:
+                data = json.load(f)
+            assert data["from"] == 2100.0
+            assert data["to"] == 2183.6
+
     @patch("result_transmitter.httpx.post")
     def test_posts_to_endpoint(self, mock_post):
         from result_transmitter import ResultTransmitter
