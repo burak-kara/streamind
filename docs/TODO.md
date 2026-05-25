@@ -11,11 +11,11 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
   - [ ] **Model variant audit (in progress — teammate).** Qwen3.5-4B multimodal arch wastes VRAM on vision encoder. Investigating text-only variants.
 - [ ] **M2 — Prompt + sampling tune.** Iterate `summarize_prompt.txt` and SamplingParams on the chosen model; rerun offline judge; lock the best prompt; record B/K/L/C in `docs/APPROACH.md`. The summary lenght can be longer given the provided example chunks in `datasets/rev16`.
 - [ ] **M3 — Submission packaging.** Rewrite `Dockerfile` (CUDA base, weights baked via `tools/fetch_models.sh` during build), populate `destination_endpoint`, end-to-end smoke inside container, finalize `docs/APPROACH.md`, build submission bundle (code + config + sample results + Dockerfile + approach).
-  - [x] **Bake faster-whisper into Docker image** — `Dockerfile` now runs `snapshot_download('Systran/faster-whisper-large-v3-turbo')` at build; transcriber node auto-resolves `./models/faster-whisper-large-v3-turbo` if present.
+  - [x] **Bake faster-whisper into Docker image** — `Dockerfile` now runs `snapshot_download('deepdml/faster-whisper-large-v3-turbo-ct2')` at build; transcriber node auto-resolves `./models/faster-whisper-large-v3-turbo` if present.
   - [x] **Upgrade ASR to large-v3-turbo** — Switched from `small.en` (244M) to `large-v3-turbo` (809M, OpenAI distilled large-v3). Near large-v3 WER at half compute. Runs CPU int8 to avoid VRAM contention. Added WER interpretation guide to judge reports.
 - [ ] **M4 — Finetune (later).** Rewrite `prepare_rev16.py` teacher distillation off Ollama (use vLLM in-process), run QLoRA → merge → swap merged dir into the vLLM profile, A/B against base via `tools/eval_quality.py`. Gated on M3.
 
-
+- [ ] Should we warmup the transcript model to GPU?
 - [ ] When the audio ends, the pipeline should create the regular output instead of hanging or failing. Currently, no summary is produced, and the judge waits indefinitely for the summary until it times out. This is likely due to the vLLM node not receiving any more audio chunks and not producing any output, causing the judge to wait indefinitely.
 
 ## Bookmarks
