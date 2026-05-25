@@ -20,6 +20,9 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
         language: str = "en",
         device: str = "auto",
         compute_type: str = "int8",
+        beam_size: int = 5,
+        no_speech_threshold: float = 0.6,
+        initial_prompt: str = "",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -27,6 +30,9 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
         self._language = language
         self._device = device
         self._compute_type = compute_type
+        self._beam_size = beam_size
+        self._no_speech_threshold = no_speech_threshold
+        self._initial_prompt = initial_prompt or None
         self._model: WhisperModel | None = None
 
         logging.getLogger("faster_whisper").setLevel(logging.ERROR)
@@ -72,7 +78,10 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
             audio,
             language=self._language,
             task="transcribe",
+            beam_size=self._beam_size,
             condition_on_previous_text=False,
+            no_speech_threshold=self._no_speech_threshold,
+            initial_prompt=self._initial_prompt,
             vad_filter=True,
         )
 
