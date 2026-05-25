@@ -59,11 +59,14 @@ def _populate_fake_model_dir(tmp_path: Path) -> Path:
     return model_dir
 
 
-def _make_window_message(transcript: str, window_id: int = 0) -> Message[ObjectPayload]:
+def _make_window_message(transcript: str, window_id: int = 0,
+                         window_duration: float = 300.0,
+                         window_end: float | None = None) -> Message[ObjectPayload]:
     payload = ObjectPayload.from_dict({
         "window_id": window_id,
         "window_start": window_id * 300.0,
-        "window_end": (window_id + 1) * 300.0,
+        "window_end": window_end if window_end is not None else (window_id + 1) * 300.0,
+        "window_duration": window_duration,
         "full_transcript": transcript,
         "trigger_time": time.time(),
     })
@@ -226,6 +229,30 @@ def test_strips_chatml_tokens_and_code_fences(tmp_path, reload_node):
     out = node.transmit.call_args[0][0].payload
     assert out["summary"] == "Wrapped output."
     assert out["keywords"] == ["alpha", "beta", "gamma"]
+
+
+def test_forwards_window_duration_to_output(tmp_path, reload_node):
+    _install_fake_vllm(json.dumps({
+        "summary": "Partial window summary.",
+        "keywords": ["partial", "window", "test"],
+    }))
+    model_dir = _populate_fake_model_dir(tmp_path)
+
+    from summarizer_vllm import SummarizerVLLM
+
+    node = SummarizerVLLM(model_name=str(model_dir))
+    node._name = "test"
+    node.transmit = MagicMock()
+    node.warmup()
+    node.update(_make_window_message(
+        "Enough transcript content to bypass the short-transcript guard "
+        "and exercise the normal LLM summarization path here.",
+        window_id=7, window_duration=300.0, window_end=2183.6,
+    ))
+
+    out = node.transmit.call_args[0][0].payload
+    assert out["window_duration"] == 300.0
+    assert out["window_end"] == 2183.6
 
 
 def test_missing_model_dir_raises_with_clear_message(tmp_path, reload_node):

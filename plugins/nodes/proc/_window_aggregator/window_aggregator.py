@@ -1,11 +1,8 @@
-import logging
 import threading
 import time
 import typing
 from juturna.components import Node, Message
 from juturna.payloads import ObjectPayload
-
-logger = logging.getLogger(__name__)
 
 
 class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
@@ -53,6 +50,7 @@ class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
         self._watchdog_thread = threading.Thread(
             target=self._watchdog, daemon=True)
         self._watchdog_thread.start()
+        self.logger.info("watchdog started (flush_timeout=%.0fs)", self._flush_timeout)
 
     def stop(self):
         self._watchdog_stop.set()
@@ -60,22 +58,34 @@ class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
             self._watchdog_thread.join(timeout=5)
             self._watchdog_thread = None
         with self._lock:
+            self.logger.info(
+                "stop() called — texts=%d, last_chunk_end=%.1f, window_id=%d",
+                len(self._texts), self._last_chunk_end, self._window_id)
             self._flush(time.time(), partial=True)
         super().stop()
 
     def destroy(self): pass
 
     def _watchdog(self):
-        while not self._watchdog_stop.wait(timeout=5.0):
-            with self._lock:
-                if (self._texts
-                        and time.time() - self._last_chunk_time
-                        > self._flush_timeout):
-                    logger.info(
-                        "Inactivity timeout (%.0fs) — flushing partial "
-                        "window %d", self._flush_timeout, self._window_id)
-                    self._flush(time.time(), partial=True)
-                    break
+        try:
+            while not self._watchdog_stop.wait(timeout=5.0):
+                with self._lock:
+                    idle = time.time() - self._last_chunk_time
+                    if self._texts and idle > self._flush_timeout:
+                        self.logger.info(
+                            "Inactivity timeout (%.0fs idle, threshold %.0fs) "
+                            "— flushing partial window %d (%d texts, "
+                            "chunk_end=%.1f)",
+                            idle, self._flush_timeout, self._window_id,
+                            len(self._texts), self._last_chunk_end)
+                        self._flush(time.time(), partial=True)
+                        break
+                    elif self._texts:
+                        self.logger.debug(
+                            "watchdog tick: idle=%.1fs < %.0fs, texts=%d",
+                            idle, self._flush_timeout, len(self._texts))
+        except Exception:
+            self.logger.exception("watchdog thread crashed")
 
     def _flush(self, wall_time: float, partial: bool = False):
         if not self._texts:
@@ -109,10 +119,10 @@ class WindowAggregator(Node[ObjectPayload, ObjectPayload]):
             novel_text = message.payload.get("novel_text", "")
             chunk_end = message.payload.get("chunk_end", 0.0)
             self._last_chunk_end = chunk_end
-            self._last_chunk_time = time.time()
 
             if novel_text.strip():
                 self._texts.append(novel_text)
+                self._last_chunk_time = time.time()
 
             if chunk_end >= self._window_start + self._window_duration:
                 wall_time = message.payload.get("wall_time", time.time())

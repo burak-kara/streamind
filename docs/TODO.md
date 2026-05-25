@@ -26,6 +26,9 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
 - [ ] Make sure audio reception is working robustly in Janus (deferred — no known issues yet, but we haven't done long runs on uni-lab with the new pipeline).
   - [ ] No costumization. 
   - [ ] Check the compatiblity with the latest Janus version. We use 0.x but Janus is now at 1.x — need to verify that our Janus client code still works and that there are no regressions in audio reception.
+- [ ] Feed run logs to identfy any issue.
+  - [ ] Add more debug logging around audio reception, chunk processing, and model inference to identify any bottlenecks or failures during long runs.
+  - [ ] Monitor GPU utilization and memory usage to ensure the pipeline is running efficiently and to catch any potential OOM issues early.
 
 ## Bookmarks
 

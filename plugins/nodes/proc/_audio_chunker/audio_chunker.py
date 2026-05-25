@@ -25,7 +25,26 @@ class AudioChunker(Node[AudioPayload, AudioPayload]):
 
     def set_on_config(self, prop: str, value: typing.Any): pass
     def start(self): super().start()
-    def stop(self): super().stop()
+
+    def stop(self):
+        if self._audio_buf.size > 0:
+            chunk = self._audio_buf.copy()
+            chunk_end = self._audio_buf_start + len(chunk) / self._sample_rate
+            out = Message[AudioPayload](
+                creator=self.name,
+                version=0,
+                payload=AudioPayload(
+                    audio=chunk,
+                    sampling_rate=self._sample_rate,
+                    channels=1,
+                    start=self._audio_buf_start,
+                    end=chunk_end,
+                ),
+            )
+            self.transmit(out)
+            self._audio_buf = np.array([], dtype=np.float32)
+        super().stop()
+
     def destroy(self): pass
 
     def update(self, message: Message[AudioPayload]):
