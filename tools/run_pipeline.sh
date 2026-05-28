@@ -122,4 +122,4 @@ if [[ -n "${ASR}" ]]; then
   echo "ASR:        ${ASR}  (override)"
 fi
 echo ""
-uv run python -m juturna launch --config "$ASSEMBLED"
+uv run python -m juturna launch --config "$ASSEMBLED" --auto
