@@ -14,8 +14,8 @@ services:
     depends_on:
       - janus
     environment:
-      SUMMARIZER_PROFILE: vllm-qwen3.5-4b
-      WINDOW_SECONDS: "300"
+      SUMMARIZER_PROFILE: "${SUMMARIZER_PROFILE:-vllm-qwen3.5-4b}"
+      WINDOW_SECONDS: "${WINDOW_SECONDS:-300}"
     ports:
       - "8888:8888/udp"
     volumes:

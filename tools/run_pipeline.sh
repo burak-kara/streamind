@@ -123,8 +123,10 @@ teardown() {
 trap 'teardown' EXIT
 trap 'teardown; exit 130' INT TERM
 
+# --auto: start/stop pipeline without interactive prompt (detached containers
+# have no stdin — juturna launch would otherwise EOFError waiting for input).
 set -m
-uv run python -m juturna launch --config "$ASSEMBLED" &
+uv run python -m juturna launch --config "$ASSEMBLED" --auto &
 LAUNCH_PGID=$!
 set +m
 wait "$LAUNCH_PGID"
