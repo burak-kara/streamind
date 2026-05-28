@@ -15,7 +15,7 @@ Any container format ffmpeg can decode is accepted (wav, opus, mp3, m4a, ...).
 Duration is read via ffprobe so wav-only inspection is no longer required.
 
 Usage:
-    uv run python tools/send_audio.py docs/datasets/rev16/10_Creating_Your_Own_Lane*.opus
+    uv run python tools/send_audio.py datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus
     uv run python tools/send_audio.py audio.wav --pipeline-host 192.168.1.10
 """
 import argparse
@@ -189,11 +189,30 @@ async def send_audio(
                     log.warning("Keepalive poll error: %s", e)
                     await asyncio.sleep(5)
 
+        # Heartbeat: print elapsed/total every 60s so mid-stream truncation
+        # is visible in stdout without log spelunking. Also surfaces WebRTC
+        # connection state at each tick — if it flips off "connected", you
+        # see the moment it happened.
+        async def _heartbeat_loop():
+            t_start = time.time()
+            while True:
+                await asyncio.sleep(60.0)
+                elapsed = time.time() - t_start
+                log.info(
+                    "streamed %.0fs / %.0fs (%.0f%%)  pc.state=%s",
+                    elapsed, duration, 100.0 * elapsed / max(duration, 1e-9),
+                    pc.connectionState,
+                )
+
         keepalive_task = asyncio.create_task(_keepalive_loop())
+        heartbeat_task = asyncio.create_task(_heartbeat_loop())
         try:
             await asyncio.sleep(duration)
         finally:
             keepalive_task.cancel()
+            heartbeat_task.cancel()
+        log.info("streaming loop completed after %.1fs (target %.1fs)",
+                 duration, duration)
 
         # ── 9. Tear down ─────────────────────────────────────────────────────
         await client.post(handle_url, json={

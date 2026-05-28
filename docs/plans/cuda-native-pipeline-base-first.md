@@ -231,7 +231,7 @@ Not built in this plan execution; flagged so the M3 hand-off knows what to expec
 ## Open items requiring user input
 
 1. ~~**Model id**~~ — picked 2026-05-19: summarizer `Qwen/Qwen3.5-4B`, judge `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ`.
-2. ~~**30+ min test audio**~~ — using `docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus` (~36 min).
+2. ~~**30+ min test audio**~~ — using `datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus` (~36 min).
 
 ---
 

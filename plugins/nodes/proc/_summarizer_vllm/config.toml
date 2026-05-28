@@ -12,3 +12,7 @@ temperature = 0.3
 top_p = 0.9
 repetition_penalty = 1.05
 enforce_eager = false
+# Skip the LLM call entirely when the transcript is shorter than this many
+# non-whitespace characters; emit SHORT_TRANSCRIPT_SENTINEL instead. Tuned to
+# the rev16 30s smoke (window_34 was 54 chars, an end-of-stream fragment).
+min_transcript_chars = 80

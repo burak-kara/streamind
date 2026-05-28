@@ -1,0 +1,31 @@
+{
+  "from": 330.0,
+  "to": 360.0,
+  "summary": "The speaker mentions applying for PRX and notes that Jenna of Pineapple Street is also pursuing the same opportunity.",
+  "keywords": [
+    "PRX application",
+    "Pineapple Street",
+    "show notes"
+  ],
+  "proc_time": 0.481839656829834,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.859046310827167,
+  "C": 36.85904631082717,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9081632653061225,
+  "asr_transcript": "of course as i said i'll link that in the show notes um so that you can apply and look to see more information on it. um i literally only read up on this um as i was writing the intro to this episode only to find out my other bad bitch which is Jenna of Pineapple Street, the person I'm always mentioning, is doing this. And if you look on the PRX application, um on the bottom it says",
+  "reference_slice": "bage, which is Jennifer Pineapple Street, um, the part am always mentioning is doing this. And um, if you look on the PRX application um, on the bottom, it says if you go to their website for this, um, outside of the tech crunch article, and if you just wanna go to that site right now, it would be google.cP.prx.org, Google C as in cat, P as in Paul, Dot p, r x.org. And if you scroll to the bottom, it says advisory committee um, is Genna Wise Berman, the co-chair and Ahmed Dashi is a co-chair, um, "
+}

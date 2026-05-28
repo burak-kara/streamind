@@ -1,8 +1,0 @@
-{
-  "summary": "The speaker requests support from the GTM teams to address a specific issue. They ask the participants to confirm if they have connected with their respective GTM teams regarding this matter. The discussion emphasizes the need to collaborate on both the slide content and the underlying issue.",
-  "keywords": [
-    "GTM teams",
-    "support",
-    "collaboration"
-  ]
-}

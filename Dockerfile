@@ -1,11 +1,10 @@
-FROM nvidia/cuda:12.3.0-runtime-ubuntu22.04
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
-    OLLAMA_HOST=127.0.0.1:11434 \
-    OLLAMA_MODELS=/root/.ollama/models
+    VLLM_USE_FLASHINFER_SAMPLER=0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         software-properties-common \
@@ -28,28 +27,28 @@ RUN ln -sf /usr/bin/python3.12 /usr/local/bin/python \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
     && ln -s /root/.local/bin/uv /usr/local/bin/uv
 
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
 WORKDIR /app
 
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 RUN uv venv --python 3.12 .venv \
-    && uv sync --extra dev --no-install-project
+    && uv sync --no-install-project
 
-RUN ollama serve & \
-    OLLAMA_PID=$! ; \
-    for i in $(seq 1 30); do \
-        curl -sf http://127.0.0.1:11434/api/tags >/dev/null && break ; \
-        sleep 1 ; \
-    done ; \
-    ollama pull qwen3.5:4b ; \
-    kill "$OLLAMA_PID" ; \
-    wait "$OLLAMA_PID" 2>/dev/null || true
+# Bake LLM weights into image (no runtime download).
+COPY tools/fetch_models.sh ./tools/fetch_models.sh
+RUN chmod +x tools/fetch_models.sh \
+    && ./tools/fetch_models.sh Qwen/Qwen3.5-4B qwen3.5-4b
+
+# Pre-populate faster-whisper model (submission container has no network).
+# faster-whisper accepts a local dir path as model_name; config-base.json
+# points to this path inside the container.
+RUN uv run python -c "\
+from huggingface_hub import snapshot_download; \
+snapshot_download('deepdml/faster-whisper-large-v3-turbo-ct2', local_dir='./models/faster-whisper-large-v3-turbo')"
+
 
 COPY plugins/ ./plugins/
 COPY pipelines/ ./pipelines/
 COPY tools/ ./tools/
-COPY tests/ ./tests/
 COPY docker/entrypoint-pipeline.sh /usr/local/bin/entrypoint-pipeline.sh
 RUN chmod +x /usr/local/bin/entrypoint-pipeline.sh tools/run_pipeline.sh
 
@@ -57,7 +56,7 @@ RUN mkdir -p /app/tmp /app/results
 
 EXPOSE 8888/udp
 
-ENV SUMMARIZER_PROFILE=ollama-qwen3.5-4b \
+ENV SUMMARIZER_PROFILE=vllm-qwen3.5-4b \
     WINDOW_SECONDS=300
 
 ENTRYPOINT ["/usr/local/bin/entrypoint-pipeline.sh"]

@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
 """Distill a fine-tuning dataset from the rev16 podcast corpus.
 
-SUPERSEDED (Ollama-era). This produced the committed
-`tools/finetune/data/{train,val,test}.jsonl` using an Ollama teacher + judge.
-Ollama is no longer a dependency, so this script will not run as-is. The
-committed JSONLs are the canonical training data; keep the deployed prompt in
-sync with them via `rewrap_prompts.py`. To regenerate from scratch, port the
-teacher/judge calls to vLLM in-process (M4 in
-`docs/plans/cuda-native-pipeline-base-first.md`).
-
-For each `(*.opus, *.txt)` pair under `docs/datasets/rev16/`, we:
+For each episode directory under `datasets/rev16/<episode>/transcript.txt`, we:
   1. Slice the *gold* reference transcript into windows by word count
      (proxy for the 300s production window — avoids ASR noise in the labels).
   2. Ask a strong teacher (default `qwen3.5:9b-16k` via Ollama) for a
@@ -49,9 +41,9 @@ import ollama
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-REV16_DIR = REPO_ROOT / "docs" / "datasets" / "rev16"
+REV16_DIR = REPO_ROOT / "datasets" / "rev16"
 PROMPT_TEMPLATE_FILE = (
-    REPO_ROOT / "plugins" / "nodes" / "proc" / "_summarizer_llm" / "summarize_prompt_ollama.txt"
+    REPO_ROOT / "plugins" / "nodes" / "proc" / "_summarizer_vllm" / "summarize_prompt.txt"
 )
 DEFAULT_OUT_DIR = REPO_ROOT / "tools" / "finetune" / "data"
 
@@ -109,7 +101,7 @@ def _read_prompt_template() -> str:
 
 
 def _episode_key(p: Path) -> str:
-    return p.stem
+    return p.parent.name
 
 
 def _split_into_windows(transcript: str, window_words: int, stride_words: int | None) -> list[str]:
@@ -348,7 +340,7 @@ def main() -> int:
         logger.error("rev16 dir not found: %s", args.rev16_dir)
         return 1
 
-    txt_files = sorted(args.rev16_dir.glob("*.txt"))
+    txt_files = sorted(args.rev16_dir.glob("*/transcript.txt"))
     if args.max_episodes:
         txt_files = txt_files[: args.max_episodes]
     if not txt_files:

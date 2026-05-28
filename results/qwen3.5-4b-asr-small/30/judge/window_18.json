@@ -1,0 +1,31 @@
+{
+  "from": 540.0,
+  "to": 570.0,
+  "summary": "The speaker discusses how people often assume names without explicit confirmation, noting they do not know their own status or who is calling them. They mention their legal name is Favela while their internet name remains unspecified.",
+  "keywords": [
+    "legal name",
+    "internet name",
+    "status"
+  ],
+  "proc_time": 0.6427431106567383,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 4,
+    "conciseness": 4
+  },
+  "B": 20,
+  "keyword_flags": [
+    true,
+    true,
+    false
+  ],
+  "K": 2,
+  "L": 7.251537661832712,
+  "C": 29.251537661832714,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.9047619047619048,
+  "asr_transcript": "noticed this is one thing that I notice with people is that like if you don't have to say your name or anything a lot like you don't it's kind of like people assume no and I was like I don't I don't know what's his most comfortable thing You know what I don't even I don't even know anymore That's the status part. I don't even know who I- am berry help me what is your name What is people calling? Well, my legal name is just... Favela, but my internet name is",
+  "reference_slice": "stuck. So um, a lot of people call me Favy. That's my, that's, that's uh, you can call me Favy or Justin. Okay. Well I call you Favy in my head and I feel like I'm not sure what I called you when we were in person, but in my head that's what I call you. Like when I see you don't like it, it's probably five. <laugh> Okay.Yeah, you can call me that. That's cool. Okay <laugh> Um, so I went, I always want to be comfortable people because I know I go by Barry, of course my real name is Danielle, but pe"
+}

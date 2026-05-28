@@ -5,28 +5,34 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
 ## Milestones
 
 - [x] **M0 — Cleanup.** Delete MLX/Ollama nodes, configs, prompts, tests; drop `ollama`/`mlx-lm` deps; add `cuda` extra; rewrite CLAUDE.md + skills + docs to a single native-CUDA path.
-- [ ] **M1 — Base CUDA pipeline working.** vLLM in-process summarizer node, `tools/fetch_models.sh`, one summarizer profile, one judge profile, refactored `run_pipeline.sh` + `eval_quality.py`, unit tests green (mocked vLLM). Smoke pipeline + offline judge run on uni-lab against a 30 s and a 30 min audio fixture; output JSON keys exactly `{from, to, summary, keywords[3], proc_time}`.
-  - [x] `_summarizer_vllm/` node + `tools/fetch_models.sh` + tests (mocked vLLM passes)
-  - [x] Pick concrete model id + judge model id (summarizer: `Qwen/Qwen3.5-4B`; judge: `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` — swapped 2026-05-20 from `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` which OOMed at 26 GB on-disk vs claimed int4)
-  - [x] Commit `pipelines/summarizer/vllm-qwen3.5-4b.json` + `pipelines/judge/vllm-mistral-small-24b-awq.json`
-  - [x] Source a ≥30 min audio fixture — using `docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus` (36 min, ~7×300s windows)
-  - [x] Smoke run + judge run on uni-lab — 30 s window on rev16 podcast 10 ran; avg C=34.29 (Final 38.29 with Janus +4 / 45), but surfaced three issues (see follow-up block below).
-  - [x] Offline judge: ASR WER vs rev16 ground-truth `.txt` (independent signal — does NOT affect B/K/L). `--audio` + `--reference` flags on `eval_quality.py`. Per Plan 2: ASR errors are scored separately so summarizer skill isolated from ASR fidelity.
-  - [ ] **M1 follow-up: empty-summary windows.** 2026-05-20 30 s run: `window_{7,19,34}.json` have `summary=""` with stop-word keywords (e.g. `["I'm", "Okay", "going"]`) and proc_time ≈ 0.12-0.22 s. Read `debug/window_{N}_transcript.txt` to confirm whether ASR returned silence, then either (a) guard in `_summarizer_vllm` to skip LLM when transcript < ~30 chars and emit a sentinel summary, (b) make `_hallucination_filter` log when it strips a whole summary, or (c) `_result_transmitter` drops/marks failed windows. See active plan §M1 follow-up A.
-  - [ ] **M1 follow-up: WER alignment.** avg WER 0.93 at 30 s windows; some windows > 1.0 → proportional slice misaligned on flat 5400-word transcript at sub-minute granularity. Implement sliding-window WER (try slice positions at ±30/20/10 % around computed slice, return min) in `tools/eval_quality.py`, and print a guard `WARN` when judging windows < 120 s. Forced alignment is a deferred upgrade. See active plan §M1 follow-up B.
-  - [ ] **M1 follow-up: pipeline truncation.** Last window `to`=1050 s vs audio duration 2183.6 s — pipeline processed only half the rev16 audio. Re-run with `tee tmp/pipeline.log` and `tee tmp/send_audio.log`, grep for ICE/disconnect/destroy; add a 60 s heartbeat log to `send_audio.py` to make mid-stream truncation visible. See active plan §M1 follow-up C.
-  - [ ] Use audio files under `docs/datasets/` as fixtures, not `tests/fixtures/`
-  - [ ] Refactor and cleanup `Dockerfile` and `docker-compose.yml` (remove Ollama + MLX, add CUDA base, bake in weights via `tools/fetch_models.sh` during build)
-  - [ ] **Model variant audit** — `Qwen/Qwen3.5-4B` resolves as `Qwen3_5ForConditionalGeneration` (multimodal w/ Qwen2VL image processor); vision encoder cache + image-item profiling allocate wasted VRAM. Investigate text-only variants (other providers, distilled bases). Reweight against B_i quality before swap.
-  - [ ] **Extend summarizer warmup** — current `Say hello.` (max_tokens=5) warmup does NOT trigger Triton JIT for `_zero_kv_blocks_kernel`, `_compute_slot_mapping_kernel`, `_causal_conv1d_fwd_kernel` (mamba), `_fused_post_conv_kernel`. JIT fires during first real window → inflated proc_time → poisons L_i for window_0. Warmup with ~1500-token dummy transcript matching real chunk shape.
-- [ ] **M2 — Prompt + sampling tune.** Iterate `summarize_prompt.txt` and SamplingParams on the chosen model; rerun offline judge; lock the best prompt; record B/K/L/C in `docs/APPROACH.md`.
+- [x] **M1 — Base CUDA pipeline working.** vLLM in-process summarizer node, `tools/fetch_models.sh`, one summarizer profile, one judge profile, refactored `run_pipeline.sh` + `eval_quality.py`, unit tests green (mocked vLLM). Smoke pipeline + offline judge run on uni-lab against a 30 s and a 30 min audio fixture; output JSON keys exactly `{from, to, summary, keywords[3], proc_time}`.
+  - [x] Core pipeline: vLLM node, model selection, profiles, smoke runs, offline judge, extractive fallback, WER alignment, warmup, Dockerfile, fixtures migration.
+  - [ ] **Pipeline truncation (deferred).** Two issues: (1) Janus session may drop early (timeout vs aiortc — not yet diagnosed); (2) end-of-audio flush — last partial window never summarized. See standalone item below.
+  - [ ] **Model variant audit (in progress — teammate).** Qwen3.5-4B multimodal arch wastes VRAM on vision encoder. Investigating text-only variants.
+- [x] **M2 — Prompt + sampling tune.** Iterate `summarize_prompt.txt` and SamplingParams on the chosen model; rerun offline judge; lock the best prompt.
+  - [x] ASR: exposed beam_size, no_speech_threshold, initial_prompt params; switched to GPU float16
+  - [x] Prompt: iterated through 3 versions (longer summaries → named-entity keywords → 2-3 sentences for latency). Locked at 2-3 sentences + mixed topic/entity keywords.
+  - [x] Hallucination filter: expanded with common Whisper noise phrases
+  - [x] Eval: A/B results in `results/qwen3.5-4b-prompt-tune{,-v2}/`. Best C=35.58 (baseline), v2 C=32.15 (higher R-L/K-J but worse K/L).
+  - [ ] Record final B/K/L/C in `docs/APPROACH.md` (deferred to M3).
 - [ ] **M3 — Submission packaging.** Rewrite `Dockerfile` (CUDA base, weights baked via `tools/fetch_models.sh` during build), populate `destination_endpoint`, end-to-end smoke inside container, finalize `docs/APPROACH.md`, build submission bundle (code + config + sample results + Dockerfile + approach).
-  - [ ] **Bake faster-whisper into Docker image** — pipeline launch issues HTTP GET to `huggingface.co/api/models/Systran/faster-whisper-small.en` even though model is the runtime "auto-download exception". Submission container has no network; must pre-populate the HF cache during `docker build`.
+  - [x] **Bake faster-whisper into Docker image** — `Dockerfile` now runs `snapshot_download('deepdml/faster-whisper-large-v3-turbo-ct2')` at build; transcriber node auto-resolves `./models/faster-whisper-large-v3-turbo` if present.
+  - [x] **Upgrade ASR to large-v3-turbo** — Switched from `small.en` (244M) to `large-v3-turbo` (809M, OpenAI distilled large-v3). Near large-v3 WER at half compute. Now GPU float16 (was CPU int8). Added WER interpretation guide to judge reports.
 - [ ] **M4 — Finetune (later).** Rewrite `prepare_rev16.py` teacher distillation off Ollama (use vLLM in-process), run QLoRA → merge → swap merged dir into the vLLM profile, A/B against base via `tools/eval_quality.py`. Gated on M3.
+
+- [x] ~~Should we warmup the transcript model to GPU?~~ — Addressed: ASR now runs GPU float16 (`device: auto`).
+- [x] **Pipeline truncation / end-of-audio handling.** Fixed: window_aggregator now has an inactivity watchdog (default 30s). When no chunks arrive for `flush_timeout` seconds, partial window is flushed with correct `window_end` (actual last `chunk_end`, not `window_start + duration`). Root cause: audio_rtp (framework) treats ffmpeg exit code 0 as crash and loops forever — cannot be modified, so watchdog works around it.
+
+- [ ] Make sure audio reception is working robustly in Janus (deferred — no known issues yet, but we haven't done long runs on uni-lab with the new pipeline).
+  - [ ] No costumization. 
+  - [ ] Check the compatiblity with the latest Janus version. We use 0.x but Janus is now at 1.x — need to verify that our Janus client code still works and that there are no regressions in audio reception.
+- [ ] Feed run logs to identfy any issue.
+  - [ ] Add more debug logging around audio reception, chunk processing, and model inference to identify any bottlenecks or failures during long runs.
+  - [ ] Monitor GPU utilization and memory usage to ensure the pipeline is running efficiently and to catch any potential OOM issues early.
 
 ## Bookmarks
 
 - [vLLM](https://github.com/vllm-project/vllm)
 - [Qwen on HuggingFace](https://huggingface.co/Qwen)
-- [rev16 dataset (Whisper subset)](https://huggingface.co/datasets/distil-whisper/rev16/tree/main/whisper_subset)
+- [rev16 dataset (Whisper subset)](https://huggingface.co/datasets/distil-whisper/rev16/tree/main/whisper_subset) — now per-episode dirs with `chunks.json` ground truth
 - [MeetingBank dataset](https://meetingbank.github.io/)

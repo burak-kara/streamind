@@ -43,13 +43,15 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
 
     @staticmethod
     def _sanitize_model_name(name: str) -> str:
-        return name.replace(":", "-").replace("/", "_")
+        clean = Path(name).name if "/" in name else name
+        return clean.replace(":", "-")
 
     def update(self, message: Message[ObjectPayload]):
         window_id = message.payload.get("window_id", 0)
         model_name = message.payload.get("model_name", "unknown")
         window_duration = int(round(
-            message.payload.get("window_end", 0.0) - message.payload.get("window_start", 0.0)
+            message.payload.get("window_duration",
+                                message.payload.get("window_end", 0.0) - message.payload.get("window_start", 0.0))
         ))
 
         safe_model = self._sanitize_model_name(model_name)

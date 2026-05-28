@@ -66,7 +66,7 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 - [`docs/CHALLENGE.md`](docs/CHALLENGE.md) — official challenge spec (scoring contract source of truth)
 - [`docs/CLAUDE.md`](docs/CLAUDE.md) — docs folder navigation
 - [`docs/documentation/CLAUDE.md`](docs/documentation/CLAUDE.md) — Juturna/Janus reference
-- [`docs/plans/cuda-native-pipeline-base-first.md`](docs/plans/cuda-native-pipeline-base-first.md) — active M0/M1 plan
+- [`docs/plans/cuda-native-pipeline-base-first.md`](docs/plans/cuda-native-pipeline-base-first.md) — active plan (M0/M1 done, M2–M4 ahead)
 
 ## Directory Structure
 
@@ -88,8 +88,11 @@ tools/
   run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <s> --summarizer <profile>
   eval_quality.py     # Offline judge harness — uses vLLM, runs after pipeline exits
   send_audio.py       # Inject a WAV file through Janus for local testing
-  finetune/           # QLoRA workflow on rev16 (CUDA only) — PARKED until M4
-tests/                # Unit + integration tests, fixtures/
+  finetune/           # QLoRA data prep + training on rev16 — PARKED until M4 (Ollama refs remain)
+datasets/             # Audio corpora — audio gitignored, text/json tracked
+  rev16/<episode>/    #   audio.opus, transcript.txt, chunks.json (ground truth)
+  ietf/               #   <name>.opus (gitignored), <name>.opus.txt (transcript)
+tests/                # Unit + integration tests
 results/              # Output JSON files written by result_transmitter
 docs/                 # Challenge spec, plans, approach write-up
 .claude/skills/       # Project-specific Claude Code skills
@@ -122,14 +125,14 @@ docker compose up -d janus
 
 # Offline judge after the pipeline exits (judge model loaded sequentially,
 # summarizer must be unloaded first to free VRAM).
-# --audio enables ASR WER vs ground-truth .txt sibling (independent signal; not part of B/K/L).
+# --audio enables ASR WER + auto-discovers chunks.json for ground-truth comparison.
 uv run python tools/eval_quality.py results/<local_name>/300/ \
   --judge-profile vllm-<judge_name> \
-  --audio 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
+  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
 
 # Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
 # Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.
-uv run python tools/send_audio.py 'docs/datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch.opus'
+uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
 
 # --- From local mac, mid-development sync (uncommitted changes) ---
 rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/Desktop/streamind/
@@ -139,7 +142,7 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 
 - **Janus** running via Docker on uni-lab: `docker compose up -d` (builds from source on first run)
 - **vLLM** is a base dependency (no extra needed). `uv sync` installs it; **Linux + CUDA only — will not install on Apple Silicon**. All dev happens on `uni-lab`.
-- ASR model (`small.en` via faster-whisper) downloads automatically on first run (this is the one exception; the LLM does not auto-download).
+- ASR model (`deepdml/faster-whisper-large-v3-turbo-ct2` via faster-whisper) is baked into Docker at build time or fetched locally via `snapshot_download`. In dev, transcriber auto-resolves `./models/faster-whisper-large-v3-turbo` if present, otherwise falls back to HF download.
 - LLM weights must be present under `./models/<name>/` before pipeline launch — pipeline aborts at warmup otherwise.
 - Pipeline configs assembled at launch: `config-base.json` + profile from `pipelines/summarizer/`
 - `audio_rtp` node listens on `0.0.0.0:8888`; Janus forwards RTP to that port
@@ -162,7 +165,8 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX
 - Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
 - To inject an audio file into pipeline: `uv run python tools/send_audio.py <file>` (accepts wav, opus, mp3, m4a — anything ffmpeg decodes)
 - `uv sync` and `uv sync --extra dev` must run on `uni-lab` — vLLM + torch cu124 wheels do not install on Apple Silicon.
-- `tools/finetune/` is **parked** until M4 (still references Ollama internally; do not touch yet).
+- **ASR model override**: `./tools/run_pipeline.sh -a <model>` overrides ASR model without editing config-base.json. Useful for A/B comparisons (e.g. `-a small.en` vs default `large-v3-turbo`).
+- `tools/finetune/` is **parked** until M4 (`prepare_rev16.py` and `eval_finetuned.py` still use `ollama` Python client — will be rewritten to vLLM in M4).
 - To download YouTube video: see `docs/documentation/yt-dlp-guide.md`
 - Use `./tmp` (not `/tmp`) for temp files to avoid permission issues.
 

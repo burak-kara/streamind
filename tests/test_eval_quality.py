@@ -176,3 +176,50 @@ def test_load_judge_profile_missing_raises(tmp_path, monkeypatch):
     (tmp_path / "pipelines" / "judge").mkdir(parents=True)
     with pytest.raises(FileNotFoundError):
         eq._load_judge_profile("does-not-exist")
+
+
+# --- sliding-window WER -----------------------------------------------------
+
+
+def _maybe_skip_no_jiwer():
+    try:
+        import jiwer  # noqa: F401
+    except ImportError:
+        pytest.skip("jiwer not installed; WER tests need the dev extra.")
+
+
+def test_sliding_wer_returns_min_over_offsets():
+    _maybe_skip_no_jiwer()
+    eq = _load_eval_quality()
+    # Reference is two distinct halves; "correct" alignment lands in the
+    # second half. Proportional anchor picks the boundary; sliding should
+    # find the second-half slice and report low WER.
+    ref = (
+        "alpha bravo charlie delta echo foxtrot " * 5
+        + "golf hotel india juliet kilo lima " * 5
+    )
+    total_dur = 60.0
+    # Hypothesis matches the second half verbatim.
+    hyp = "golf hotel india juliet kilo lima " * 5
+    # Window 30-60s sits exactly on the second half; anchor 0 is fine.
+    wer_anchor, _ = eq._sliding_wer(ref, 30.0, 60.0, total_dur, hyp)
+    assert wer_anchor is not None
+    assert wer_anchor < 0.05
+
+    # Now shift the window so the anchor is wrong; sliding must rescue it.
+    # Window 22-52s anchors into the first half; +offsets push into second.
+    wer_misaligned, slice_text = eq._sliding_wer(ref, 22.0, 52.0, total_dur, hyp)
+    wer_naive = eq._compute_wer(
+        eq._slice_proportional(ref, 22.0, 52.0, total_dur), hyp
+    )
+    assert wer_misaligned is not None and wer_naive is not None
+    assert wer_misaligned <= wer_naive
+    assert "golf" in slice_text or "hotel" in slice_text
+
+
+def test_sliding_wer_handles_empty_inputs():
+    eq = _load_eval_quality()
+    assert eq._sliding_wer("", 0.0, 10.0, 100.0, "anything") == (None, "")
+    assert eq._sliding_wer("ref", 0.0, 10.0, 0.0, "anything") == (None, "")
+    assert eq._sliding_wer("ref", 0.0, 10.0, 100.0, "") == (None, "")
+    assert eq._sliding_wer("ref", 0.0, 10.0, 100.0, "  ") == (None, "")

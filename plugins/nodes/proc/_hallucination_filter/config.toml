@@ -12,5 +12,16 @@ exact_hallucinations = [
     "subtitles by the amara.org community",
     "[blank_audio]",
     "[silence]",
+    "...",
+    "so",
+    "um",
+    "uh",
+    "right",
+    "okay.",
+    "yeah.",
+    "the end.",
+    "i'll see you next time.",
+    "subscribe to my channel.",
+    "like and subscribe.",
 ]
 extra_patterns = []

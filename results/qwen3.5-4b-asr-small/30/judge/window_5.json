@@ -1,0 +1,31 @@
+{
+  "from": 150.0,
+  "to": 180.0,
+  "summary": "The episode highlights eight women-led businesses with over $60 million in annual revenue and $116 million in funding, addressing the historical lack of venture capital for female founders.",
+  "keywords": [
+    "No Fluff First",
+    "female founders",
+    "venture capital"
+  ],
+  "proc_time": 0.6120815277099609,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    false,
+    true,
+    true
+  ],
+  "K": 2,
+  "L": 7.363566021105505,
+  "C": 33.363566021105505,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.3953488372093023,
+  "asr_transcript": "1 million plus in business. It's eight episodes of No Fluff First Person Narratives, highlighting women who collectively. have more than 60 million in annual revenue. $5 million in social followers and have amassed more than $116 million. in funding, which is a major accomplishment considering it was reported in 2017 that only 2% of venture capital dollars went to fee founders. I'll link her LinkedIn post talking about Maisie Mee...",
+  "reference_slice": "n plus in business. It's eight episodes of No Fluff first person narratives highlighting women who collectively have more than $60, million in annual revenue, $5, million in social followers, and have a mass more than $160 million in funding, which is a major accomplishment considering it was reported in 2017 that only two percent of venture capital dollars went to female founders. I link her Linkedin post um, talking about Maisie media and what the network would do, um, in the episode notes so th"
+}

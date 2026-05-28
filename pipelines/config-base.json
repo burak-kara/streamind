@@ -38,10 +38,13 @@
         "type": "proc",
         "mark": "transcriber_whisper",
         "configuration": {
-          "model_name": "small.en",
+          "model_name": "large-v3-turbo",
           "language": "en",
-          "device": "cpu",
-          "compute_type": "int8"
+          "device": "auto",
+          "compute_type": "float16",
+          "beam_size": 5,
+          "no_speech_threshold": 0.5,
+          "initial_prompt": ""
         }
       },
       {
@@ -66,7 +69,8 @@
         "type": "proc",
         "mark": "window_aggregator",
         "configuration": {
-          "window_duration": 300.0
+          "window_duration": 300.0,
+          "flush_timeout": 10.0
         }
       },
       {

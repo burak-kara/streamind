@@ -2,6 +2,7 @@ import gc
 import time
 import typing
 import logging
+from pathlib import Path
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -15,10 +16,13 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
 
     def __init__(
         self,
-        model_name: str = "small.en",
+        model_name: str = "large-v3-turbo",
         language: str = "en",
         device: str = "auto",
         compute_type: str = "int8",
+        beam_size: int = 5,
+        no_speech_threshold: float = 0.6,
+        initial_prompt: str = "",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -26,6 +30,9 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
         self._language = language
         self._device = device
         self._compute_type = compute_type
+        self._beam_size = beam_size
+        self._no_speech_threshold = no_speech_threshold
+        self._initial_prompt = initial_prompt or None
         self._model: WhisperModel | None = None
 
         logging.getLogger("faster_whisper").setLevel(logging.ERROR)
@@ -33,9 +40,16 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
     def configure(self):
         pass
 
+    def _resolve_model_path(self) -> str:
+        local = Path(f"./models/faster-whisper-{self._model_name}")
+        if local.is_dir():
+            return str(local)
+        return self._model_name
+
     def warmup(self):
+        resolved = self._resolve_model_path()
         self._model = WhisperModel(
-            self._model_name,
+            resolved,
             device=self._device,
             compute_type=self._compute_type,
         )
@@ -64,7 +78,10 @@ class TranscriberWhisper(Node[AudioPayload, ObjectPayload]):
             audio,
             language=self._language,
             task="transcribe",
+            beam_size=self._beam_size,
             condition_on_previous_text=False,
+            no_speech_threshold=self._no_speech_threshold,
+            initial_prompt=self._initial_prompt,
             vad_filter=True,
         )
 
