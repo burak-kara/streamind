@@ -60,6 +60,9 @@ for local dev run the pipeline natively (§3) instead, and only start `janus`.
 ./tools/run_pipeline.sh -s <summarizer_profile>          # 300s window (default)
 ./tools/run_pipeline.sh -w 30 -s <summarizer_profile>    # short 30s window
 ./tools/run_pipeline.sh -s <profile> -a small.en         # ASR override (A/B)
+
+# e.g.
+./tools/run_pipeline.sh -s vllm-qwen3.5-9b -a small.en
 ```
 
 Flags (`tools/run_pipeline.sh`):
@@ -90,8 +93,7 @@ pipeline runs. Separate terminal / ssh session.
 ```bash
 uv run python tools/send_audio.py <audio_file>
 # default rev16 fixture (~36 min → ~7×300s windows):
-uv run python tools/send_audio.py \
-  'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
+uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
 ```
 
 Flags (`tools/send_audio.py`):
@@ -152,6 +154,11 @@ corroborates the score, high stdev flags judge bias.
 uv run python tools/eval_multi_judge.py results/<model>/300/ \
   --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
   --audio 'datasets/rev16/<episode>/audio.opus'
+
+# e.g.
+uv run python tools/eval_multi_judge.py results/qwen3.5-4b-prompt-tune-v2/300/ \
+  --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
+  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus' 
 ```
 
 Flags (`tools/eval_multi_judge.py`): `--judge-profiles <p...>` (**required**,
