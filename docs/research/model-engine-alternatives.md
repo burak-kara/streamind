@@ -1,7 +1,7 @@
 # Model & Inference Engine Research — May 2026
 
 > Goal: best summarization quality (B_i) under lowest possible latency (L_i).
-> Constraint: single RTX Pro 4500 (24 GB VRAM), real-time pipeline, submission Docker with no network.
+> Constraint: production single RTX Pro 4500 (Blackwell, 32 GB GDDR7); dev RTX 4090 (24 GB) is the tighter constraint. Real-time pipeline, submission Docker with no network.
 
 ## Current Baseline
 
