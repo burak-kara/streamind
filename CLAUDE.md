@@ -134,7 +134,7 @@ uv run python tools/eval_quality.py results/<local_name>/300/ \
 # per judge → full VRAM reclaim between models), report side-by-side C + consensus.
 # Writes judge_report_multi.txt + judge_scores_multi.json next to the results.
 uv run python tools/eval_multi_judge.py results/<local_name>/300/ \
-  --judge-profiles vllm-mistral-small-24b-awq vllm-llama-3.1-8b vllm-gemma-2-27b-it-awq \
+  --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
   --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
 
 # Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
@@ -159,8 +159,8 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 - **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
 - **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (a single GPU — 24 GB dev 4090 or 32 GB prod Pro 4500 — cannot hold the full panel co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
   - `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: not cleanly int4 (~26 GB on disk → OOM on 24 GB).
-  - `meta-llama/Llama-3.1-8B-Instruct` (Meta, ~16 GB BF16, gated on HF — accept license or use ungated mirror). Profile: `pipelines/judge/vllm-llama-3.1-8b.json`. Local dir: `./models/llama-3.1-8b/`.
-  - Gemma-2-27B-it AWQ (Google, ~16 GB int4, verify on-disk size before trust). Profile: `pipelines/judge/vllm-gemma-2-27b-it-awq.json`. Local dir: `./models/gemma-2-27b-it-awq/`.
+  - `casperhansen/phi-4-awq` (Microsoft, ~8.5 GB AWQ-int4, MIT). Profile: `pipelines/judge/vllm-phi-4-awq.json`. Local dir: `./models/phi-4-awq/`.
+  - `gaunernst/gemma-3-27b-it-int4-awq` (Google, ~18 GB int4-AWQ). Profile: `pipelines/judge/vllm-gemma3-27b-it-int4-awq.json`. Local dir: `./models/gemma3-27b-it-int4-awq/`. Uses `dtype: bfloat16` (Gemma overflows at fp16) and `gpu_memory_utilization: 0.90` (18 GB weights leave tight KV room on the 24 GB dev card). Requires a vLLM build with Gemma-3 support.
 - **Fallback summarizer:** `Qwen/Qwen3.5-9B` if 4B B_i averages < 15. Same prompt + tooling; just swap profile.
 
 See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX/Ollama variants exist.
