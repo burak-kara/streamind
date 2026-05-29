@@ -239,6 +239,13 @@ def _build_llm(cfg: dict):
     # uses mistral_common's tekken tokenizer, bypassing the HF regex bug.
     if "tokenizer_mode" in cfg:
         llm_kwargs["tokenizer_mode"] = cfg["tokenizer_mode"]
+    # Optional multimodal cap. Multimodal judges (e.g. Gemma-3) reserve a
+    # vision-encoder cache worth several GiB of VRAM, even though the judge
+    # only ever sees text. Setting {"image": 0} skips that reservation so the
+    # freed memory goes to the KV cache instead — the difference between OOM
+    # and fitting on the 24 GB dev card.
+    if "limit_mm_per_prompt" in cfg:
+        llm_kwargs["limit_mm_per_prompt"] = cfg["limit_mm_per_prompt"]
     llm = LLM(**llm_kwargs)
     sampling = SamplingParams(
         temperature=cfg.get("temperature", 0.0),
