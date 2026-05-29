@@ -3,7 +3,7 @@
   "type": "proc",
   "mark": "summarizer_vllm",
   "configuration": {
-    "model_name": "./models/qwen3.5-4b",
+    "model_name": "./models/qwen3.5-9b",
     "prompt_template_file": "summarize_prompt.txt",
     "dtype": "bfloat16",
     "gpu_memory_utilization": 0.85,
@@ -12,7 +12,7 @@
     "temperature": 0.3,
     "top_p": 0.9,
     "repetition_penalty": 1.05,
-    "enforce_eager": false,
+    "enforce_eager": true,
     "limit_mm_per_prompt": {"image": 0}
   }
 }

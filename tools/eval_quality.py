@@ -239,6 +239,13 @@ def _build_llm(cfg: dict):
     # uses mistral_common's tekken tokenizer, bypassing the HF regex bug.
     if "tokenizer_mode" in cfg:
         llm_kwargs["tokenizer_mode"] = cfg["tokenizer_mode"]
+    # Optional multimodal cap. Multimodal judges (e.g. Gemma-3) reserve a
+    # vision-encoder cache worth several GiB of VRAM, even though the judge
+    # only ever sees text. Setting {"image": 0} skips that reservation so the
+    # freed memory goes to the KV cache instead — the difference between OOM
+    # and fitting on the 24 GB dev card.
+    if "limit_mm_per_prompt" in cfg:
+        llm_kwargs["limit_mm_per_prompt"] = cfg["limit_mm_per_prompt"]
     llm = LLM(**llm_kwargs)
     sampling = SamplingParams(
         temperature=cfg.get("temperature", 0.0),
@@ -327,11 +334,18 @@ def _score_one(
     )
 
 
-def _write_per_window(scored: list[Scored], judge_model: str) -> None:
-    """Mirror the in-pipeline judge's output layout: results/.../judge/window_N.json."""
+def _write_per_window(scored: list[Scored], judge_model: str, tag: str | None = None) -> None:
+    """Mirror the in-pipeline judge's output layout: results/.../judge/window_N.json.
+
+    When `tag` is set, output is namespaced to results/.../judge/<tag>/window_N.json
+    so multiple judges (run sequentially by tools/eval_multi_judge.py) do not
+    clobber one another. Default (tag=None) keeps the legacy flat layout.
+    """
     for s in scored:
         window_data = json.loads(s.path.read_text())
         judge_dir = s.path.parent / "judge"
+        if tag:
+            judge_dir = judge_dir / tag
         judge_dir.mkdir(parents=True, exist_ok=True)
         out_path = judge_dir / s.path.name
         payload = {
@@ -511,6 +525,10 @@ def main() -> int:
     parser.add_argument("--no-janus-bonus", action="store_true",
                         help="Exclude the +4 Janus bonus from the final source score. "
                              "Pipeline uses Janus by design, so bonus is applied by default.")
+    parser.add_argument("--judge-tag", default=None,
+                        help="Namespace per-window judge output under judge/<tag>/ "
+                             "instead of judge/. Used by tools/eval_multi_judge.py so "
+                             "sequential judges do not clobber each other.")
     args = parser.parse_args()
 
     if not args.results_dir.exists():
@@ -618,7 +636,7 @@ def main() -> int:
         file=sys.stderr, flush=True,
     )
 
-    _write_per_window(scored, judge_model=judge_model_id)
+    _write_per_window(scored, judge_model=judge_model_id, tag=args.judge_tag)
     table = _build_table(scored, janus_bonus=not args.no_janus_bonus)
     print(table)
 

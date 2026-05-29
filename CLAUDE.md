@@ -48,8 +48,8 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 
 ## Evaluation Environment
 
-- Production: single **RTX Pro 4500** GPU (24 GB) — size all models to fit in VRAM
-- **Lab machine** (`uni-lab`): RTX 4090, CUDA 12.4 — primary dev host. Access via `ssh uni-lab`.
+- Production: single **RTX Pro 4500** GPU (Blackwell, **32 GB GDDR7**, 896 GB/s, FP4/FP8/INT8 inference, no NVLink) — size all models to fit in VRAM
+- **Lab machine** (`uni-lab`): RTX 4090, 24 GB, CUDA 12.4 — primary dev host. **Tighter VRAM than production (24 < 32 GB), so it is the binding constraint for live models during dev.** Access via `ssh uni-lab`.
 - All inference is CUDA-native (vLLM); no MLX, no Ollama, no other middleware.
 
 ## Model Packaging
@@ -63,6 +63,7 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 
 ## Key References
 
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — operational run guide (Janus, audio, pipeline flags, judges)
 - [`docs/CHALLENGE.md`](docs/CHALLENGE.md) — official challenge spec (scoring contract source of truth)
 - [`docs/CLAUDE.md`](docs/CLAUDE.md) — docs folder navigation
 - [`docs/documentation/CLAUDE.md`](docs/documentation/CLAUDE.md) — Juturna/Janus reference
@@ -100,43 +101,29 @@ docs/                 # Challenge spec, plans, approach write-up
 
 ## Quick Start
 
+Full run instructions — start Janus, feed audio, run the pipeline (all flags),
+score with single/multi judge — live in **[`docs/RUNBOOK.md`](docs/RUNBOOK.md)**
+(single source of truth). Minimal loop:
+
 ```bash
-# --- Local (Apple Silicon) — unit tests only, vLLM is mocked ---
-uv sync --extra dev
-.venv/bin/pytest tests/
+# Local (Apple Silicon) — unit tests only, vLLM mocked
+uv sync --extra dev && .venv/bin/pytest tests/
 
-# --- Lab (uni-lab, RTX 4090, CUDA 12.4) — full pipeline ---
-# Login once, then run commands directly. Repo lives at ~/Desktop/streamind on uni-lab.
-ssh uni-lab
-cd ~/Desktop/streamind
+# Lab (uni-lab) — full pipeline; repo at ~/Desktop/streamind
+ssh uni-lab && cd ~/Desktop/streamind && git pull && uv sync --extra dev
+./tools/fetch_models.sh <hf_id> <local_name>   # once, idempotent
+docker compose up -d janus                      # first run builds image (~15 min)
+./tools/run_pipeline.sh -s vllm-<local_name>    # then feed audio from a 2nd session:
+uv run python tools/send_audio.py 'datasets/rev16/<episode>/audio.opus'
 
-git pull
-uv sync --extra dev
-
-# Populate model once (idempotent)
-./tools/fetch_models.sh <hf_id> <local_name>
-
-# Start Janus (first run builds the Docker image — takes ~15 min)
-docker compose up -d janus
-
-# Run pipeline
-./tools/run_pipeline.sh -s vllm-<local_name>
-./tools/run_pipeline.sh -w 30 -s vllm-<local_name>   # short window
-
-# Offline judge after the pipeline exits (judge model loaded sequentially,
-# summarizer must be unloaded first to free VRAM).
-# --audio enables ASR WER + auto-discovers chunks.json for ground-truth comparison.
-uv run python tools/eval_quality.py results/<local_name>/300/ \
-  --judge-profile vllm-<judge_name> \
-  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
-
-# Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
-# Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.
-uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
-
-# --- From local mac, mid-development sync (uncommitted changes) ---
-rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/Desktop/streamind/
+# Score after the pipeline exits (cross-family panel, sequential, VRAM-safe)
+uv run python tools/eval_multi_judge.py results/<local_name>/300/ \
+  --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
+  --audio 'datasets/rev16/<episode>/audio.opus'
 ```
+
+See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for every flag, the single-judge path,
+and mid-dev `rsync`.
 
 ## Runtime Requirements
 
@@ -150,7 +137,10 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 ## Current Model Choices
 
 - **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
-- **Judge (offline only):** `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Picked cross-family from Qwen summarizer to avoid self-bias; text-only arch avoids vision-encoder VRAM waste. Loaded sequentially by `tools/eval_quality.py` after the summarizer pipeline exits — never co-resident with the summarizer. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: repo was not cleanly int4 (~26 GB on disk → OOM on 24 GB).
+- **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (a single GPU — 24 GB dev 4090 or 32 GB prod Pro 4500 — cannot hold the full panel co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
+  - `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: not cleanly int4 (~26 GB on disk → OOM on 24 GB).
+  - `casperhansen/phi-4-awq` (Microsoft, ~8.5 GB AWQ-int4, MIT). Profile: `pipelines/judge/vllm-phi-4-awq.json`. Local dir: `./models/phi-4-awq/`.
+  - `gaunernst/gemma-3-27b-it-int4-awq` (Google, ~18 GB int4-AWQ). Profile: `pipelines/judge/vllm-gemma3-27b-it-int4-awq.json`. Local dir: `./models/gemma3-27b-it-int4-awq/`. Uses `dtype: bfloat16` (Gemma overflows at fp16) and `gpu_memory_utilization: 0.90` (18 GB weights leave tight KV room on the 24 GB dev card). Requires a vLLM build with Gemma-3 support.
 - **Fallback summarizer:** `Qwen/Qwen3.5-9B` if 4B B_i averages < 15. Same prompt + tooling; just swap profile.
 
 See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX/Ollama variants exist.

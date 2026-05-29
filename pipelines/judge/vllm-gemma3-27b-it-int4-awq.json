@@ -1,0 +1,14 @@
+{
+  "name": "judge",
+  "configuration": {
+    "model_name": "./models/gemma3-27b-it-int4-awq",
+    "dtype": "bfloat16",
+    "gpu_memory_utilization": 0.92,
+    "max_model_len": 4096,
+    "max_tokens": 256,
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "enforce_eager": true,
+    "limit_mm_per_prompt": {"image": 0}
+  }
+}
