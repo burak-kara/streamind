@@ -159,6 +159,8 @@ uv run python tools/eval_multi_judge.py results/<model>/300/ \
 uv run python tools/eval_multi_judge.py results/qwen3.5-4b-prompt-tune-v2/300/ \
   --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
   --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus' 
+
+uv run python tools/eval_multi_judge.py results/qwen3.5-4b/300/ --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq --audio 'datasets/rev16/26_Episode_338_-_Special_Guest_Rob_O'Neill:_The_Man_Who_Killed_Osama_Bin_Laden'
 ```
 
 Flags (`tools/eval_multi_judge.py`): `--judge-profiles <p...>` (**required**,
