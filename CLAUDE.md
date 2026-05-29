@@ -130,6 +130,13 @@ uv run python tools/eval_quality.py results/<local_name>/300/ \
   --judge-profile vllm-<judge_name> \
   --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
 
+# Multi-judge: score with a cross-family panel run sequentially (one subprocess
+# per judge → full VRAM reclaim between models), report side-by-side C + consensus.
+# Writes judge_report_multi.txt + judge_scores_multi.json next to the results.
+uv run python tools/eval_multi_judge.py results/<local_name>/300/ \
+  --judge-profiles vllm-mistral-small-24b-awq vllm-llama-3.1-8b vllm-gemma-2-27b-it-awq \
+  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
+
 # Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
 # Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.
 uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
@@ -150,7 +157,10 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 ## Current Model Choices
 
 - **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
-- **Judge (offline only):** `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Picked cross-family from Qwen summarizer to avoid self-bias; text-only arch avoids vision-encoder VRAM waste. Loaded sequentially by `tools/eval_quality.py` after the summarizer pipeline exits — never co-resident with the summarizer. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: repo was not cleanly int4 (~26 GB on disk → OOM on 24 GB).
+- **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (24 GB cannot hold them co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
+  - `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: not cleanly int4 (~26 GB on disk → OOM on 24 GB).
+  - `meta-llama/Llama-3.1-8B-Instruct` (Meta, ~16 GB BF16, gated on HF — accept license or use ungated mirror). Profile: `pipelines/judge/vllm-llama-3.1-8b.json`. Local dir: `./models/llama-3.1-8b/`.
+  - Gemma-2-27B-it AWQ (Google, ~16 GB int4, verify on-disk size before trust). Profile: `pipelines/judge/vllm-gemma-2-27b-it-awq.json`. Local dir: `./models/gemma-2-27b-it-awq/`.
 - **Fallback summarizer:** `Qwen/Qwen3.5-9B` if 4B B_i averages < 15. Same prompt + tooling; just swap profile.
 
 See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX/Ollama variants exist.
