@@ -63,6 +63,7 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 
 ## Key References
 
+- [`docs/RUNBOOK.md`](docs/RUNBOOK.md) — operational run guide (Janus, audio, pipeline flags, judges)
 - [`docs/CHALLENGE.md`](docs/CHALLENGE.md) — official challenge spec (scoring contract source of truth)
 - [`docs/CLAUDE.md`](docs/CLAUDE.md) — docs folder navigation
 - [`docs/documentation/CLAUDE.md`](docs/documentation/CLAUDE.md) — Juturna/Janus reference
@@ -100,50 +101,29 @@ docs/                 # Challenge spec, plans, approach write-up
 
 ## Quick Start
 
+Full run instructions — start Janus, feed audio, run the pipeline (all flags),
+score with single/multi judge — live in **[`docs/RUNBOOK.md`](docs/RUNBOOK.md)**
+(single source of truth). Minimal loop:
+
 ```bash
-# --- Local (Apple Silicon) — unit tests only, vLLM is mocked ---
-uv sync --extra dev
-.venv/bin/pytest tests/
+# Local (Apple Silicon) — unit tests only, vLLM mocked
+uv sync --extra dev && .venv/bin/pytest tests/
 
-# --- Lab (uni-lab, RTX 4090, CUDA 12.4) — full pipeline ---
-# Login once, then run commands directly. Repo lives at ~/Desktop/streamind on uni-lab.
-ssh uni-lab
-cd ~/Desktop/streamind
+# Lab (uni-lab) — full pipeline; repo at ~/Desktop/streamind
+ssh uni-lab && cd ~/Desktop/streamind && git pull && uv sync --extra dev
+./tools/fetch_models.sh <hf_id> <local_name>   # once, idempotent
+docker compose up -d janus                      # first run builds image (~15 min)
+./tools/run_pipeline.sh -s vllm-<local_name>    # then feed audio from a 2nd session:
+uv run python tools/send_audio.py 'datasets/rev16/<episode>/audio.opus'
 
-git pull
-uv sync --extra dev
-
-# Populate model once (idempotent)
-./tools/fetch_models.sh <hf_id> <local_name>
-
-# Start Janus (first run builds the Docker image — takes ~15 min)
-docker compose up -d janus
-
-# Run pipeline
-./tools/run_pipeline.sh -s vllm-<local_name>
-./tools/run_pipeline.sh -w 30 -s vllm-<local_name>   # short window
-
-# Offline judge after the pipeline exits (judge model loaded sequentially,
-# summarizer must be unloaded first to free VRAM).
-# --audio enables ASR WER + auto-discovers chunks.json for ground-truth comparison.
-uv run python tools/eval_quality.py results/<local_name>/300/ \
-  --judge-profile vllm-<judge_name> \
-  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
-
-# Multi-judge: score with a cross-family panel run sequentially (one subprocess
-# per judge → full VRAM reclaim between models), report side-by-side C + consensus.
-# Writes judge_report_multi.txt + judge_scores_multi.json next to the results.
+# Score after the pipeline exits (cross-family panel, sequential, VRAM-safe)
 uv run python tools/eval_multi_judge.py results/<local_name>/300/ \
   --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
-  --audio 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
-
-# Inject test audio through Janus (separate terminal/ssh session, while pipeline runs)
-# Default rev16 fixture (~36 min — yields ~7×300s windows). Any ffmpeg-decodable format works.
-uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'
-
-# --- From local mac, mid-development sync (uncommitted changes) ---
-rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclude='models' . uni-lab:~/Desktop/streamind/
+  --audio 'datasets/rev16/<episode>/audio.opus'
 ```
+
+See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for every flag, the single-judge path,
+and mid-dev `rsync`.
 
 ## Runtime Requirements
 
