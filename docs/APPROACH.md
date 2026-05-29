@@ -62,6 +62,12 @@ Eight sequential Juturna nodes, wired in `pipelines/config-base.json`:
     RTX Pro 4500 (Blackwell) — and even the tighter 24 GB dev RTX 4090 —
     with headroom for KV cache; vLLM's `gpu_memory_utilization` knob
     controls the reservation explicitly.
+  - **SGLang considered, not adopted.** A May-2026 engine survey found
+    SGLang (`sgl.Engine`, RadixAttention) ~29% higher throughput / lower
+    TTFT than vLLM as a near-drop-in replacement, and TensorRT-LLM faster
+    still at the cost of per-model compilation. vLLM is kept for its
+    widest model support and zero compilation; SGLang remains the primary
+    latency lever to revisit if `L_i` becomes the binding constraint.
 - **Model weights ship with the submission.** `tools/fetch_models.sh`
   populates `./models/<name>/` during development; the same script is
   invoked at `docker build` time so the resulting image carries weights.
