@@ -53,6 +53,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
                  top_p: float = 0.9,
                  repetition_penalty: float = 1.05,
                  enforce_eager: bool = False,
+                 limit_mm_per_prompt: typing.Optional[dict] = None,
                  min_transcript_chars: int = 80,
                  **kwargs):
         super().__init__(**kwargs)
@@ -67,6 +68,7 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
         self._top_p = top_p
         self._repetition_penalty = repetition_penalty
         self._enforce_eager = enforce_eager
+        self._limit_mm_per_prompt = limit_mm_per_prompt
         self._min_transcript_chars = min_transcript_chars
 
         self._llm = None
@@ -92,13 +94,23 @@ class SummarizerVLLM(Node[ObjectPayload, ObjectPayload]):
         from vllm import LLM, SamplingParams
 
         self._logger.info(f"Loading vLLM model from {model_path} (dtype={self._dtype})")
-        self._llm = LLM(
+        llm_kwargs = dict(
             model=str(model_path),
             dtype=self._dtype,
             gpu_memory_utilization=self._gpu_memory_utilization,
             max_model_len=self._max_model_len,
             enforce_eager=self._enforce_eager,
         )
+        # Optional multimodal cap. Multimodal-architecture summarizers (e.g.
+        # Qwen3.5's Qwen3_5ForConditionalGeneration) reserve a vision-encoder
+        # cache worth several GiB of VRAM at load, even though the summarizer
+        # only ever sees text. Setting {"image": 0} skips that reservation so
+        # the freed memory goes to weights + KV cache instead — the difference
+        # between OOM and fitting alongside the resident Whisper model on the
+        # 24 GB dev card.
+        if self._limit_mm_per_prompt is not None:
+            llm_kwargs["limit_mm_per_prompt"] = self._limit_mm_per_prompt
+        self._llm = LLM(**llm_kwargs)
         self._sampling_params = SamplingParams(
             temperature=self._temperature,
             top_p=self._top_p,

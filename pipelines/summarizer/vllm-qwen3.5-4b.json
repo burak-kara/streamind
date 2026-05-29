@@ -12,6 +12,7 @@
     "temperature": 0.3,
     "top_p": 0.9,
     "repetition_penalty": 1.05,
-    "enforce_eager": false
+    "enforce_eager": false,
+    "limit_mm_per_prompt": {"image": 0}
   }
 }
