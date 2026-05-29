@@ -1,9 +1,9 @@
 {
   "name": "judge",
   "configuration": {
-    "model_name": "./models/gemma-2-27b-it-awq",
-    "dtype": "float16",
-    "gpu_memory_utilization": 0.85,
+    "model_name": "./models/gemma3-27b-it-int4-awq",
+    "dtype": "bfloat16",
+    "gpu_memory_utilization": 0.90,
     "max_model_len": 4096,
     "max_tokens": 256,
     "temperature": 0.0,
