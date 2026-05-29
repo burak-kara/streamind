@@ -197,7 +197,8 @@ Push uncommitted changes without a commit/pull cycle:
 
 ```bash
 rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' \
-  --exclude='models' . uni-lab:~/Desktop/streamind/
+  --exclude='models' --exclude='tmp' --exclude='.git' --exclude='.remember' \
+  . uni-lab:~/Desktop/streamind/
 ```
 
 ---
