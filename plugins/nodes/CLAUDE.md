@@ -19,7 +19,7 @@
 
 There is no live judge sink in the pipeline. `tools/eval_quality.py` runs **after** the pipeline exits: it loads a judge model with vLLM, iterates `results/<model>/<window>/window_*.json`, and writes `results/.../judge/window_N.json` with `B/K/L/C` scores. Sequential loading avoids VRAM co-residency.
 
-Rationale: the RTX Pro 4500 has 24 GB. A 8B+ summarizer + 7B+ judge co-resident does not fit. At submission time the judge is irrelevant (held-out evaluator scores us); during development we score sequentially.
+Rationale: production RTX Pro 4500 has 32 GB; dev RTX 4090 has 24 GB. A large summarizer + large judge co-resident does not fit reliably on the 24 GB dev card, and the multi-judge panel (`tools/eval_multi_judge.py`) loads several judges anyway. At submission time the judge is irrelevant (held-out evaluator scores us); during development we score sequentially, one judge per subprocess.
 
 Output schema: same as the live window JSON plus `B_breakdown`, `B`, `K`, `L`, `C`, `keyword_flags`, `judge_model`. Never touches the official submission file.
 
@@ -41,7 +41,7 @@ Output schema: same as the live window JSON plus `B_breakdown`, `B`, `K`, `L`, `
 Active summarizer model is committed in `pipelines/summarizer/vllm-<name>.json` and the weights live under `./models/<name>/` (gitignored). One profile only; no MLX/Ollama variants exist.
 
 Selection criteria:
-- ≤ ~20 GB fp16 to leave VRAM headroom on the 24 GB RTX Pro 4500
+- ≤ ~20 GB fp16 to leave VRAM headroom on the 24 GB dev RTX 4090 (the binding constraint; production Pro 4500 has 32 GB)
 - Permissive license for redistribution in the submission Docker image
 - Strong instruction-following + reliable JSON output
 - Available on HuggingFace

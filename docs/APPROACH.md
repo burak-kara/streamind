@@ -58,9 +58,10 @@ Eight sequential Juturna nodes, wired in `pipelines/config-base.json`:
   - **Paged attention + batching.** vLLM's continuous batching and
     paged KV cache keep `proc_time` low even at larger model sizes,
     which is exactly the lever for `L_i = 10·e^(−0.5·proc_time)`.
-  - **Single-GPU fit.** A 8–9 B fp16 model fits inside the 24 GB
-    RTX Pro 4500 with headroom for KV cache; vLLM's
-    `gpu_memory_utilization` knob controls the reservation explicitly.
+  - **Single-GPU fit.** A 8–9 B fp16 model fits inside the 32 GB
+    RTX Pro 4500 (Blackwell) — and even the tighter 24 GB dev RTX 4090 —
+    with headroom for KV cache; vLLM's `gpu_memory_utilization` knob
+    controls the reservation explicitly.
 - **Model weights ship with the submission.** `tools/fetch_models.sh`
   populates `./models/<name>/` during development; the same script is
   invoked at `docker build` time so the resulting image carries weights.

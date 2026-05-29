@@ -2,7 +2,7 @@
 
 ## Context
 
-Project pivoted: development moved to `uni-lab` (RTX 4090, CUDA 12.4); submission target is RTX Pro 4500 (single GPU, 24 GB). Drop all middleware — no Ollama daemon, no MLX. Replace with **vLLM in-process** (`from vllm import LLM`) so summarizer runs natively in the pipeline Python process. Submission must be portable, self-contained, real-time. **Model weights ship with the submission** (baked into Docker image); pipeline code never downloads at runtime.
+Project pivoted: development moved to `uni-lab` (RTX 4090, CUDA 12.4); submission target is RTX Pro 4500 (single GPU, Blackwell, 32 GB GDDR7). Drop all middleware — no Ollama daemon, no MLX. Replace with **vLLM in-process** (`from vllm import LLM`) so summarizer runs natively in the pipeline Python process. Submission must be portable, self-contained, real-time. **Model weights ship with the submission** (baked into Docker image); pipeline code never downloads at runtime.
 
 **Working order:** get base CUDA pipeline running end-to-end with an off-the-shelf open-source model first. Only after the pipeline is stable, measured, and meets format/latency targets do we revisit finetuning. This plan covers M0 + M1 in detail and sketches M2–M4 as follow-on milestones.
 
@@ -31,7 +31,7 @@ User decisions:
 | **L_i** (`10·e^(−0.5·proc_i)` if B_i ≥ 10) | `proc_time` measured end-to-end in `_result_transmitter`; judge applies gate |
 | **Janus bonus (+4)** | Pipeline source is `audio_rtp` behind Janus, not `audio_file` |
 | Output keys: `from`, `to`, `summary`, `keywords`, `proc_time` | `_result_transmitter` key remap; verification step 6 grep-guards |
-| **Single RTX Pro 4500 (24 GB)** fits all models | VRAM budget check in verification; summarizer-only at submission (judge offline) |
+| **Single RTX Pro 4500 (32 GB, Blackwell)** fits all models; dev RTX 4090 (24 GB) is the tighter constraint | VRAM budget check in verification; summarizer-only at submission (judge offline) |
 | Submission deliverables: code + config + progressive summaries + **Dockerfile** + approach `.md` | M3 builds Dockerfile; `docs/APPROACH.md` rewritten in M0; `pipelines/config-base.json` + assembled config shipped; results dir produced by smoke run |
 | Test against 30+ min audio (6 summary chunks) | Verification step 5 uses 30+ min source (existing 15 min fixture insufficient — see open item below) |
 
@@ -66,7 +66,7 @@ vLLM init (warmup): `LLM(model="./models/<name>", dtype="float16", gpu_memory_ut
 
 **Base model pick (M1):** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16 native, ~8 GB on disk, ~10 GB with KV at 2K). Judge: `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ`. Picked 2026-05-19 against constraints:
 
-- ≤ ~20 GB fp16 to leave VRAM headroom on 24 GB Pro 4500 — **Qwen3.5-4B: ~10 GB ✓**
+- ≤ ~20 GB fp16 to leave VRAM headroom on the 24 GB dev RTX 4090 (binding constraint; prod Pro 4500 has 32 GB) — **Qwen3.5-4B: ~10 GB ✓**
 - Permissive license (Apache 2.0 / MIT / Qwen / Llama community) for redistribution in the submission image — **Apache-2.0 ✓**
 - Strong instruction-following + JSON output reliability for the summary contract — **IFEval 91.5 on Qwen3.5-4B ✓**
 - Available on HuggingFace (or another permanent mirror) so `fetch_models.sh` is reproducible — **HF live ✓**
@@ -213,7 +213,7 @@ No `_judge_vllm/` Juturna sink — judge runs offline only.
 
 ### Docs (M0 — light pass; M2/M3 deepen)
 
-- `docs/APPROACH.md` — rewrite inference section: native CUDA via vLLM in-process, model weights shipped in image, no runtime download. Justify choice (no daemon, batched, paged attention, fits 24 GB), explicitly contrast with old Ollama/MLX path. Polished as final submission artifact in M3.
+- `docs/APPROACH.md` — rewrite inference section: native CUDA via vLLM in-process, model weights shipped in image, no runtime download. Justify choice (no daemon, batched, paged attention, fits a single GPU — 24 GB dev 4090 / 32 GB prod Pro 4500), explicitly contrast with old Ollama/MLX path. Polished as final submission artifact in M3.
 - `docs/TODO.md` — replace MLX/Ollama items with the milestone list above; mark M0/M1 as active.
 - `docs/plans/cloud-development-submission-plan.md` — mark superseded by this plan.
 - `docs/plans/given-the-changes-in-streamed-biscuit.md` — review; likely archive.
@@ -328,7 +328,7 @@ Run on `uni-lab` (RTX 4090, CUDA 12.4):
 7. **Format check:** `/benchmark-pipeline` on result dir — no format violations; K_i computed; L_i applied only when B_i ≥ 10; `proc_time` measured end-to-end.
 8. **Janus bonus:** confirm pipeline source is `audio_rtp` (not `audio_file`) by reading the assembled config emitted by `assemble_config.py`.
 9. **Grep guard:** `rg -i 'ollama|mlx' --type py --type json -g '!docs/**' -g '!tools/finetune/**'` returns **zero** matches.
-10. **VRAM budget:** during run, `nvidia-smi` shows peak GPU memory < 24 GB (RTX Pro 4500 target).
+10. **VRAM budget:** during run, `nvidia-smi` shows peak GPU memory < 24 GB on the dev RTX 4090 (tighter than the 32 GB prod RTX Pro 4500, so passing here guarantees prod fit).
 11. **No-network sanity:** `unshare -n` (or `ip link set <iface> down` in a throwaway env) — pipeline still starts and produces results, proving no runtime download.
 
 M0 + M1 complete when 1–11 pass. M2 (prompt tune) and M3 (Docker + endpoint + final APPROACH.md) follow as separate workstreams once base pipeline is green. M4 (finetune) gated on M3.

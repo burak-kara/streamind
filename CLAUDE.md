@@ -48,8 +48,8 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 
 ## Evaluation Environment
 
-- Production: single **RTX Pro 4500** GPU (24 GB) — size all models to fit in VRAM
-- **Lab machine** (`uni-lab`): RTX 4090, CUDA 12.4 — primary dev host. Access via `ssh uni-lab`.
+- Production: single **RTX Pro 4500** GPU (Blackwell, **32 GB GDDR7**, 896 GB/s, FP4/FP8/INT8 inference, no NVLink) — size all models to fit in VRAM
+- **Lab machine** (`uni-lab`): RTX 4090, 24 GB, CUDA 12.4 — primary dev host. **Tighter VRAM than production (24 < 32 GB), so it is the binding constraint for live models during dev.** Access via `ssh uni-lab`.
 - All inference is CUDA-native (vLLM); no MLX, no Ollama, no other middleware.
 
 ## Model Packaging
@@ -157,7 +157,7 @@ rsync -av --exclude='.venv' --exclude='results' --exclude='__pycache__' --exclud
 ## Current Model Choices
 
 - **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
-- **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (24 GB cannot hold them co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
+- **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (a single GPU — 24 GB dev 4090 or 32 GB prod Pro 4500 — cannot hold the full panel co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
   - `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: not cleanly int4 (~26 GB on disk → OOM on 24 GB).
   - `meta-llama/Llama-3.1-8B-Instruct` (Meta, ~16 GB BF16, gated on HF — accept license or use ungated mirror). Profile: `pipelines/judge/vllm-llama-3.1-8b.json`. Local dir: `./models/llama-3.1-8b/`.
   - Gemma-2-27B-it AWQ (Google, ~16 GB int4, verify on-disk size before trust). Profile: `pipelines/judge/vllm-gemma-2-27b-it-awq.json`. Local dir: `./models/gemma-2-27b-it-awq/`.

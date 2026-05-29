@@ -7,10 +7,11 @@ consensus in a single table/file. A single judge can bias every B/K/L score;
 running an independent panel and measuring their spread turns that hidden bias
 into an explicit signal.
 
-Each judge runs as its own subprocess invocation of tools/eval_quality.py. The
-24 GB GPU cannot hold the panel co-resident, and process exit fully reclaims
-CUDA VRAM before the next model loads — far more robust than in-process vLLM
-load/unload, which leaks VRAM across repeated loads.
+Each judge runs as its own subprocess invocation of tools/eval_quality.py. A
+single GPU (24 GB dev RTX 4090 / 32 GB prod RTX Pro 4500) cannot hold the panel
+co-resident, and process exit fully reclaims CUDA VRAM before the next model
+loads — far more robust than in-process vLLM load/unload, which leaks VRAM
+across repeated loads.
 
 Usage (on uni-lab, after the summarizer pipeline exits):
 
