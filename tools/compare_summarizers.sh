@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 #
-# compare_summarizers.sh — long-running summarizer bake-off on a single audio file.
+# compare_summarizers.sh — long-running summarizer bake-off over one or more audio files.
 #
-# For each summarizer profile given on the command line: assemble the pipeline,
-# stream the audio through Janus in real time, auto-stop, then score the windows
-# with the FIXED cross-family multi-judge panel. Emits a leaderboard at the end.
+# For each audio file × each summarizer profile: assemble the pipeline, stream
+# the audio through Janus in real time, auto-stop, then score the windows with
+# the FIXED cross-family multi-judge panel. Emits one leaderboard per audio.
 #
 # Judges are fixed (CLAUDE.md "Current Model Choices"): Mistral-Small-24B-AWQ,
-# Phi-4-AWQ, Gemma-3-27B-it-int4-AWQ. Summarizers are the iterated variable.
+# Phi-4-AWQ, Gemma-3-27B-it-int4-AWQ. Summarizers and audios are the iterated
+# variables.
 #
 # Usage:
-#   ./tools/compare_summarizers.sh --audio <file> --profiles <p1> [p2 ...] [options]
+#   ./tools/compare_summarizers.sh --audios <a1> [a2 ...] --profiles <p1> [p2 ...] [options]
 #
 # Required:
-#   --audio <file>        any ffmpeg-decodable audio (wav/opus/mp3/m4a)
+#   --audios <a...>       one or more ffmpeg-decodable audio files (wav/opus/mp3/m4a),
+#                         iterated in order; each gets its own results tree
 #   --profiles <p...>     one or more summarizer profile names under
 #                         pipelines/summarizer/ (without .json), iterated in order
 #
@@ -26,7 +28,7 @@
 #
 # Example:
 #   ./tools/compare_summarizers.sh \
-#       --audio datasets/rev16/oneill/audio.opus \
+#       --audios datasets/rev16/*/audio.opus \
 #       --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
 #
 # Safe to leave running overnight. All artifacts land under results/.
@@ -52,7 +54,7 @@ WINDOW=300
 RUNS=1
 TIMEOUT_BUFFER=180
 MIN_COV=0.85
-AUDIO=""
+AUDIOS=()
 PROFILES=()
 
 # Print the leading comment block (shebang excluded) as help.
@@ -63,7 +65,10 @@ usage() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --audio)             AUDIO="${2:-}"; shift 2 ;;
+    --audios)
+      shift
+      while [ $# -gt 0 ] && [[ "$1" != -* ]]; do AUDIOS+=("$1"); shift; done
+      ;;
     --profiles)
       shift
       while [ $# -gt 0 ] && [[ "$1" != -* ]]; do PROFILES+=("$1"); shift; done
@@ -75,41 +80,30 @@ while [ $# -gt 0 ]; do
     -h|--help)           usage 0 ;;
     --)                  shift; break ;;
     -*)  echo "ERROR: unknown flag $1" >&2; usage 1 ;;
-    *)   echo "ERROR: unexpected arg '$1' (pass audio via --audio, models via --profiles)" >&2; usage 1 ;;
+    *)   echo "ERROR: unexpected arg '$1' (pass audio via --audios, models via --profiles)" >&2; usage 1 ;;
   esac
 done
 
-[ -n "$AUDIO" ] || { echo "ERROR: --audio <file> is required" >&2; usage 1; }
+[ "${#AUDIOS[@]}"   -ge 1 ] || { echo "ERROR: --audios needs >=1 audio file" >&2; usage 1; }
 [ "${#PROFILES[@]}" -ge 1 ] || { echo "ERROR: --profiles needs >=1 summarizer profile" >&2; usage 1; }
 
-# --- logging / output layout ---
-STAMP=$(date +%Y%m%d_%H%M%S)
-# Audio label -> short slug. Fixtures are <episode>/audio.opus, so the filename
-# alone ("audio") is identical across episodes — fold in the parent dir for
-# identity. Then keep alnum, collapse every other run of chars to a single '_',
-# and cap 32 so the directory name stays readable instead of a wall of
-# underscores. (Episode names are long and punctuation-heavy.)
-_fname=$(basename "$AUDIO"); _fname=${_fname%.*}
-_pdir=$(basename "$(dirname "$AUDIO")")
-LABEL=$(printf '%s_%s' "$_pdir" "$_fname" | tr -c 'A-Za-z0-9' '_' | tr -s '_' | sed 's/^_//; s/_$//' | cut -c1-32)
-LABEL=${LABEL:-audio}
-# Output tree: results/<audio_label>/<stamp>/<model>/<window>/run<K>/ . The
-# <stamp> is unique per invocation, so repeat invocations never clobber each
-# other and nothing is deleted. Leaderboard, master log, and per-run pipeline
-# logs live at the <stamp> root alongside the model dirs.
-COMPARE_DIR="results/${LABEL}/${STAMP}"
-mkdir -p tmp "$COMPARE_DIR/logs"
-SUMMARY="$COMPARE_DIR/leaderboard.txt"
-MLOG="$COMPARE_DIR/run.log"
-# log to stderr so $(run_pipeline ...) captures only the result dir it echoes.
+# --- global logger ---
+# Spans the whole run (all audios). Inside the per-audio loop MLOG is repointed
+# into that audio's own run.log; here it captures shared preflight + the final
+# index of every leaderboard produced.
+GSTAMP=$(date +%Y%m%d_%H%M%S)
+mkdir -p tmp results
+MLOG="results/compare_${GSTAMP}.log"
 log()  { echo "[$(date '+%F %T')] $*" | tee -a "$MLOG" >&2; }
 die()  { log "FATAL: $*"; exit 1; }
 
 # --- preflight (fail fast before any multi-hour run) ---
+# Audio-independent checks run once; weights/GPU don't change between audios.
 command -v ffprobe >/dev/null || die "ffprobe not found (need ffmpeg)"
 require_gpu || die "no CUDA GPU (see above)"
-[ -f "$AUDIO" ] || die "audio not found: $AUDIO"
-
+for a in "${AUDIOS[@]}"; do
+  [ -f "$a" ] || die "audio not found: $a"
+done
 for p in "${PROFILES[@]}"; do
   pf="pipelines/summarizer/$p.json"
   [ -f "$pf" ] || die "summarizer profile missing: $pf"
@@ -121,22 +115,20 @@ for j in "${JUDGE_PROFILES[@]}"; do
   require_model "$jf" judge || die "judge weights missing for $j (see above)"
 done
 
-DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$AUDIO")
-[ -n "$DUR" ] || die "could not read duration of $AUDIO"
-TIMEOUT=$(awk "BEGIN{printf \"%d\", $DUR + $TIMEOUT_BUFFER}")
-
 if ! docker compose ps janus 2>/dev/null | grep -qE 'Up|running'; then
   log "Janus not running — starting it"
   docker compose up -d janus || die "failed to start Janus"
   sleep 8
 fi
 
-log "=== summarizer comparison ==="
-log "audio=$AUDIO dur=${DUR}s timeout=${TIMEOUT}s window=${WINDOW}s runs=$RUNS"
-log "summarizers: ${PROFILES[*]}"
+log "=== summarizer comparison: ${#AUDIOS[@]} audio(s) × ${#PROFILES[@]} profile(s) ==="
+log "audios:         ${AUDIOS[*]}"
+log "summarizers:    ${PROFILES[*]}"
 log "judges (fixed): ${JUDGE_PROFILES[*]}"
 
 # --- helpers ---
+# These operate on per-audio globals set by the outer loop below: AUDIO, DUR,
+# TIMEOUT, LABEL, COMPARE_DIR, WINDOW, MLOG.
 
 # Block until GPU memory drops below 500 MiB (5 min cap). Used between phases so
 # the next model/judge loads into a clean card.
@@ -221,60 +213,94 @@ multi_judge() {
 # before any juturna launch. Same call run_pipeline.sh makes.
 prep_runtime_env
 
-# --- run comparison ---
-declare -a DONE_DIRS=()
-declare -A RUN_IDX=()       # per-model_dir run counter -> contiguous run1,run2…
-declare -A DIR_PROFILE=()   # result dir -> profile (model dir alone can't tell
-                            # apart two prompt variants of the same weights)
-first_done=0
-for profile in "${PROFILES[@]}"; do
-  model_dir=$(model_dir_of "pipelines/summarizer/$profile.json")
-  for ((N=1; N<=RUNS; N++)); do
-    K=$(( ${RUN_IDX[$model_dir]:-0} + 1 )); RUN_IDX[$model_dir]=$K
-    if dst=$(run_pipeline "$profile" "$K" "$model_dir"); then
-      DIR_PROFILE["$dst"]=$profile
-      cov=$(coverage_of "$dst")
-      nwin=$(ls "$dst"/window_*.json 2>/dev/null | wc -l | tr -d ' ')
-      log "${profile} -> ${model_dir}/${WINDOW}/run${K}: ${nwin} windows, coverage ${cov}"
-      if [ "$first_done" -eq 0 ]; then
-        first_done=1
-        if awk "BEGIN{exit !($cov < $MIN_COV)}"; then
-          die "first-run coverage ${cov} < ${MIN_COV} — audio truncated. Fix send_audio/Janus before a long comparison run."
+# --- run comparison: outer loop over audios ---
+declare -a ALL_SUMMARIES=()
+for AUDIO in "${AUDIOS[@]}"; do
+  # Per-audio output tree + logger. Each audio gets its own <stamp> so trees are
+  # independent (results/<audio_label>/<stamp>/…) and never clobber.
+  STAMP=$(date +%Y%m%d_%H%M%S)
+  # Audio label -> short slug. Fixtures are <episode>/audio.opus, so the filename
+  # alone ("audio") is identical across episodes — fold in the parent dir for
+  # identity. Then keep alnum, collapse every other run of chars to a single '_',
+  # and cap 32 so the directory name stays readable.
+  _fname=$(basename "$AUDIO"); _fname=${_fname%.*}
+  _pdir=$(basename "$(dirname "$AUDIO")")
+  LABEL=$(printf '%s_%s' "$_pdir" "$_fname" | tr -c 'A-Za-z0-9' '_' | tr -s '_' | sed 's/^_//; s/_$//' | cut -c1-32)
+  LABEL=${LABEL:-audio}
+  COMPARE_DIR="results/${LABEL}/${STAMP}"
+  mkdir -p "$COMPARE_DIR/logs"
+  SUMMARY="$COMPARE_DIR/leaderboard.txt"
+  MLOG="$COMPARE_DIR/run.log"
+
+  DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$AUDIO")
+  [ -n "$DUR" ] || die "could not read duration of $AUDIO"
+  TIMEOUT=$(awk "BEGIN{printf \"%d\", $DUR + $TIMEOUT_BUFFER}")
+
+  log "=== audio: $AUDIO ==="
+  log "dur=${DUR}s timeout=${TIMEOUT}s window=${WINDOW}s runs=$RUNS -> $COMPARE_DIR"
+
+  # Per-audio state — reset each iteration.
+  declare -a DONE_DIRS=()
+  declare -A RUN_IDX=()       # per-model_dir run counter -> contiguous run1,run2…
+  declare -A DIR_PROFILE=()   # result dir -> profile (model dir alone can't tell
+                              # apart two prompt variants of the same weights)
+  first_done=0
+  for profile in "${PROFILES[@]}"; do
+    model_dir=$(model_dir_of "pipelines/summarizer/$profile.json")
+    for ((N=1; N<=RUNS; N++)); do
+      K=$(( ${RUN_IDX[$model_dir]:-0} + 1 )); RUN_IDX[$model_dir]=$K
+      if dst=$(run_pipeline "$profile" "$K" "$model_dir"); then
+        DIR_PROFILE["$dst"]=$profile
+        cov=$(coverage_of "$dst")
+        nwin=$(ls "$dst"/window_*.json 2>/dev/null | wc -l | tr -d ' ')
+        log "${profile} -> ${model_dir}/${WINDOW}/run${K}: ${nwin} windows, coverage ${cov}"
+        if [ "$first_done" -eq 0 ]; then
+          first_done=1
+          if awk "BEGIN{exit !($cov < $MIN_COV)}"; then
+            die "first-run coverage ${cov} < ${MIN_COV} — audio truncated. Fix send_audio/Janus before a long comparison run."
+          fi
+          log "first-run coverage ${cov} OK — continuing"
         fi
-        log "first-run coverage ${cov} OK — continuing"
+        wait_gpu_free
+        multi_judge "$dst" "$profile"
+        DONE_DIRS+=("$dst")
+        wait_gpu_free
+      else
+        log "WARN ${profile} run ${N} failed; continuing"
+        [ "$first_done" -eq 0 ] && die "first run produced nothing — aborting before wasting hours."
       fi
-      wait_gpu_free
-      multi_judge "$dst" "$profile"
-      DONE_DIRS+=("$dst")
-      wait_gpu_free
-    else
-      log "WARN ${profile} run ${N} failed; continuing"
-      [ "$first_done" -eq 0 ] && die "first run produced nothing — aborting before wasting hours."
-    fi
+    done
   done
+
+  # --- per-audio summary / leaderboard ---
+  {
+    echo "=================================================="
+    echo "  SUMMARIZER COMPARISON — ${LABEL}  (${STAMP})"
+    echo "  audio=${AUDIO}"
+    echo "  window=${WINDOW}s  judges=${JUDGE_PROFILES[*]}"
+    echo "=================================================="
+    echo
+    echo "## Leaderboard (final source score, +Janus — higher is better)"
+    for d in "${DONE_DIRS[@]}"; do
+      rpt="$d/judge_report_multi.txt"
+      score=$(grep -iE 'final source score' "$rpt" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | tail -1)
+      # label = profile @ <model>/<window>/run<K> (relative to the stamp root)
+      printf '%s\t%s\t%s\n' "${score:-0}" "${DIR_PROFILE[$d]:-?}" "${d#"$COMPARE_DIR"/}"
+    done | sort -rn | awk -F'\t' '{printf "  %-28s %-32s %s\n", $2, $3, ($1=="0"?"N/A":$1)}'
+    echo
+    for d in "${DONE_DIRS[@]}"; do
+      echo "## ${DIR_PROFILE[$d]:-?}  (${d#"$COMPARE_DIR"/})"
+      [ -f "$d/judge_report_multi.txt" ] && cat "$d/judge_report_multi.txt" || echo "  (no report)"
+      echo
+    done
+    echo "Run log: $MLOG"
+  } | tee "$SUMMARY"
+
+  log "=== audio done -> $SUMMARY ==="
+  ALL_SUMMARIES+=("$SUMMARY")
+
+  MLOG="results/compare_${GSTAMP}.log"   # restore global logger for the next boundary
 done
 
-# --- summary / leaderboard ---
-{
-  echo "=================================================="
-  echo "  SUMMARIZER COMPARISON — ${LABEL}  (${STAMP})"
-  echo "  window=${WINDOW}s  judges=${JUDGE_PROFILES[*]}"
-  echo "=================================================="
-  echo
-  echo "## Leaderboard (final source score, +Janus — higher is better)"
-  for d in "${DONE_DIRS[@]}"; do
-    rpt="$d/judge_report_multi.txt"
-    score=$(grep -iE 'final source score' "$rpt" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | tail -1)
-    # label = profile @ <model>/<window>/run<K> (relative to the stamp root)
-    printf '%s\t%s\t%s\n' "${score:-0}" "${DIR_PROFILE[$d]:-?}" "${d#"$COMPARE_DIR"/}"
-  done | sort -rn | awk -F'\t' '{printf "  %-28s %-32s %s\n", $2, $3, ($1=="0"?"N/A":$1)}'
-  echo
-  for d in "${DONE_DIRS[@]}"; do
-    echo "## ${DIR_PROFILE[$d]:-?}  (${d#"$COMPARE_DIR"/})"
-    [ -f "$d/judge_report_multi.txt" ] && cat "$d/judge_report_multi.txt" || echo "  (no report)"
-    echo
-  done
-  echo "Master log: $MLOG"
-} | tee "$SUMMARY"
-
-log "=== DONE -> $SUMMARY ==="
+log "=== ALL DONE: ${#ALL_SUMMARIES[@]} leaderboard(s) ==="
+for s in "${ALL_SUMMARIES[@]}"; do log "  $s"; done
