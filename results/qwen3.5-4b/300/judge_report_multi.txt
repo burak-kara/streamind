@@ -1,0 +1,23 @@
+window                                   mistral-smal    phi-4-awq gemma3-27b-i    mean  stdev
+----------------------------------------------------------------------------------------------
+    results/qwen3.5-4b/300/window_0.json        35.51        37.51        37.51   36.85   0.94
+    results/qwen3.5-4b/300/window_1.json        35.82        36.82        36.82   36.49   0.47
+   results/qwen3.5-4b/300/window_10.json        34.88        32.88        34.88   34.22   0.94
+   results/qwen3.5-4b/300/window_11.json        34.33        36.33        34.33   34.99   0.94
+   results/qwen3.5-4b/300/window_12.json        35.26        37.26        34.26   35.60   1.25
+   results/qwen3.5-4b/300/window_13.json        29.33        32.33        33.33   31.66   1.70
+   results/qwen3.5-4b/300/window_14.json        30.12        34.12        37.12   33.78   2.87
+    results/qwen3.5-4b/300/window_2.json        35.16        33.16        35.16   34.49   0.94
+    results/qwen3.5-4b/300/window_3.json        34.80        35.80        36.80   35.80   0.82
+    results/qwen3.5-4b/300/window_4.json        34.82        32.82        34.82   34.16   0.94
+    results/qwen3.5-4b/300/window_5.json        35.16        32.16        34.16   33.83   1.25
+    results/qwen3.5-4b/300/window_6.json        27.54        32.54        34.54   31.54   2.94
+    results/qwen3.5-4b/300/window_7.json        35.95        32.95        34.95   34.61   1.25
+    results/qwen3.5-4b/300/window_8.json        34.47        32.47        36.47   34.47   1.63
+    results/qwen3.5-4b/300/window_9.json        23.80        28.80        30.80   27.80   2.94
+----------------------------------------------------------------------------------------------
+avg C                                           33.13        33.86        35.06   34.02       
+final source score (+Janus)                     37.13        37.86        39.06   38.02       
+
+Janus bonus: +4 flat (per CHALLENGE.md). Final source score = avg C + Janus.
+Consensus = mean across judges per window, averaged over windows. Low stdev = judges agree (score trustworthy); high stdev = judge bias.
