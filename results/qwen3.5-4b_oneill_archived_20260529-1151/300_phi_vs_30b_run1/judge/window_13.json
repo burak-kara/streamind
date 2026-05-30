@@ -1,0 +1,28 @@
+{
+  "from": 3900.0,
+  "to": 4200.0,
+  "summary": "The speaker discusses the anonymity of New York City, contrasting it with the attention celebrities receive, and shares anecdotes about being targeted by bad actors during military operations. He reflects on the difficulty of defining and confirming kills in combat, mentions a specific encounter involving a Hutts card, and outlines future plans to speak about high performance rather than sharing unprinted stories from his book.",
+  "keywords": [
+    "New York",
+    "Military Operations",
+    "Kill Confirmation"
+  ],
+  "proc_time": 1.0028955936431885,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.056531619238349,
+  "C": 34.05653161923835,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
