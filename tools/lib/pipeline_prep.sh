@@ -16,6 +16,15 @@ model_path_of() {
   python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['configuration']['model_name'])" "$1"
 }
 
+# Echo the results subdir a run writes to for a profile JSON. $1 = path.
+# Mirrors result_transmitter: basename(model_name) with ':' -> '-'. The pipeline
+# always writes window_*.json under results/<this>/<window>/ regardless of run,
+# so both launchers use it to locate (and pre-clean) that fixed output dir.
+model_dir_of() {
+  local mp; mp=$(model_path_of "$1") || return 1
+  basename "${mp%/}" | tr ':' '-'
+}
+
 # Abort unless a CUDA GPU is visible. Returns nonzero (no exit) so the caller
 # keeps its own error style.
 require_gpu() {

@@ -82,13 +82,25 @@ done
 [ -n "$AUDIO" ] || { echo "ERROR: --audio <file> is required" >&2; usage 1; }
 [ "${#PROFILES[@]}" -ge 1 ] || { echo "ERROR: --profiles needs >=1 summarizer profile" >&2; usage 1; }
 
-# --- logging ---
+# --- logging / output layout ---
 STAMP=$(date +%Y%m%d_%H%M%S)
-LABEL=$(basename "$AUDIO"); LABEL=${LABEL%.*}
-LABEL=$(echo "$LABEL" | tr -c 'A-Za-z0-9._-' '_' | cut -c1-40)
-mkdir -p tmp results
-SUMMARY="results/compare_${LABEL}_${STAMP}.txt"
-MLOG="results/compare_${LABEL}_${STAMP}.log"
+# Audio label -> short slug. Fixtures are <episode>/audio.opus, so the filename
+# alone ("audio") is identical across episodes — fold in the parent dir for
+# identity. Then keep alnum, collapse every other run of chars to a single '_',
+# and cap 32 so the directory name stays readable instead of a wall of
+# underscores. (Episode names are long and punctuation-heavy.)
+_fname=$(basename "$AUDIO"); _fname=${_fname%.*}
+_pdir=$(basename "$(dirname "$AUDIO")")
+LABEL=$(printf '%s_%s' "$_pdir" "$_fname" | tr -c 'A-Za-z0-9' '_' | tr -s '_' | sed 's/^_//; s/_$//' | cut -c1-32)
+LABEL=${LABEL:-audio}
+# Output tree: results/<audio_label>/<stamp>/<model>/<window>/run<K>/ . The
+# <stamp> is unique per invocation, so repeat invocations never clobber each
+# other and nothing is deleted. Leaderboard, master log, and per-run pipeline
+# logs live at the <stamp> root alongside the model dirs.
+COMPARE_DIR="results/${LABEL}/${STAMP}"
+mkdir -p tmp "$COMPARE_DIR/logs"
+SUMMARY="$COMPARE_DIR/leaderboard.txt"
+MLOG="$COMPARE_DIR/run.log"
 # log to stderr so $(run_pipeline ...) captures only the result dir it echoes.
 log()  { echo "[$(date '+%F %T')] $*" | tee -a "$MLOG" >&2; }
 die()  { log "FATAL: $*"; exit 1; }
@@ -97,11 +109,6 @@ die()  { log "FATAL: $*"; exit 1; }
 command -v ffprobe >/dev/null || die "ffprobe not found (need ffmpeg)"
 require_gpu || die "no CUDA GPU (see above)"
 [ -f "$AUDIO" ] || die "audio not found: $AUDIO"
-
-model_dir_of() {  # profile -> results subdir == basename(model_name), ':' -> '-'
-  local mp; mp=$(model_path_of "pipelines/summarizer/$1.json")
-  basename "${mp%/}" | tr ':' '-'
-}
 
 for p in "${PROFILES[@]}"; do
   pf="pipelines/summarizer/$p.json"
@@ -147,10 +154,15 @@ wait_gpu_free() {
 # Run one pipeline; echoes the final result dir on success, nothing on failure.
 run_pipeline() {
   local profile="$1" run="$2" model_dir="$3"
+  # Pipeline always writes to this fixed dir (model + window, not run-aware).
   local src="results/${model_dir}/${WINDOW}"
-  local dst="results/${model_dir}/${WINDOW}_${LABEL}_run${run}"
+  # Structured destination: <audio_label>/<stamp>/<model>/<window>/run<K>. The
+  # run index K is per-model (assigned by the caller), so two profiles sharing
+  # one model_dir — same weights, different prompt — land in run1, run2 and never
+  # collide. Caller records which profile produced each run for the leaderboard.
+  local dst="${COMPARE_DIR}/${model_dir}/${WINDOW}/run${run}"
   local assem="tmp/compare-${profile}-${WINDOW}s.json"
-  local plog="tmp/${model_dir}_${LABEL}_run${run}.pipelog"
+  local plog="${COMPARE_DIR}/logs/${profile}_run${run}.pipelog"
 
   log "=== ${profile} run ${run}: pipeline ==="
   uv run python tools/assemble_config.py "$WINDOW" "$profile" "$assem" >>"$MLOG" 2>&1 \
@@ -176,7 +188,7 @@ run_pipeline() {
   wait "$pid" 2>/dev/null
 
   [ -d "$src" ] || { log "ERROR ${profile}: no results at $src"; return 1; }
-  rm -rf "$dst"; mv "$src" "$dst"
+  mkdir -p "$(dirname "$dst")"; rm -rf "$dst"; mv "$src" "$dst"
   echo "$dst"
 }
 
@@ -211,14 +223,19 @@ prep_runtime_env
 
 # --- run comparison ---
 declare -a DONE_DIRS=()
+declare -A RUN_IDX=()       # per-model_dir run counter -> contiguous run1,run2…
+declare -A DIR_PROFILE=()   # result dir -> profile (model dir alone can't tell
+                            # apart two prompt variants of the same weights)
 first_done=0
 for profile in "${PROFILES[@]}"; do
-  model_dir=$(model_dir_of "$profile")
+  model_dir=$(model_dir_of "pipelines/summarizer/$profile.json")
   for ((N=1; N<=RUNS; N++)); do
-    if dst=$(run_pipeline "$profile" "$N" "$model_dir"); then
+    K=$(( ${RUN_IDX[$model_dir]:-0} + 1 )); RUN_IDX[$model_dir]=$K
+    if dst=$(run_pipeline "$profile" "$K" "$model_dir"); then
+      DIR_PROFILE["$dst"]=$profile
       cov=$(coverage_of "$dst")
       nwin=$(ls "$dst"/window_*.json 2>/dev/null | wc -l | tr -d ' ')
-      log "${profile} run ${N}: ${nwin} windows, coverage ${cov}"
+      log "${profile} -> ${model_dir}/${WINDOW}/run${K}: ${nwin} windows, coverage ${cov}"
       if [ "$first_done" -eq 0 ]; then
         first_done=1
         if awk "BEGIN{exit !($cov < $MIN_COV)}"; then
@@ -248,11 +265,12 @@ done
   for d in "${DONE_DIRS[@]}"; do
     rpt="$d/judge_report_multi.txt"
     score=$(grep -iE 'final source score' "$rpt" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | tail -1)
-    printf '%s\t%s\n' "${score:-0}" "$(basename "$d")"
-  done | sort -rn | awk -F'\t' '{printf "  %-42s %s\n", $2, ($1=="0"?"N/A":$1)}'
+    # label = profile @ <model>/<window>/run<K> (relative to the stamp root)
+    printf '%s\t%s\t%s\n' "${score:-0}" "${DIR_PROFILE[$d]:-?}" "${d#"$COMPARE_DIR"/}"
+  done | sort -rn | awk -F'\t' '{printf "  %-28s %-32s %s\n", $2, $3, ($1=="0"?"N/A":$1)}'
   echo
   for d in "${DONE_DIRS[@]}"; do
-    echo "## $(basename "$d")"
+    echo "## ${DIR_PROFILE[$d]:-?}  (${d#"$COMPARE_DIR"/})"
     [ -f "$d/judge_report_multi.txt" ] && cat "$d/judge_report_multi.txt" || echo "  (no report)"
     echo
   done

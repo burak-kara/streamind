@@ -81,19 +81,28 @@ require_gpu || exit 1
 require_model "$PROFILE" summarizer || exit 1
 MODEL_PATH=$(model_path_of "$PROFILE")
 
+# Each launch gets its own timestamped results root so reruns never clobber and
+# nothing is deleted — results/<stamp>/<model>/<window>/window_*.json. The
+# transmitter appends <model>/<window> itself; we only steer its results_dir.
+STAMP=$(date +%Y%m%d_%H%M%S)
+RESULTS_DIR="results/${STAMP}"
+OUT_DIR="${RESULTS_DIR}/$(model_dir_of "$PROFILE")/${WINDOW}"
+
 ASSEMBLED="./tmp/config-${WINDOW}s-${PROFILE_NAME}.json"
 ASR_ARGS=""
 if [[ -n "${ASR}" ]]; then
   ASR_ARGS="--asr ${ASR}"
   ASSEMBLED="./tmp/config-${WINDOW}s-${PROFILE_NAME}-asr-${ASR}.json"
 fi
-uv run python tools/assemble_config.py "$WINDOW" "$PROFILE_NAME" "$ASSEMBLED" ${ASR_ARGS}
+uv run python tools/assemble_config.py "$WINDOW" "$PROFILE_NAME" "$ASSEMBLED" \
+  --results-dir "$RESULTS_DIR" ${ASR_ARGS}
 
 # Runtime env (FlashInfer sampler off + CUBLAS on LD_LIBRARY_PATH for ASR).
 prep_runtime_env
 
 echo "Window:     ${WINDOW}s"
 echo "Summarizer: ${PROFILE_NAME}  (model: ${MODEL_PATH})"
+echo "Output:     ${OUT_DIR}/"
 if [[ -n "${ASR}" ]]; then
   echo "ASR:        ${ASR}  (override)"
 fi

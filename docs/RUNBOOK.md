@@ -78,8 +78,12 @@ What it does: preflight (`nvidia-smi` + model dir present) → assembles
 `config-base.json` + summarizer profile into `./tmp/config-<w>s-<profile>.json`
 → exports CUDA libs + disables FlashInfer JIT → `juturna launch`.
 
-Output JSON written to `results/<model>/<window>/window_*.json` with challenge
-keys: `from`, `to`, `summary`, `keywords` (exactly 3), `proc_time`.
+Output JSON written to `results/<stamp>/<model>/<window>/window_*.json` with
+challenge keys: `from`, `to`, `summary`, `keywords` (exactly 3), `proc_time`.
+Each launch gets its own `<stamp>` (`YYYYMMDD_HHMMSS`) run root, so **reruns never
+clobber and nothing is deleted** — prior runs sit side by side. The launcher
+prints the exact `Output:` dir; pass that path (or its `<model>/<window>`
+subdir) to the judge. Delete old stamp dirs by hand when you no longer need them.
 
 Leave the pipeline running and feed audio from a second session (§ next).
 
@@ -120,7 +124,7 @@ to free VRAM (a single GPU cannot hold summarizer + judge co-resident).
 ### 4a. Single judge
 
 ```bash
-uv run python tools/eval_quality.py results/<model>/300/ \
+uv run python tools/eval_quality.py results/<stamp>/<model>/300/ \
   --judge-profile vllm-<judge_name> \
   --audio 'datasets/rev16/<episode>/audio.opus'
 ```
@@ -151,7 +155,7 @@ unload). Reports each judge's C side-by-side + consensus mean/stdev; low stdev
 corroborates the score, high stdev flags judge bias.
 
 ```bash
-uv run python tools/eval_multi_judge.py results/<model>/300/ \
+uv run python tools/eval_multi_judge.py results/<stamp>/<model>/300/ \
   --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
   --audio 'datasets/rev16/<episode>/audio.opus'
 
@@ -198,10 +202,23 @@ Flags: `--audio <file>` (required), `--profiles <p...>` (required, iterated),
 `-w|--window <sec>` (default 300), `-r|--runs <n>` (default 1),
 `-b|--timeout-buffer <sec>` (default 180), `-c|--min-coverage <frac>` (default
 0.85, abort if first run truncates). Preflight verifies audio + GPU + every
-summarizer and judge model dir before any multi-hour run. Outputs:
-`results/compare_<audio>_<stamp>.{txt,log}` (leaderboard + master log) and one
-labelled `results/<model>/<window>_<audio>_run<N>/` per run with its
-`judge_report_multi.txt`.
+summarizer and judge model dir before any multi-hour run.
+
+All artifacts land under one per-invocation root
+`results/<audio_label>/<stamp>/` (audio_label = parent-dir + filename slug,
+capped 32 chars; stamp = `YYYYMMDD_HHMMSS`):
+
+```
+results/<audio_label>/<stamp>/
+  leaderboard.txt                       # leaderboard + every judge report
+  run.log                               # master log
+  logs/<profile>_run<K>.pipelog         # per-run pipeline/vLLM log
+  <model>/<window>/run<K>/              # that run's windows + judge_report_multi.txt
+```
+
+The `run<K>` index is **per-model**, so two profiles sharing one model dir —
+same weights, different prompt — land in `run1`, `run2` and never collide. The
+leaderboard records which profile produced each `run<K>`.
 
 ---
 
