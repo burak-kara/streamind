@@ -39,6 +39,12 @@ JUDGE_TARGETS=(
   "qwen2.5-7b-instruct"
   "qwen3.5-9b"
 )
+# Judge profiles to score with (eval_multi_judge.py requires explicit list)
+JUDGE_PROFILES=(
+  vllm-mistral-small-24b-awq
+  vllm-phi-4-awq
+  vllm-gemma3-27b-it-int4-awq
+)
 # --------------
 
 STAMP=$(date +%Y%m%d_%H%M%S)
@@ -183,8 +189,10 @@ multi_judge() {
     log "SKIP multi-judge ${label}: no results at $outdir"
     return 1
   fi
-  log "=== ${label}: multi-judge ==="
-  uv run python tools/eval_multi_judge.py "$outdir/" --audio "$AUDIO" >>"$MLOG" 2>&1 \
+  log "=== ${label}: multi-judge (${JUDGE_PROFILES[*]}) ==="
+  uv run python tools/eval_multi_judge.py "$outdir/" \
+    --judge-profiles "${JUDGE_PROFILES[@]}" \
+    --audio "$AUDIO" >>"$MLOG" 2>&1 \
     || log "WARN ${label}: multi-judge command returned nonzero"
   if [ -f "$outdir/judge_report_multi.txt" ]; then
     log "${label}: multi-judge done -> $outdir/judge_report_multi.txt"
