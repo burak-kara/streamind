@@ -1,0 +1,28 @@
+{
+  "from": 3000.0,
+  "to": 3300.0,
+  "summary": "The speakers discuss John James, a West Point graduate and former Apache pilot running against Debbie Stabenow in Michigan, while also reflecting on their military service, including combat experiences in Iraq and Afghanistan and the adrenaline of CQB operations. They touch upon political stumping for veterans through a super PAC, personal hunting stories involving elk and deer, and anecdotes about a comrade named Andy who was killed by Al-Qaeda.",
+  "keywords": [
+    "John James",
+    "veterans",
+    "combat"
+  ],
+  "proc_time": 1.1068251132965088,
+  "B_breakdown": {
+    "factual_consistency": 3,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 4,
+    "conciseness": 3
+  },
+  "B": 18,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.749842920980649,
+  "C": 29.749842920980647,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
