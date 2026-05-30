@@ -1,11 +1,11 @@
 {
   "from": 2100.0,
-  "to": 2181.0,
-  "summary": "The host announces that the upcoming episode schedule may be delayed by one week before returning to the planned timeline. They offer exclusive podcast consulting services for 2019, focusing on strategy, social media optimization, and hashtag planning. This availability is limited to the current season as the host plans to secure a full-time job in the winter and spring.",
+  "to": 2400.0,
+  "summary": "The speakers discuss the intense camaraderie and lethal realities of special operations, citing specific missions including the Bin Laden raid and the Phillips raid where they faced ambushes and made split-second decisions. A significant portion of the conversation focuses on the post-9/11 generation joining the military, often driven by the desire to eliminate those responsible for the attacks, while also addressing controversies regarding the disposal of Osama bin Laden's body to prevent it from becoming a shrine. The dialogue concludes with reflections on how the geopolitical landscape shifted after 9/11, moving operations from party-friendly locations in Europe to harsher environments in the mountains and deserts.",
   "keywords": [
-    "Podcast Consulting",
-    "2019 Strategy",
-    "Social Media"
+    "Bin Laden raid",
+    "9-11 generation",
+    "Phillips raid"
   ],
-  "proc_time": 1.9391107559204102
+  "proc_time": 3.5510470867156982
 }
