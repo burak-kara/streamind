@@ -86,7 +86,7 @@ models/               # LLM weights (gitignored) — populated by tools/fetch_mo
 tools/
   fetch_models.sh     # Dev helper: download an HF model into ./models/<name>
   assemble_config.py  # Merges base + summarizer profile into a complete config
-  run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <s> --summarizer <profile>
+  run_pipeline.sh     # Launcher: ./run_pipeline.sh --window <s> --profile <name>
   eval_quality.py     # Offline judge harness — uses vLLM, runs after pipeline exits
   send_audio.py       # Inject a WAV file through Janus for local testing
   finetune/           # QLoRA data prep + training on rev16 — PARKED until M4 (Ollama refs remain)
@@ -113,7 +113,7 @@ uv sync --extra dev && .venv/bin/pytest tests/
 ssh uni-lab && cd ~/Desktop/streamind && git pull && uv sync --extra dev
 ./tools/fetch_models.sh <hf_id> <local_name>   # once, idempotent
 docker compose up -d janus                      # first run builds image (~15 min)
-./tools/run_pipeline.sh -s vllm-<local_name>    # then feed audio from a 2nd session:
+./tools/run_pipeline.sh -p vllm-<local_name>    # then feed audio from a 2nd session:
 uv run python tools/send_audio.py 'datasets/rev16/<episode>/audio.opus'
 
 # Score after the pipeline exits (cross-family panel, sequential, VRAM-safe)

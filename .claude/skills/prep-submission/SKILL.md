@@ -15,7 +15,7 @@ Active summarizer profile and model are committed in `pipelines/summarizer/vllm-
    `ssh uni-lab "cd ~/Desktop/streamind && nvidia-smi && uv run python -c 'from vllm import LLM, SamplingParams; print(LLM.__module__)'"`
 6. Ensure weights present: `ssh uni-lab "cd ~/Desktop/streamind && ls ./models/<name>/config.json"` — if missing, run `./tools/fetch_models.sh <hf_id> <name>`.
 7. 30 s smoke test (audio_rtp via Janus, NOT audio_file):
-   `ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-<name>"`
+   `ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -w 30 -p vllm-<name>"`
    In parallel: `ssh uni-lab "cd ~/Desktop/streamind && uv run python tools/send_audio.py 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting_ft_@Favyfav_of_@latinoswholunch/audio.opus'"`
 8. Pull results: `rsync -av uni-lab:~/Desktop/streamind/results/ ./results/`
 9. Validate output JSON: keys MUST be exactly `from`, `to`, `summary`, `keywords` (length 3), `proc_time` — no extras.
