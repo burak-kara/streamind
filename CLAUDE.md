@@ -117,7 +117,7 @@ docker compose up -d janus                      # first run builds image (~15 mi
 uv run python tools/send_audio.py 'datasets/rev16/<episode>/audio.opus'
 
 # Score after the pipeline exits (cross-family panel, sequential, VRAM-safe)
-uv run python tools/eval_multi_judge.py results/<local_name>/300/ \
+uv run python tools/eval_multi_judge.py results/<stamp>/<local_name>/300/ \
   --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
   --audio 'datasets/rev16/<episode>/audio.opus'
 ```
