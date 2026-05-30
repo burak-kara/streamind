@@ -1,0 +1,31 @@
+{
+  "from": 4500.0,
+  "to": 4509.0,
+  "summary": "The meeting discussed dinner arrangements for Rob O'Neill and Jared Taylor, with the group agreeing to have dinner on Rob.",
+  "keywords": [
+    "dinner",
+    "Rob O'Neill",
+    "Jared Taylor"
+  ],
+  "proc_time": 0.48716115951538086,
+  "B_breakdown": {
+    "factual_consistency": 2,
+    "relevance": 2,
+    "coherence": 3,
+    "fluency": 4,
+    "conciseness": 3
+  },
+  "B": 14,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.838163137588703,
+  "C": 27.8381631375887,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 1.04,
+  "asr_transcript": "Looks like everything's on Rob. Let's get out of here. For Rob O'Neill, Jared Taylor. I'm Neil, Jared Taylor, Matt Best. I'm Ross Patterson. Good night, everyone. Dinner's on Rock!",
+  "reference_slice": " to dinner tonight. It looks so looks like everything's on Rob lets get out of here for Rob O'Neil that's Taylor Patterson. Good night everyone. "
+}

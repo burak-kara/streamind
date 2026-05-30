@@ -1,0 +1,11 @@
+{
+  "from": 4396.0,
+  "to": 4696.0,
+  "summary": "The meeting focused on analyzing multicast technologies for AI inference services in GPU clouds, specifically evaluating PMAS, SRP2MP, and Beer mechanisms against requirements for synchronization, reduced I/O bottlenecks, and cross-region operation. Jian Zhang from China Mobile presented new draft requirements and gap analysis regarding multi-cast use cases in AI data centers.",
+  "keywords": [
+    "multicast",
+    "GPU clouds",
+    "AI inference"
+  ],
+  "proc_time": 0.9074749946594238
+}

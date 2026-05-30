@@ -1,0 +1,28 @@
+{
+  "from": 6196.0,
+  "to": 6496.0,
+  "summary": "The meeting concluded with the presentation of a concession notification message format designed to include flags for priority, pause time, and slice ID to manage SRv6 congestion control. Addressed a question regarding potential load increases if multiple downstream nodes sent simultaneous notifications, which was clarified by the presenter stating that the current architecture ensures only one downstream node sends a notification to a specific upstream node.",
+  "keywords": [
+    "SRv6",
+    "congestion control",
+    "notification message"
+  ],
+  "proc_time": 0.9824569225311279,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.118742684621439,
+  "C": 35.11874268462144,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

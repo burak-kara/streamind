@@ -1,0 +1,28 @@
+{
+  "from": 796.0,
+  "to": 1096.0,
+  "summary": "The speaker, Jidong from Huawei, presented an update on the first network notification problem statement document intended to support the incubation of the Fast Network Notification of College Fun (Fan) working group. Since the last IETF presentation, the draft has been revised to incorporate feedback by adding a new co-author, narrowing the scope to fast network notification, enhancing sections on wide fast identification and security considerations, and creating a GitHub repository for collaboration.",
+  "keywords": [
+    "Fast Network Notification",
+    "Fan",
+    "Jidong"
+  ],
+  "proc_time": 1.161489725112915,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.594814745196382,
+  "C": 34.59481474519638,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

@@ -1,0 +1,11 @@
+{
+  "from": 5596.0,
+  "to": 5896.0,
+  "summary": "The speaker proposes a control plane independent Staff algorithm utilizing Counter First and Network First policies to improve scalability on tower rings compared to existing FRM exams. Simulation and hardware experiments on a 16x16 tower ring and a five-loader ring demonstrate that the proposed Staff method reduces packet loss rates by 16.5% under link faults and 11.2% under no fault conditions while achieving lower peak congestion.",
+  "keywords": [
+    "Staff",
+    "Counter First",
+    "Network First"
+  ],
+  "proc_time": 1.068244457244873
+}
