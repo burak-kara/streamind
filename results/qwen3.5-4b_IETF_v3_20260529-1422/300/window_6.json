@@ -1,0 +1,11 @@
+{
+  "from": 1696.0,
+  "to": 1996.0,
+  "summary": "The speaker proposes a framework with four enhancements to improve convergence in machine learning fabrics: hardware-accelerated protection activation using extended MPU/NPU capabilities, hardware-based network notification, complete topology visibility achieved by modifying BGP to exchange link-state information instead of relying on distance-vector routing, and quality-aware remote protection for detailed failure notifications. The presentation emphasizes that while IGP-based networks naturally provide full topology visibility, BGP-based AI datacenter networks require this modification to enable loop-free alternative path calculations during failures.",
+  "keywords": [
+    "BGP",
+    "topology visibility",
+    "hardware acceleration"
+  ],
+  "proc_time": 1.24161696434021
+}

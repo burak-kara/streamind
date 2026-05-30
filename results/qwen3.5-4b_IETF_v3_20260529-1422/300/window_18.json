@@ -1,0 +1,11 @@
+{
+  "from": 5296.0,
+  "to": 5596.0,
+  "summary": "The speaker from Xi Dian University presented research on using FastReboot for Network Reconfiguration to mitigate microloops caused by link failures in satellite networks. Addressing challenges in space-based topologies like the Worker Data and Tourist Data constellations, the proposal introduces an R-step mechanism that enables packets to detour through alternative nodes when a link error occurs, thereby preventing congestion and repair starvation.",
+  "keywords": [
+    "FastReboot",
+    "microloops",
+    "satellite networks"
+  ],
+  "proc_time": 1.0357725620269775
+}

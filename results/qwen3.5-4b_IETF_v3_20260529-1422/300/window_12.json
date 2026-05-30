@@ -1,0 +1,11 @@
+{
+  "from": 3496.0,
+  "to": 3796.0,
+  "summary": "Han Zhengxin from China Unicom presented their work on Fine Green Flow Control (FGFC), a proposed Layer 3 congestion control mechanism designed to enhance PFC for IP-based networks. FGFC addresses limitations of current Layer 2 mechanisms like head-of-line blocking and congestion spreading by enabling precise flow control at the packet level using traffic prediction and extending existing protocols such as ICMP and UDP.",
+  "keywords": [
+    "China Unicom",
+    "FGFC",
+    "PFC"
+  ],
+  "proc_time": 1.0071094036102295
+}

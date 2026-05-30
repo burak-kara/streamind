@@ -1,0 +1,28 @@
+{
+  "from": 2296.0,
+  "to": 2596.0,
+  "summary": "The meeting discusses the hairpin effect caused by Remote LFA in AI data centers and proposes Efficient Remote Protection to prevent traffic loops. Additionally, the group addresses limitations in handling partial failures on link bundles and highlights the necessity of fast failure notifications, such as those from FAN or FENTEL, to enable proper backup path selection.",
+  "keywords": [
+    "hairpin effect",
+    "Efficient Remote Protection",
+    "partial failures"
+  ],
+  "proc_time": 0.9339728355407715,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.268886048995284,
+  "C": 36.268886048995284,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

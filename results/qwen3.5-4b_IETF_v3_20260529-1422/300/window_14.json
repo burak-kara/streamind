@@ -1,0 +1,11 @@
+{
+  "from": 4096.0,
+  "to": 4396.0,
+  "summary": "Yi Song Liu from China Mobile presented multi-cloud use cases for LRM synchronization on BFR, addressing challenges such as high concurrency for large models up to one terabyte and code start latency caused by inefficient downloads across distributed GPU cloud platforms. The presentation highlighted scenarios where centralized model repositories replicate to distributed regions, delivering real-time inference and model optimization services while managing storage bottlenecks and delays.",
+  "keywords": [
+    "China Mobile",
+    "LRM synchronization",
+    "multi-cloud"
+  ],
+  "proc_time": 1.0244266986846924
+}
