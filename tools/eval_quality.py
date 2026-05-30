@@ -385,7 +385,7 @@ K_MAX = 6
 K_MIN = -6
 L_MAX = 10.0
 C_MAX = B_MAX + K_MAX + L_MAX
-JANUS_BONUS = 4.0  # flat +4 added to the final source score, per CHALLENGE.md
+JANUS_BONUS = _scorer.JANUS_BONUS  # flat +4, per CHALLENGE.md — defined in scorer.py
 
 
 def _build_table(scored: list[Scored], janus_bonus: bool = True) -> str:
