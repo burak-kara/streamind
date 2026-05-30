@@ -1,5 +1,7 @@
 # STREAMIND Cleanup — Native CUDA Pipeline, Base-First
 
+> **Status (2026-05-30).** M0/M1/M2 **done**. M4 finetune was **attempted, not parked** — QLoRA retargeted to vLLM, three Gemini-distillation passes; **all regressed below base** (ft 34.59 / ft-gemini 35.98 / ft-full-gemini 36.47 vs base 38+), so finetune is **dropped for submission** (research-only). M3 packaging is **deferred** until the summarizer is locked. Active front lives in [`docs/TODO.md`](../TODO.md) → "Next Steps": same-panel multi-judge bake-off `qwen3-4b-instruct-2507` (≈39.4, current leader) vs `qwen3.5-4b`, then record final B/K/L/C in `docs/APPROACH.md`. Sections below are the original M0/M1 spec, kept as historical record; the "Model identity" and "M4 parked" notes are superseded by this banner.
+
 ## Context
 
 Project pivoted: development moved to `uni-lab` (RTX 4090, CUDA 12.4); submission target is RTX Pro 4500 (single GPU, Blackwell, 32 GB GDDR7). Drop all middleware — no Ollama daemon, no MLX. Replace with **vLLM in-process** (`from vllm import LLM`) so summarizer runs natively in the pipeline Python process. Submission must be portable, self-contained, real-time. **Model weights ship with the submission** (baked into Docker image); pipeline code never downloads at runtime.
@@ -267,7 +269,7 @@ Offline judge WER averaged 0.93 on the 30 s run; windows 19 and 34 reported WER 
 Last window `to` was 1050 s while the audio fixture is 2183.6 s. Either `send_audio.py` lost the WebRTC connection mid-stream, Janus killed the session despite our keepalive, or the pipeline exited before audio finished.
 
 **Debug:**
-1. Re-run the 30 s smoke with full stdout+stderr capture: `./tools/run_pipeline.sh -w 30 -s vllm-qwen3.5-4b 2>&1 | tee tmp/pipeline.log` and `uv run python tools/send_audio.py … 2>&1 | tee tmp/send_audio.log`.
+1. Re-run the 30 s smoke with full stdout+stderr capture: `./tools/run_pipeline.sh -w 30 -p vllm-qwen3.5-4b 2>&1 | tee tmp/pipeline.log` and `uv run python tools/send_audio.py … 2>&1 | tee tmp/send_audio.log`.
 2. Grep both logs for `ICE`, `connection`, `closed`, `disconnect`, `destroy`, `unpublish`. Janus container logs too (`docker logs janus`).
 3. Compare `total_duration` value send_audio printed against the last window `to` — confirms whether send_audio finished its `asyncio.sleep(duration)` loop or aborted early.
 
@@ -311,7 +313,7 @@ Run on `uni-lab` (RTX 4090, CUDA 12.4):
 5. **30 s smoke pipeline:**
 
    ```bash
-   ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -w 30 -s vllm-qwen3.5-4b"
+   ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -w 30 -p vllm-qwen3.5-4b"
    # in parallel: uv run python tools/send_audio.py tests/fixtures/youtube_15min.wav
    ```
 
@@ -319,7 +321,7 @@ Run on `uni-lab` (RTX 4090, CUDA 12.4):
 6. **30 min window + offline judge** (requires 30+ min fixture — see open item 3):
 
    ```bash
-   ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -s vllm-qwen3.5-4b"
+   ssh uni-lab "cd ~/Desktop/streamind && ./tools/run_pipeline.sh -p vllm-qwen3.5-4b"
    # after pipeline exits:
    ssh uni-lab "cd ~/Desktop/streamind && uv run python tools/eval_quality.py results/<local_name>/300/"
    ```

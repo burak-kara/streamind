@@ -57,19 +57,19 @@ for local dev run the pipeline natively (§3) instead, and only start `janus`.
 ## 2. Run the pipeline
 
 ```bash
-./tools/run_pipeline.sh -s <summarizer_profile>          # 300s window (default)
-./tools/run_pipeline.sh -w 30 -s <summarizer_profile>    # short 30s window
-./tools/run_pipeline.sh -s <profile> -a small.en         # ASR override (A/B)
+./tools/run_pipeline.sh -p <summarizer_profile>          # 300s window (default)
+./tools/run_pipeline.sh -w 30 -p <summarizer_profile>    # short 30s window
+./tools/run_pipeline.sh -p <profile> -a small.en         # ASR override (A/B)
 
 # e.g.
-./tools/run_pipeline.sh -s vllm-qwen3.5-9b -a small.en
+./tools/run_pipeline.sh -p vllm-qwen3.5-9b -a small.en
 ```
 
 Flags (`tools/run_pipeline.sh`):
 
 | Flag | Meaning | Default |
 | ---- | ------- | ------- |
-| `-s, --summarizer <profile>` | profile under `pipelines/summarizer/<profile>.json` | **required** |
+| `-p, --profile <name>` | summarizer profile under `pipelines/summarizer/<name>.json` | **required** |
 | `-w, --window <seconds>` | rolling window duration | `300` |
 | `-a, --asr <model>` | override ASR `model_name` (e.g. `small.en`, `large-v3-turbo`) | config-base value |
 | `-h, --help` | usage | — |
@@ -179,6 +179,29 @@ Outputs next to the results:
 
 Qwen judges are excluded — Qwen is the summarizer family, so a Qwen judge would
 self-bias. Current panel: Mistral-Small-24B-AWQ, Phi-4-AWQ, Gemma-3-27B-it-int4-AWQ.
+
+### 4c. Summarizer comparison (unattended bake-off, multi-judge)
+
+`tools/compare_summarizers.sh` chains steps 2–4b for a list of summarizers on one
+audio file: assemble → stream → auto-stop → multi-judge → leaderboard. Judges are
+**fixed** to the panel above; summarizers are the iterated argument. Safe to leave
+running overnight.
+
+```bash
+# bake-off two summarizers on one episode at the 300 s submission window
+./tools/compare_summarizers.sh \
+  --audio 'datasets/rev16/26_Episode_338_-_Special_Guest_Rob_O'\''Neill:_The_Man_Who_Killed_Osama_Bin_Laden/audio.opus' \
+  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+```
+
+Flags: `--audio <file>` (required), `--profiles <p...>` (required, iterated),
+`-w|--window <sec>` (default 300), `-r|--runs <n>` (default 1),
+`-b|--timeout-buffer <sec>` (default 180), `-c|--min-coverage <frac>` (default
+0.85, abort if first run truncates). Preflight verifies audio + GPU + every
+summarizer and judge model dir before any multi-hour run. Outputs:
+`results/compare_<audio>_<stamp>.{txt,log}` (leaderboard + master log) and one
+labelled `results/<model>/<window>_<audio>_run<N>/` per run with its
+`judge_report_multi.txt`.
 
 ---
 
