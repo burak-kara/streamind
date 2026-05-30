@@ -1,0 +1,28 @@
+{
+  "from": 1996.0,
+  "to": 2296.0,
+  "summary": "Fran\u00e7ois Claude from Cisco presented the Efficient Remote Protection Draft, highlighting that current IP Fast Remote technologies are limited to local-only protection where only the node adjacent to a failure detects and reacts, necessitating new solutions for AI data center workloads.",
+  "keywords": [
+    "Efficient Remote Protection",
+    "Cisco",
+    "AI data center"
+  ],
+  "proc_time": 0.7508351802825928,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.870023334808665,
+  "C": 37.870023334808664,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
