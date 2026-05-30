@@ -28,6 +28,7 @@ Outputs (next to the source results):
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import subprocess
 import sys
@@ -36,9 +37,19 @@ from statistics import mean, pstdev
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# Mirror eval_quality.py's scoring contract so the combined report's final
-# source score matches the per-judge reports.
-JANUS_BONUS = 4.0
+# Load the shared scoring contract (same importlib pattern as eval_quality.py;
+# plugins/ is not an importable package). JANUS_BONUS lives there so the
+# combined report's final source score cannot drift from the per-judge reports.
+_scorer_spec = importlib.util.spec_from_file_location(
+    "judge_scorer",
+    _REPO_ROOT / "plugins" / "nodes" / "sink" / "_judge_common" / "scorer.py",
+)
+_scorer = importlib.util.module_from_spec(_scorer_spec)
+assert _scorer_spec.loader is not None
+sys.modules["judge_scorer"] = _scorer
+_scorer_spec.loader.exec_module(_scorer)
+
+JANUS_BONUS = _scorer.JANUS_BONUS
 
 
 def aggregate_scores(

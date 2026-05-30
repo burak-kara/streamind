@@ -1,8 +1,8 @@
-"""Shared LLM-as-judge scoring used by `judge_llm` node and `eval_quality` script.
+"""Shared LLM-as-judge scoring used by the offline eval tools.
 
-Single source of truth for the judge prompt, the response parser, and the
-B/K/L/C math defined by the challenge. Keeping these together prevents the
-in-pipeline node and the offline harness from drifting.
+Single source of truth for the judge prompt, the response parser, the B/K/L/C
+math defined by the challenge, and the Janus bonus. Keeping these together
+prevents `tools/eval_quality.py` and `tools/eval_multi_judge.py` from drifting.
 """
 
 from __future__ import annotations
@@ -11,6 +11,12 @@ import json
 import math
 import re
 from dataclasses import dataclass, asdict
+
+
+# Flat +4 added to the final source score for using Janus as the audio source
+# (per CHALLENGE.md). Part of the scoring contract — kept here so both offline
+# eval tools read one value.
+JANUS_BONUS = 4.0
 
 
 LIKERT_CRITERIA = (
