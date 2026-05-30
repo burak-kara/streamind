@@ -55,6 +55,14 @@ require_model() {
 #     default loader path. Without this, ASR fails to load at warmup.
 prep_runtime_env() {
   export VLLM_USE_FLASHINFER_SAMPLER=0
+  # Force vLLM's EngineCore worker to start via 'spawn', not 'fork'. The Whisper
+  # transcriber (CTranslate2 backend) warms up first and opens a CUDA context in
+  # the parent process — but via its own runtime, so torch.cuda.is_initialized()
+  # stays False and vLLM may pick 'fork'. A forked EngineCore inherits that live
+  # CUDA context and dies at init_device ("CUDA driver initialization failed").
+  # 'spawn' starts a clean interpreter with no inherited CUDA state. Text-only
+  # summarizers hit this; multimodal ones happened to spawn already, masking it.
+  export VLLM_WORKER_MULTIPROC_METHOD=spawn
   local cublas_dir
   cublas_dir=$(uv run python -c "
 import importlib.util, pathlib
