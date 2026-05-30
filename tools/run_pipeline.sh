@@ -107,4 +107,25 @@ if [[ -n "${ASR}" ]]; then
   echo "ASR:        ${ASR}  (override)"
 fi
 echo ""
-uv run python -m juturna launch --config "$ASSEMBLED"
+
+# Launch in its own process group so Ctrl-C / kill tears down the whole tree
+# (uv -> python -> vLLM EngineCore worker) and reclaims VRAM. Killing just the
+# top pid orphans the workers, which keep holding GPU memory. Negative pid in
+# kill(1) = process group.
+LAUNCH_PGID=""
+teardown() {
+  [ -n "$LAUNCH_PGID" ] || return 0
+  local pgid="$LAUNCH_PGID"; LAUNCH_PGID=""
+  kill -TERM -"$pgid" 2>/dev/null || return 0
+  for _ in $(seq 1 15); do kill -0 -"$pgid" 2>/dev/null || return 0; sleep 1; done
+  kill -KILL -"$pgid" 2>/dev/null
+}
+trap 'teardown' EXIT
+trap 'teardown; exit 130' INT TERM
+
+set -m
+uv run python -m juturna launch --config "$ASSEMBLED" &
+LAUNCH_PGID=$!
+set +m
+wait "$LAUNCH_PGID"
+LAUNCH_PGID=""

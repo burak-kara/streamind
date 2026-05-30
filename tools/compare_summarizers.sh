@@ -97,6 +97,28 @@ MLOG="results/compare_${GSTAMP}.log"
 log()  { echo "[$(date '+%F %T')] $*" | tee -a "$MLOG" >&2; }
 die()  { log "FATAL: $*"; exit 1; }
 
+# --- pipeline process-group teardown ---
+# A juturna launch is a tree: uv -> python -> vLLM EngineCore worker(s). Killing
+# only the top pid (uv) leaves the python + vLLM workers orphaned (reparented to
+# init), still holding VRAM — `ps` shows nothing, yet `nvidia-smi` reports memory
+# used. So we start each launch in its OWN process group (set -m makes the '&'
+# job a group leader: PGID == its pid) and signal the WHOLE group on stop /
+# Ctrl-C / any exit. Negative pid = process group in kill(1).
+PIPE_PID=""   # PGID of the running launch; empty when none in flight
+
+stop_pipeline() {
+  [ -n "$PIPE_PID" ] || return 0
+  local pgid="$PIPE_PID"; PIPE_PID=""
+  kill -TERM -"$pgid" 2>/dev/null || return 0   # group already gone
+  for _ in $(seq 1 15); do kill -0 -"$pgid" 2>/dev/null || return 0; sleep 1; done
+  log "pipeline group $pgid ignored TERM — sending KILL"
+  kill -KILL -"$pgid" 2>/dev/null
+}
+
+# EXIT covers normal end + die(); INT/TERM cover Ctrl-C / kill of the script.
+trap 'stop_pipeline' EXIT
+trap 'stop_pipeline; exit 130' INT TERM
+
 # --- preflight (fail fast before any multi-hour run) ---
 # Audio-independent checks run once; weights/GPU don't change between audios.
 command -v ffprobe >/dev/null || die "ffprobe not found (need ffmpeg)"
@@ -146,8 +168,12 @@ wait_gpu_free() {
 # Run one pipeline; echoes the final result dir on success, nothing on failure.
 run_pipeline() {
   local profile="$1" run="$2" model_dir="$3"
-  # Pipeline always writes to this fixed dir (model + window, not run-aware).
-  local src="results/${model_dir}/${WINDOW}"
+  # Steer the transmitter into a per-run staging dir UNDER this audio's tree (it
+  # appends <model_dir>/<window> itself), so nothing is ever written to the repo
+  # root results/<model>/<window>. Cleaner than the old shared-path + mv, and a
+  # killed run can't strand windows at the root.
+  local stage="${COMPARE_DIR}/.stage/${profile}-run${run}"
+  local produced="${stage}/${model_dir}/${WINDOW}"
   # Structured destination: <audio_label>/<stamp>/<model>/<window>/run<K>. The
   # run index K is per-model (assigned by the caller), so two profiles sharing
   # one model_dir — same weights, different prompt — land in run1, run2 and never
@@ -157,30 +183,42 @@ run_pipeline() {
   local plog="${COMPARE_DIR}/logs/${profile}_run${run}.pipelog"
 
   log "=== ${profile} run ${run}: pipeline ==="
-  uv run python tools/assemble_config.py "$WINDOW" "$profile" "$assem" >>"$MLOG" 2>&1 \
+  uv run python tools/assemble_config.py "$WINDOW" "$profile" "$assem" \
+    --results-dir "$stage" >>"$MLOG" 2>&1 \
     || { log "ERROR assemble_config failed for $profile"; return 1; }
-  rm -rf "$src"; : > "$plog"
+  rm -rf "$stage"; : > "$plog"
 
+  # Launch in its own process group (PGID == pid) so stop_pipeline can tear down
+  # the whole uv -> python -> vLLM tree and reclaim VRAM. set -m flips on job
+  # control just for this fork; we flip it back to avoid the [1]+ Done spam.
+  set -m
   uv run python -m juturna launch -c "$assem" --auto --timeout "$TIMEOUT" > "$plog" 2>&1 &
   local pid=$!
+  set +m
+  PIPE_PID=$pid
 
   # wait for warmup -> "pipe started" (8 min cap), bail if juturna dies
   local started=0
   for _ in $(seq 1 480); do
     grep -q "pipe started" "$plog" && { started=1; break; }
-    kill -0 "$pid" 2>/dev/null || { log "ERROR juturna died in warmup ($profile) — see $plog"; return 1; }
+    kill -0 "$pid" 2>/dev/null || { log "ERROR juturna died in warmup ($profile) — see $plog"; stop_pipeline; return 1; }
     sleep 1
   done
-  [ "$started" -eq 1 ] || { log "ERROR ${profile}: no 'pipe started' in 8 min"; kill "$pid" 2>/dev/null; return 1; }
+  [ "$started" -eq 1 ] || { log "ERROR ${profile}: no 'pipe started' in 8 min"; stop_pipeline; return 1; }
   sleep 3
 
   log "${profile}: streaming ~${DUR}s real-time"
   uv run python tools/send_audio.py "$AUDIO" >>"$plog" 2>&1 || log "WARN send_audio nonzero ($profile)"
   log "${profile}: stream done — waiting for auto-stop"
   wait "$pid" 2>/dev/null
+  # Even on a clean auto-stop, vLLM's in-process unload is leaky — an EngineCore
+  # worker can linger in the group, holding the CUDA context. The NEXT model then
+  # dies at init_device ("CUDA driver initialization failed"). Sweep the whole
+  # group so each model starts on a truly clean GPU (no-op if already gone).
+  stop_pipeline
 
-  [ -d "$src" ] || { log "ERROR ${profile}: no results at $src"; return 1; }
-  mkdir -p "$(dirname "$dst")"; rm -rf "$dst"; mv "$src" "$dst"
+  [ -d "$produced" ] || { log "ERROR ${profile}: no results at $produced"; rm -rf "$stage"; return 1; }
+  mkdir -p "$(dirname "$dst")"; rm -rf "$dst"; mv "$produced" "$dst"; rm -rf "$stage"
   echo "$dst"
 }
 

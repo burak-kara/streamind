@@ -194,7 +194,13 @@ Safe to leave running overnight.
 ```bash
 # bake-off two summarizers on one episode at the 300 s submission window
 ./tools/compare_summarizers.sh \
-  --audios 'datasets/rev16/26_Episode_338_-_Special_Guest_Rob_O'\''Neill:_The_Man_Who_Killed_Osama_Bin_Laden/audio.opus' \
+  --audios 'datasets/rev16/26_Episode_338_Special_Guest_Rob_O'Neill/audio.opus' \
+  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+
+
+./tools/compare_summarizers.sh \
+  --runs 3 \
+  --audios 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting/audio.opus' 'datasets/rev16/11_Podcast_Tips_From_Berry/audio.opus' 'datasets/rev16/27_What_We_Own_is_Sacred_Because_We_Are_Sacred/audio.opus' \
   --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
 
 # same profiles across every rev16 episode in one unattended run
@@ -224,7 +230,44 @@ results/<audio_label>/<stamp>/
 
 The `run<K>` index is **per-model**, so two profiles sharing one model dir —
 same weights, different prompt — land in `run1`, `run2` and never collide. The
-leaderboard records which profile produced each `run<K>`.
+leaderboard records which profile produced each `run<K>`. Windows are written
+straight into a per-run staging dir under the stamp root (`.stage/`) and moved
+into place — nothing is ever written to the repo-root `results/<model>/`.
+
+#### Run unattended over SSH (tmux)
+
+A multi-audio bake-off runs for hours. Run it inside **tmux** so an SSH drop
+doesn't kill it (a bare `./tools/... &` dies with the login shell's SIGHUP).
+
+```bash
+ssh uni-lab
+tmux new -s bakeoff                       # fresh session (or: tmux attach -t bakeoff)
+cd ~/Desktop/streamind
+./tools/compare_summarizers.sh --runs 3 \
+  --audios datasets/rev16/*/audio.opus \
+  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+```
+
+Detach (leaves it running): prefix `Ctrl-b` **then** `d`. Reattach later:
+`tmux attach -t bakeoff`. List sessions: `tmux ls`.
+
+If `Ctrl-b d` does nothing, the prefix is remapped or the keys aren't reaching
+tmux. Workarounds, in order:
+
+- Detach by command instead of keybinding — from any pane: `tmux detach`
+  (or run `tmux detach-client -s bakeoff` from a second SSH session).
+- Check the prefix: `tmux show-options -g prefix`. If it's e.g. `C-a`, use
+  `Ctrl-a d`.
+- Nested tmux (local + remote tmux): press the prefix **twice** to reach the
+  inner session — `Ctrl-b Ctrl-b d`.
+- No tmux at all — `nohup ./tools/compare_summarizers.sh … >/dev/null 2>&1 &
+  disown`; the script's own `run.log` is the live progress (`tail -f`).
+
+**Termination is clean.** Ctrl-C in the attached session, `tmux kill-session`,
+or any script exit tears down the whole pipeline process group
+(`uv → python → vLLM`), so VRAM is released. If a run is ever interrupted by a
+hard `kill -9` of the script (which skips the trap), reclaim VRAM by hand:
+`nvidia-smi` to find the leftover python PID, then `kill <pid>`.
 
 ---
 
