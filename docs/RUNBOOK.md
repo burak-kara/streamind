@@ -186,23 +186,29 @@ self-bias. Current panel: Mistral-Small-24B-AWQ, Phi-4-AWQ, Gemma-3-27B-it-int4-
 
 ### 4c. Summarizer comparison (unattended bake-off, multi-judge)
 
-`tools/compare_summarizers.sh` chains steps 2–4b for a list of summarizers on one
-audio file: assemble → stream → auto-stop → multi-judge → leaderboard. Judges are
-**fixed** to the panel above; summarizers are the iterated argument. Safe to leave
-running overnight.
+`tools/compare_summarizers.sh` chains steps 2–4b for every (audio × summarizer)
+pair: assemble → stream → auto-stop → multi-judge → leaderboard. Judges are
+**fixed** to the panel above; summarizers and audios are the iterated arguments.
+Safe to leave running overnight.
 
 ```bash
 # bake-off two summarizers on one episode at the 300 s submission window
 ./tools/compare_summarizers.sh \
-  --audio 'datasets/rev16/26_Episode_338_-_Special_Guest_Rob_O'\''Neill:_The_Man_Who_Killed_Osama_Bin_Laden/audio.opus' \
+  --audios 'datasets/rev16/26_Episode_338_-_Special_Guest_Rob_O'\''Neill:_The_Man_Who_Killed_Osama_Bin_Laden/audio.opus' \
+  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+
+# same profiles across every rev16 episode in one unattended run
+./tools/compare_summarizers.sh \
+  --audios datasets/rev16/*/audio.opus \
   --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
 ```
 
-Flags: `--audio <file>` (required), `--profiles <p...>` (required, iterated),
+Flags: `--audios <a...>` (required, iterated — each audio gets its own results
+tree + leaderboard), `--profiles <p...>` (required, iterated),
 `-w|--window <sec>` (default 300), `-r|--runs <n>` (default 1),
 `-b|--timeout-buffer <sec>` (default 180), `-c|--min-coverage <frac>` (default
-0.85, abort if first run truncates). Preflight verifies audio + GPU + every
-summarizer and judge model dir before any multi-hour run.
+0.85, abort if first run truncates). Preflight verifies every audio + GPU + every
+summarizer and judge model dir once, before any multi-hour run.
 
 All artifacts land under one per-invocation root
 `results/<audio_label>/<stamp>/` (audio_label = parent-dir + filename slug,
