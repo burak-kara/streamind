@@ -1,0 +1,28 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The speaker recounts the tactical execution of the raid on Osama bin Laden, describing how SEALs approached the compound, identified the target among the family members, and engaged in close-quarters combat. After killing bin Laden, the speaker reflects on the emotional impact of witnessing his death and the subsequent relief when his sons arrived, while also expressing gratitude to Captain Phillips for his heroic actions during the Maersk Alabama incident.",
+  "keywords": [
+    "Bin Laden",
+    "SEALs",
+    "Osama"
+  ],
+  "proc_time": 1.0987980365753174,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 3
+  },
+  "B": 20,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.7729665087742275,
+  "C": 31.77296650877423,
+  "judge_model": "./models/mistral-small-24b-awq"
+}

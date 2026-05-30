@@ -1,0 +1,28 @@
+{
+  "from": 4200.0,
+  "to": 4485.0,
+  "summary": "The group discusses maintaining high morale among corporate sponsors through authentic storytelling rather than emotional platitudes, specifically highlighting the contrast between dramatic training anecdotes and serious mission details. They debate the feasibility of convincing actor Tyler Gray to write a book about his role as a Navy SEAL on TV, with plans to include a foreword by Rob O'Neill. The conversation concludes with Rob O'Neill being named the 'Drinking Bro of the Century,' receiving a Brosman trophy, and announcing his upcoming speaking tour and merchandise launch.",
+  "keywords": [
+    "Tyler Gray",
+    "Rob O'Neill",
+    "Brosman"
+  ],
+  "proc_time": 1.301171064376831,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.217401916285925,
+  "C": 33.21740191628592,
+  "judge_model": "./models/mistral-small-24b-awq"
+}
