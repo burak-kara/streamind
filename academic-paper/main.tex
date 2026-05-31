@@ -88,7 +88,7 @@ In streaming mode, audio is chunked into short overlapping segments and transcri
 
 Small instruction-tuned \glspl{llm} can produce structured JSON outputs (summaries and keywords) in a single inference call~\cite{qwen3}.
 vLLM~\cite{vllm} provides efficient \gls{gpu} inference through paged attention and continuous batching, enabling in-process model loading without daemon overhead.
-For evaluation, \gls{llm}-as-judge methods~\cite{geval} score generated summaries against source transcripts on multiple quality dimensions.
+For evaluation, \gls{llm}-as-judge methods~\cite{geval} score generated summaries against source transcripts on multiple quality dimensions; using a panel of judges from distinct model families mitigates the single-model bias inherent to any one judge.
 We position STREAMIND as a \emph{systems} contribution that composes these building blocks into a scoring-formula-aware pipeline, rather than proposing new models or training procedures.
 
 % =====================================================================
@@ -99,14 +99,14 @@ We position STREAMIND as a \emph{systems} contribution that composes these build
 Seven Juturna nodes process audio from \gls{rtp} ingestion through structured output transmission.
 Every component is justified against one or more terms of the scoring formula $C_i = B_i + K_i + L_i$: audio reception secures the $+4$ Janus bonus, hallucination filtering and novel extraction defend~$B_i$, the summarizer jointly optimizes~$B_i$ and~$L_i$, and keyword validation guards~$K_i$.
 
-\begin{figure*}[t]
+\begin{figure*}[htb!]
     \centering
     \input{figures/pipeline}
     \caption{End-to-end STREAMIND pipeline. Janus delivers mono Opus/\gls{rtp} into \texttt{audio\_rtp}; chunks slide every \SI{4}{\second} through \gls{asr}; deduplication and hallucination filtering precede a \SI{300}{\second} aggregation buffer; the summarizer emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
     \label{fig:pipeline}
 \end{figure*}
 
-\begin{figure}[t]
+\begin{figure}[htb!]
     \centering
     \input{figures/scoring-curve}
     \caption{Latency bonus $L_i = 10 \, e^{-0.5 \cdot t_{\text{proc}}}$, gated by $B_i \ge 10$. Below the gate, latency contributes zero; above it, returns diminish rapidly past \SI{2}{\second}.}
@@ -126,6 +126,13 @@ Using Janus in both development and evaluation ensures identical code paths and 
 The \texttt{audio\_chunker} node buffers the continuous audio stream into \SI{5}{\second} chunks with \SI{1}{\second} overlap, yielding a \SI{4}{\second} advance per step (\cref{fig:chunk-overlap}).
 Each chunk is transcribed by the \texttt{transcriber\_whisper} node running faster-whisper~\cite{faster-whisper} with int8 quantization on \gls{cpu}, reserving \gls{gpu} \gls{vram} entirely for the summarizer.
 Previous-text conditioning is disabled to prevent hallucination propagation across chunks, and \gls{vad} filtering via Silero~\cite{silero-vad} skips silence segments.
+
+\begin{figure}[htb!]
+    \centering
+    \input{figures/chunk-overlap}
+    \caption{Audio chunking and novel extraction. Five-second chunks slide by \SI{4}{\second}; the novel extractor isolates newly-spoken content each step, discarding the \SI{1}{\second} overlap with the previous chunk.}
+    \label{fig:chunk-overlap}
+\end{figure}
 
 We evaluated two model variants on \num{19} windows of a \num{36}-minute podcast episode (\cref{tab:asr-comparison}): \texttt{small.en} (\SI{244}{\M} parameters, English-only) and \texttt{large-v3-turbo} (\SI{809}{\M}, multilingual distillation of large-v3).
 Both achieve identical average \gls{wer} of \num{0.69}, yet \texttt{small.en} produces a higher composite score ($\bar{C} = 36.00$ vs.\ $35.73$) due to superior keyword stability ($\bar{K} = 4.9$ vs.\ $4.5$).
@@ -149,13 +156,6 @@ An exact match returns the overlap length immediately; a \texttt{SequenceMatcher
 Only the novel words beyond the detected overlap are emitted.
 Without this deduplication, the \SI{300}{\second} window would contain approximately \SI{20}{\percent} redundant text, wasting context budget and biasing summaries toward repeated phrases.
 
-\begin{figure}[t]
-    \centering
-    \input{figures/chunk-overlap}
-    \caption{Audio chunking and novel extraction. Five-second chunks slide by \SI{4}{\second}; the novel extractor isolates newly-spoken content each step, discarding the \SI{1}{\second} overlap with the previous chunk.}
-    \label{fig:chunk-overlap}
-\end{figure}
-
 \subsection{Window Aggregation}
 \label{sec:arch:window}
 
@@ -167,14 +167,22 @@ On pipeline shutdown, partial windows are emitted to avoid data loss at stream e
 \label{sec:arch:summ}
 
 The \texttt{summarizer\_vllm} node loads model weights from a local filesystem path at warmup using vLLM's in-process \texttt{LLM} class~\cite{vllm}\td no daemon, no middleware, no network dependency at runtime.
-We use \todo{Qwen3.5-4B (pending model sweep; may become 2B or 9B)}~\cite{qwen3} in bfloat16 precision, requiring approximately \todo{\SI{10}{\giga\byte} of \gls{vram}} with KV cache at \num{2048} context length.
+We adopt vLLM over alternatives for three reasons aligned with the scoring formula and submission constraints.
+First, its in-process library design eliminates a separate inference server (\eg an Ollama daemon): the submission Docker launches a single process with nothing to health-check or fail independently of the pipeline.
+Second, paged attention and continuous batching hold $t_{\text{proc}}$ low even at larger model sizes, which is the direct lever on $L_i = 10\,e^{-0.5 \cdot t_{\text{proc}}}$.
+Third, an explicit \texttt{gpu\_memory\_utilization} reservation lets the quantized summarizer co-reside with the resident \gls{asr} model within \gls{vram}.
+A 2026 engine survey found SGLang~\cite{sglang} (RadixAttention) roughly \SI{29}{\percent} higher throughput than vLLM as a near drop-in replacement, and TensorRT-LLM faster still at the cost of per-model ahead-of-time compilation; we retain vLLM for its broader model coverage and zero compilation, and treat SGLang as a latency lever to revisit only if $L_i$ becomes the binding constraint (\cref{sec:discussion}).
+
+We use \todo{Qwen3.5-4B (pending model sweep; may become 2B or 9B)}~\cite{qwen3} at \num{4096} context length.
+Where weight size threatens \gls{vram} co-residency with the resident \gls{asr} model, the summarizer is quantized to int4 via \gls{awq}~\cite{awq}, which roughly quarters the weight footprint relative to bfloat16 and preserves KV-cache headroom for the \SI{300}{\second} window.
+\todo{Final precision and \gls{vram} footprint pending model sweep.}
 
 The summarization prompt is designed with explicit alignment to the five Likert evaluation criteria.
-\quotes{1--2 sentences. Be concise and specific} targets \emph{conciseness} and \emph{coherence}.
+\quotes{2--3 sentences capturing the main topics and conclusions} targets \emph{conciseness} and \emph{coherence}.
 \quotes{Only state facts explicitly present in the transcript.\ Do not infer} targets \emph{factual consistency}.
-\quotes{Specific noun phrases [\ldots] Never use generic terms like \textquotesingle discussion\textquotesingle, \textquotesingle meeting\textquotesingle} targets keyword relevance~($K_i$).
+\quotes{Exactly 3 keywords [\ldots] Never use generic terms like \textquotesingle discussion\textquotesingle, \textquotesingle meeting\textquotesingle, or \textquotesingle topic\textquotesingle} targets keyword relevance~($K_i$).
 Chain-of-thought generation is suppressed (\texttt{enable\_thinking\allowbreak=False}), directly reducing output token count and thus $t_{\text{proc}}$.
-Sampling parameters are set to temperature~$0.3$, top-$p = 0.9$, repetition penalty~$1.05$, and \texttt{max\_tokens}~$= 256$.
+Sampling parameters are set to temperature~$0.15$, top-$p = 0.9$, repetition penalty~$1.05$, and \texttt{max\_tokens}~$= 384$.
 
 Two failure modes are handled without emitting an empty summary.
 When the transcript is shorter than \num{80} characters (end-of-stream fragments), the \gls{llm} is skipped.
@@ -193,7 +201,7 @@ As a last resort, conservative fallback terms are appended.
 
 This converts a potential \num{12}-point swing in $K_i$ (from $-6$ to $+6$) into a \num{6}-point swing (from $0$ to $+6$): even when the \gls{llm} produces no usable keywords, the floor is $K_i = 0$ rather than $K_i = -6$.
 
-\begin{algorithm}[t]
+\begin{algorithm}[htb!]
     \caption{Keyword guarantee: \texttt{ensure\_three\_keywords}.}
     \label{alg:keywords}
     \begin{algorithmic}[1]
@@ -233,24 +241,24 @@ Model weights for both the \gls{asr} model and the summarizer are baked into the
 A \texttt{docker-compose.yml} file orchestrates two services: Janus forwards \gls{rtp} audio to the pipeline container on \gls{udp} port~\num{8888}.
 \Cref{tab:nodes} summarizes all pipeline nodes and their key parameters.
 
-\begin{table}[t]
+\begin{table}[htb!]
     \centering
     \caption{Pipeline nodes with key parameters and scoring targets.}
     \label{tab:nodes}
     \setlength{\tabcolsep}{3pt}
     \small
-    \begin{tabularx}{0.95\columnwidth}{@{}l l l X@{}}
+    \begin{tabularx}{0.98\columnwidth}{@{}l l X l@{}}
         \toprule
-        \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}       & \textbf{Target} \\
+        \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}                         & \textbf{Target} \\
         \midrule
-        audio\_rtp       & source        & Opus/48k, port 8888           & $+4$            \\
-        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap      & ---             \\
-        transcriber      & proc          & int8, \gls{cpu}, \gls{vad} on & $B_i$           \\
-        halluc.\ filter  & proc          & 11 exact patterns             & $B_i$           \\
-        novel\_extractor & proc          & 10 words, sim $\ge 0.8$       & $B_i$           \\
-        window\_agg.     & proc          & \SI{300}{\second} rolling     & ---             \\
-        summarizer       & proc          & \todo{Qwen3.5-4B}, $T\!=\!0.3$       & $B_i, L_i$      \\
-        transmitter      & sink          & JSON + HTTP POST              & ---             \\
+        audio\_rtp       & source        & Opus/48k, port 8888                             & $+4$            \\
+        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap  & ---             \\
+        transcriber      & proc          & int8, \gls{cpu}, \gls{vad} on                   & $B_i$           \\
+        halluc.\ filter  & proc          & 11 exact patterns                               & $B_i$           \\
+        novel\_extractor & proc          & 10 words, sim $\ge 0.8$                         & $B_i$           \\
+        window\_agg.     & proc          & \SI{300}{\second} rolling                       & ---             \\
+        summarizer       & proc          & \todo{Qwen3.5-4B}, $T\!=\!0.15$, int4-\gls{awq} & $B_i, L_i$      \\
+        transmitter      & sink          & JSON + HTTP POST                                & ---             \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -263,10 +271,11 @@ A \texttt{docker-compose.yml} file orchestrates two services: Janus forwards \gl
 \label{sec:eval:setup}
 
 We evaluate on a \num{36}-minute episode from the Rev16 podcast transcription dataset~\cite{rev16}, yielding \num{19}~windows at \SI{30}{\second} duration.
-The offline judge harness uses Mistral-Small-24B-Instruct-AWQ as the \gls{llm} judge, chosen from a different model family than the Qwen summarizer to avoid self-evaluation bias.
-The judge model is loaded sequentially after the summarizer pipeline exits to avoid \gls{vram} co-residency on the \SI{24}{\giga\byte} \gls{gpu}.
-Following the G-Eval paradigm~\cite{geval}, the judge scores each summary on the five Likert criteria defined by the challenge and evaluates keyword relevance as boolean flags per keyword.
-All experiments run on an NVIDIA RTX 4090 (\SI{24}{\giga\byte}, CUDA 12.4).
+The offline judge harness uses a cross-family panel of three int4-\gls{awq} judges\td Mistral-Small-24B-Instruct, Phi-4, and Gemma-3-27B-it\td none from the Qwen family of the summarizer, avoiding self-evaluation bias.
+Each judge is loaded in its own subprocess and run sequentially after the summarizer pipeline exits; process exit reclaims \gls{vram} before the next judge loads, since the \SI{24}{\giga\byte} dev \gls{gpu} cannot hold the panel co-resident.
+Following the G-Eval paradigm~\cite{geval}, every judge scores each summary on the five Likert criteria defined by the challenge and evaluates keyword relevance as boolean flags per keyword.
+We report the per-judge composite $C_i$ alongside the panel consensus (mean and standard deviation): low dispersion corroborates a score, while high dispersion flags judge-specific bias.
+All experiments run on an NVIDIA RTX 4090 (\SI{24}{\giga\byte}, CUDA 12.4); the submission target is the larger RTX Pro 4500 (\SI{32}{\giga\byte}).
 
 \gls{wer} is measured independently using jiwer against ground-truth transcripts.
 Because the ground-truth text lacks timestamps, we employ proportional character-based alignment with a sliding-window search ($\pm\SI{30}{\percent}$ offsets) to find the best-matching reference segment for each window.
@@ -280,7 +289,7 @@ Both models achieve identical average \gls{wer} (\num{0.69}), yet \texttt{small.
 The \num{0.27}-point gap is driven by keyword stability: \texttt{small.en} achieves $\bar{K} = 4.9$ versus $4.5$, with the difference concentrated in windows where the larger model's transcriptions yield keywords rated as less relevant by the judge.
 This suggests that the summarizer's ability to extract coherent keywords depends more on vocabulary predictability than on transcription accuracy.
 
-\begin{table}[t]
+\begin{table}[htb!]
     \centering
     \caption{\gls{asr} model comparison (19 windows, \SI{30}{\second}, \todo{Qwen3.5-4B} summarizer). Higher is better for $B$, $K$, $L$, $C$; lower for $t_{\text{proc}}$ and \gls{wer}. \todo{Re-run with \SI{300}{\second} windows and final model.}}
     \label{tab:asr-comparison}
@@ -324,7 +333,7 @@ This demonstrates that per-window score variance is primarily content-driven rat
 
 \todo{Qwen3.5-2B vs.\ 4B vs.\ 9B on CUDA. Key question: does 2B drop $B_i < 10$ on any window? Requires sweep run (Experiment~2).}
 
-\begin{figure}[t]
+\begin{figure}[htb!]
     \centering
     \input{figures/model-sweep}
     \caption{Quality vs.\ latency across Qwen3.5 model sizes. Larger models trade $t_{\text{proc}}$ for marginal $B_i$ gains; the gate at $B_i \ge 10$ makes the sweet spot model-size-dependent.}
@@ -335,10 +344,10 @@ This demonstrates that per-window score variance is primarily content-driven rat
 \label{sec:eval:threats}
 
 Several limitations affect the reported numbers.
-The offline judge (Mistral-Small-24B-AWQ) is a local approximation; the official challenge judge is hidden, and our scores should be treated as directional.
+The offline judge panel (Mistral-Small-24B, Phi-4, Gemma-3-27B, all int4-\gls{awq}) is a local approximation; the official challenge judge is hidden, so our scores should be treated as directional even where the panel agrees.
 Evaluation uses a single \num{36}-minute podcast episode; the held-out evaluation audio may differ in speaker count, topic complexity, and acoustic conditions.
 \gls{wer} measurement relies on proportional character alignment against untimestamped ground truth, introducing alignment noise.
-Development hardware (RTX 4090) differs from the submission target (RTX Pro 4500), though both provide \SI{24}{\giga\byte} \gls{vram}.
+Development hardware (RTX 4090, \SI{24}{\giga\byte}) is more \gls{vram}-constrained than the submission target (RTX Pro 4500, \SI{32}{\giga\byte}); models sized to fit the dev card fit the submission card with headroom.
 
 % =====================================================================
 \section{Discussion}
@@ -350,7 +359,7 @@ This incentivizes conservative keyword strategies at the expense of topical spec
 
 The current summarization prompt is static across all windows.
 Content-adaptive prompting that detects topic transitions or speaker changes could improve~$B_i$ on difficult windows such as window~\num{7}.
-Several avenues for future work remain: mixture-of-experts models (activating \SI{3}{\B} parameters per token from \SI{30}{\B} total capacity) could offer quality closer to a large model at the decode speed of a small one; encoder-decoder summarization models could achieve sub-\SI{100}{\milli\second} inference if their summary quality clears the $B_i \ge 10$ gate; and structured-output decoding could eliminate JSON parsing failures entirely.
+Several avenues for future work remain: migrating the summarizer to SGLang~\cite{sglang}, a near drop-in replacement reported at roughly \SI{29}{\percent} higher throughput than vLLM, would lower $t_{\text{proc}}$ and lift $L_i$ at fixed $B_i$; mixture-of-experts models (activating \SI{3}{\B} parameters per token from \SI{30}{\B} total capacity) could offer quality closer to a large model at the decode speed of a small one; encoder-decoder summarization models could achieve sub-\SI{100}{\milli\second} inference if their summary quality clears the $B_i \ge 10$ gate; and structured-output decoding could eliminate JSON parsing failures entirely.
 
 % =====================================================================
 \section{Conclusion}
