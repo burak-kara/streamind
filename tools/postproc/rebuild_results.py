@@ -37,9 +37,12 @@ def find_stamp_dirs(root: Path) -> list[Path]:
     """Auto-discover stamp dirs: dirs 4 levels above any judge_scores_multi.json.
 
     Layout: results/<audio>/<stamp>/<model>/<window>/<run>/judge_scores_multi.json
+    Skips results/prev_results/.
     """
     stamps: set[Path] = set()
     for p in root.rglob("judge_scores_multi.json"):
+        if "prev_results" in p.parts:
+            continue
         stamps.add(p.parent.parent.parent.parent)
     return sorted(stamps)
 
