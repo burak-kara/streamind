@@ -268,6 +268,7 @@ for AUDIO in "${AUDIOS[@]}"; do
   COMPARE_DIR="results/${LABEL}/${STAMP}"
   mkdir -p "$COMPARE_DIR/logs"
   SUMMARY="$COMPARE_DIR/leaderboard.txt"
+  CSV="$COMPARE_DIR/leaderboard.csv"
   MLOG="$COMPARE_DIR/run.log"
 
   DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$AUDIO")
@@ -311,6 +312,25 @@ for AUDIO in "${AUDIOS[@]}"; do
   done
 
   # --- per-audio summary / leaderboard ---
+  # Build the sorted leaderboard rows ONCE as score<TAB>profile<TAB>run TSV
+  # (descending), then render both the human table (SUMMARY) and the machine
+  # table (CSV) from the same data so they can never disagree.
+  LEADER_ROWS=$(
+    for d in "${DONE_DIRS[@]}"; do
+      rpt="$d/judge_report_multi.txt"
+      score=$(grep -iE 'final source score' "$rpt" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | tail -1)
+      # label = profile @ <model>/<window>/run<K> (relative to the stamp root)
+      printf '%s\t%s\t%s\n' "${score:-0}" "${DIR_PROFILE[$d]:-?}" "${d#"$COMPARE_DIR"/}"
+    done | sort -rn
+  )
+
+  # Leaderboard table only -> CSV (rank,profile,run,score). Fields carry no
+  # commas (profile names + slashed run paths), so plain unquoted CSV is safe.
+  {
+    echo "rank,profile,run,score"
+    printf '%s\n' "$LEADER_ROWS" | awk -F'\t' 'NF{print NR","$2","$3","($1=="0"?"N/A":$1)}'
+  } > "$CSV"
+
   {
     echo "=================================================="
     echo "  SUMMARIZER COMPARISON — ${LABEL}  (${STAMP})"
@@ -319,12 +339,7 @@ for AUDIO in "${AUDIOS[@]}"; do
     echo "=================================================="
     echo
     echo "## Leaderboard (final source score, +Janus — higher is better)"
-    for d in "${DONE_DIRS[@]}"; do
-      rpt="$d/judge_report_multi.txt"
-      score=$(grep -iE 'final source score' "$rpt" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | tail -1)
-      # label = profile @ <model>/<window>/run<K> (relative to the stamp root)
-      printf '%s\t%s\t%s\n' "${score:-0}" "${DIR_PROFILE[$d]:-?}" "${d#"$COMPARE_DIR"/}"
-    done | sort -rn | awk -F'\t' '{printf "  %-28s %-32s %s\n", $2, $3, ($1=="0"?"N/A":$1)}'
+    printf '%s\n' "$LEADER_ROWS" | awk -F'\t' 'NF{printf "  %-28s %-32s %s\n", $2, $3, ($1=="0"?"N/A":$1)}'
     echo
     for d in "${DONE_DIRS[@]}"; do
       echo "## ${DIR_PROFILE[$d]:-?}  (${d#"$COMPARE_DIR"/})"
