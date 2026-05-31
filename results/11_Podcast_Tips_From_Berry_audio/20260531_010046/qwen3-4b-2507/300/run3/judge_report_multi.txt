@@ -1,0 +1,17 @@
+window                                   mistral-smal    phi-4-awq gemma3-27b-i    mean  stdev
+----------------------------------------------------------------------------------------------
+046/qwen3-4b-2507/300/run3/window_0.json        35.38        36.38        35.38   35.71   0.47
+046/qwen3-4b-2507/300/run3/window_1.json        35.39        33.39        34.39   34.39   0.82
+046/qwen3-4b-2507/300/run3/window_2.json        35.15        34.15        36.15   35.15   0.82
+046/qwen3-4b-2507/300/run3/window_3.json        36.21        36.21        36.21   36.21   0.00
+046/qwen3-4b-2507/300/run3/window_4.json        34.32        35.32        35.32   34.98   0.47
+046/qwen3-4b-2507/300/run3/window_5.json        32.87        32.87        35.87   33.87   1.41
+046/qwen3-4b-2507/300/run3/window_6.json        35.03        35.03        36.03   35.36   0.47
+046/qwen3-4b-2507/300/run3/window_7.json        33.86        35.86        35.86   35.20   0.94
+046/qwen3-4b-2507/300/run3/window_8.json        33.00        35.00        11.00   26.33  10.87
+----------------------------------------------------------------------------------------------
+avg C                                           34.58        34.91        32.91   34.13       
+final source score (+Janus)                     38.58        38.91        36.91   38.13       
+
+Janus bonus: +4 flat (per CHALLENGE.md). Final source score = avg C + Janus.
+Consensus = mean across judges per window, averaged over windows. Low stdev = judges agree (score trustworthy); high stdev = judge bias.

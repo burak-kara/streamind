@@ -1,0 +1,31 @@
+{
+  "from": 2100.0,
+  "to": 2181.0,
+  "summary": "The host discusses offering podcast consulting services for the winner, focusing on podcast and social media strategy, content cleanup, and optimization. They mention being available to review podcasts, websites, and social media, including hashtag strategies, and note their intention to take on a full-time job in the spring, which may limit availability afterward.",
+  "keywords": [
+    "Podcast Consulting",
+    "Social Media",
+    "Hashtags"
+  ],
+  "proc_time": 0.8585684299468994,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.509748860763049,
+  "C": 36.50974886076305,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.2899628252788104,
+  "asr_transcript": "in Color, the podcast. Of course, feel free to email me if you have any questions. comments podcastandcolor at gmail.com and other I'll see you in two weeks it might be one week because I kind of want to up and get back on schedule so we'll see how that goes but at some point I will get back on schedule cause I will have the amount of episodes I should have. for this last season I am doing podcast consulting for the winner if you're looking to get a jump start on what you'll be doing in 2019, you can look at the podcast consulting button. on the website. And I'm willing to talk to you about building strategy. for 2019. So maybe you're looking at social media strategy or podcast strategy. or thinking of things you can clean up, or you just want an outsider. to kind of look at your podcast or your website or your podcast social media see what you can improve and how you can streamline things so everything can be better. the future and if you'd like me to do that i am available for podcast consulting. That would just be for the winner. The winter, in the spring, I'll have other things to do. I am looking to add a full-time job. to my life so I'm giving this time of anyone that wants to speak with me to give the time to talk to you about your podcast and talk to you about your social media. talk to you about hashtags because next year i'm gonna be a little busier so if you are looking to talk to me if you want to talk to me",
+  "reference_slice": "color@gmail.com. And otherwise I'll see you in two weeks. It might be one week because I kind of want to catch up and get back on schedule so we'll see how that goes. But at some point I will get back on schedule because I will have the amount of episodes I should have for this last season. I am doing podcasts consulting for the winter. Um, if you're looking to get a jumpstart on what you'll be doing in 2019, you can look at the podcast consulting button on the website and I'm willing to talk to you about building strategy um, for 2019. So maybe you're looking at social media strategy, your podcast strategy or thinking of things you can clean up or you just wanted an outsider to kind of look at your podcast or your website or your podcast, social media to see what you can improve and how you can streamline things so everything can be better in the future. And if you'd like me to do that, I am available for podcasts consulting. That will just be for the winter um, in the spring. I'll have other things to do. I am looking to add a full time job to my life. So I'm giving this time of anyone else wants to speak with me to give the time to talk to you about your podcast, to talk to you about your social media. So talk to you about hashtags because next year I'm gonna be a little bit busier. So if you are looking to talk to me, if you want t"
+}

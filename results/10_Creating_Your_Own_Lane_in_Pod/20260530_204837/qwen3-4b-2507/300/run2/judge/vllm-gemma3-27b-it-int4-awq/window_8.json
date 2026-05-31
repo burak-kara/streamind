@@ -1,0 +1,31 @@
+{
+  "from": 2181.0,
+  "to": 2183.54,
+  "summary": "one-on-one, this is the time.",
+  "keywords": [
+    "one-on-one",
+    "time",
+    "audio"
+  ],
+  "proc_time": 0.0007183551788330078,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    false
+  ],
+  "K": 2,
+  "L": 9.996408869071317,
+  "C": 36.99640886907132,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.42857142857142855,
+  "asr_transcript": "one-on-one, this is the time.",
+  "reference_slice": " one on one, this is the time. "
+}

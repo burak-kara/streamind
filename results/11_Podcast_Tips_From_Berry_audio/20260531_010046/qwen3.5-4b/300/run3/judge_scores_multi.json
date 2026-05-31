@@ -1,0 +1,231 @@
+{
+  "judges": [
+    "vllm-mistral-small-24b-awq",
+    "vllm-phi-4-awq",
+    "vllm-gemma3-27b-it-int4-awq"
+  ],
+  "windows": [
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_0.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 6.449722612891199,
+          "C": 36.4497226128912
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 6.449722612891199,
+          "C": 37.4497226128912
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 6.449722612891199,
+          "C": 37.4497226128912
+        }
+      },
+      "mean_c": 37.116389279557865,
+      "stdev_c": 0.4714045207910317
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_1.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 22,
+          "K": 6,
+          "L": 5.941590783987194,
+          "C": 33.941590783987195
+        },
+        "vllm-phi-4-awq": {
+          "B": 22,
+          "K": 6,
+          "L": 5.941590783987194,
+          "C": 33.941590783987195
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.941590783987194,
+          "C": 36.941590783987195
+        }
+      },
+      "mean_c": 34.941590783987195,
+      "stdev_c": 1.4142135623730951
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_2.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 23,
+          "K": -2,
+          "L": 5.525170988826103,
+          "C": 26.525170988826105
+        },
+        "vllm-phi-4-awq": {
+          "B": 21,
+          "K": 2,
+          "L": 5.525170988826103,
+          "C": 28.525170988826105
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.525170988826103,
+          "C": 36.525170988826105
+        }
+      },
+      "mean_c": 30.525170988826105,
+      "stdev_c": 4.320493798938574
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_3.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 23,
+          "K": 2,
+          "L": 5.522099891091137,
+          "C": 30.522099891091138
+        },
+        "vllm-phi-4-awq": {
+          "B": 23,
+          "K": 6,
+          "L": 5.522099891091137,
+          "C": 34.52209989109114
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.522099891091137,
+          "C": 36.52209989109114
+        }
+      },
+      "mean_c": 33.85543322442447,
+      "stdev_c": 2.494438257849294
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_4.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.097273695100238,
+          "C": 35.09727369510024
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.097273695100238,
+          "C": 36.09727369510024
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.097273695100238,
+          "C": 36.09727369510024
+        }
+      },
+      "mean_c": 35.763940361766906,
+      "stdev_c": 0.4714045207910317
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_5.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 23,
+          "K": 6,
+          "L": 6.230099364198837,
+          "C": 35.230099364198836
+        },
+        "vllm-phi-4-awq": {
+          "B": 21,
+          "K": 6,
+          "L": 6.230099364198837,
+          "C": 33.230099364198836
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 23,
+          "K": 6,
+          "L": 6.230099364198837,
+          "C": 35.230099364198836
+        }
+      },
+      "mean_c": 34.56343269753217,
+      "stdev_c": 0.9428090415820634
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_6.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 2,
+          "L": 5.384392815536221,
+          "C": 31.38439281553622
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.384392815536221,
+          "C": 36.38439281553622
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.384392815536221,
+          "C": 36.38439281553622
+        }
+      },
+      "mean_c": 34.71772614886956,
+      "stdev_c": 2.3570226039551603
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260531_010046/qwen3.5-4b/300/run3/window_7.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.552964629085543,
+          "C": 35.552964629085544
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.552964629085543,
+          "C": 36.552964629085544
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.552964629085543,
+          "C": 35.552964629085544
+        }
+      },
+      "mean_c": 35.88629796241888,
+      "stdev_c": 0.4714045207910317
+    }
+  ],
+  "judge_summary": {
+    "vllm-mistral-small-24b-awq": {
+      "avg_c": 33.08791434758956,
+      "final_source_score": 37.08791434758956,
+      "n": 8
+    },
+    "vllm-phi-4-awq": {
+      "avg_c": 34.58791434758956,
+      "final_source_score": 38.58791434758956,
+      "n": 8
+    },
+    "vllm-gemma3-27b-it-int4-awq": {
+      "avg_c": 36.33791434758956,
+      "final_source_score": 40.33791434758956,
+      "n": 8
+    }
+  },
+  "consensus": {
+    "avg_c": 34.671247680922896,
+    "final_source_score": 38.671247680922896,
+    "n_windows": 8
+  }
+}
