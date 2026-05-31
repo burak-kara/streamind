@@ -63,14 +63,24 @@ def aggregate_scores(
     are included when available). Pure function — no filesystem or GPU — so it
     is unit-testable on synthetic inputs.
 
+    B and K come from LLM judges (subjective). L = 10·exp(-0.5·proc_time) when
+    B≥10 (objective — proc_time is measured, not judged). Reporting them separately
+    lets callers distinguish judge variance from measured latency.
+
     Returns:
       {
         "judges": [ordered judge labels],
         "windows": [
-          {"path", "per_judge": {label: {B,K,L,C}}, "mean_c", "stdev_c"}
+          {
+            "path",
+            "per_judge": {label: {B, K, BK, L, C}},
+            "mean_c", "stdev_c",
+            "mean_bk", "stdev_bk",
+            "mean_l",
+          }
         ],
-        "judge_summary": {label: {"avg_c", "final_source_score", "n"}},
-        "consensus": {"avg_c", "final_source_score", "n_windows"},
+        "judge_summary": {label: {"avg_c", "avg_bk", "final_source_score", "n"}},
+        "consensus": {"avg_c", "avg_bk", "avg_l", "final_source_score", "n_windows"},
       }
     """
     labels = list(per_judge.keys())
@@ -93,30 +103,46 @@ def aggregate_scores(
     for path in ordered_paths:
         per = {}
         cs: list[float] = []
+        bks: list[float] = []
+        ls_w: list[float] = []
         for label in labels:
             row = by_label[label].get(path)
             if row is None:
                 continue  # judge skipped/failed this window — exclude from stats
+            b = row.get("B")
+            k = row.get("K")
+            l = row.get("L")
+            bk = float((b or 0) + (k or 0))
             per[label] = {
-                "B": row.get("B"),
-                "K": row.get("K"),
-                "L": row.get("L"),
+                "B": b,
+                "K": k,
+                "BK": bk,
+                "L": l,
                 "C": row["C"],
             }
             cs.append(float(row["C"]))
+            bks.append(bk)
+            if l is not None:
+                ls_w.append(float(l))
         windows.append({
             "path": path,
             "per_judge": per,
             "mean_c": mean(cs) if cs else None,
             "stdev_c": pstdev(cs) if len(cs) > 1 else 0.0,
+            "mean_bk": mean(bks) if bks else None,
+            "stdev_bk": pstdev(bks) if len(bks) > 1 else 0.0,
+            "mean_l": mean(ls_w) if ls_w else None,
         })
 
     judge_summary: dict[str, dict] = {}
     for label in labels:
         cs = [float(r["C"]) for r in per_judge[label]]
+        bks = [float((r.get("B") or 0) + (r.get("K") or 0)) for r in per_judge[label]]
         avg_c = mean(cs) if cs else None
+        avg_bk = mean(bks) if bks else None
         judge_summary[label] = {
             "avg_c": avg_c,
+            "avg_bk": avg_bk,
             "final_source_score": (avg_c + janus_bonus) if avg_c is not None else None,
             "n": len(cs),
         }
@@ -125,9 +151,15 @@ def aggregate_scores(
     # windows. Equivalent to averaging the per-judge avg_c when every judge
     # scored every window; robust to gaps because it averages what is present.
     win_means = [w["mean_c"] for w in windows if w["mean_c"] is not None]
+    win_mean_bks = [w["mean_bk"] for w in windows if w["mean_bk"] is not None]
+    win_mean_ls = [w["mean_l"] for w in windows if w["mean_l"] is not None]
     consensus_avg = mean(win_means) if win_means else None
+    consensus_avg_bk = mean(win_mean_bks) if win_mean_bks else None
+    consensus_avg_l = mean(win_mean_ls) if win_mean_ls else None
     consensus = {
         "avg_c": consensus_avg,
+        "avg_bk": consensus_avg_bk,
+        "avg_l": consensus_avg_l,
         "final_source_score": (consensus_avg + janus_bonus) if consensus_avg is not None else None,
         "n_windows": len(win_means),
     }
@@ -150,48 +182,72 @@ def _short_label(label: str, width: int = 12) -> str:
 
 
 def build_table(agg: dict, janus_bonus: float = JANUS_BONUS) -> str:
+    """Build the multi-judge report table.
+
+    Judge columns show B+K (not C). L is objective (proc_time-derived) and
+    appears as a single column shared across judges. Final source score =
+    avg B+K + avg L + Janus, which equals the old avg C + Janus.
+    """
     labels = agg["judges"]
     width = 40
     col = 12
+    l_col = 7
     head = f"{'window':{width}}" + "".join(f" {_short_label(l, col):>{col}}" for l in labels)
-    head += f" {'mean':>7} {'stdev':>6}"
+    head += f" {'mean':>7} {'stdev':>6} {'L':>{l_col}}"
     lines = [head, "-" * len(head)]
+
     for w in agg["windows"]:
         row = f"{_short_path(w['path'], width)}"
         for l in labels:
-            c = w["per_judge"].get(l, {}).get("C")
-            row += f" {c:>{col}.2f}" if c is not None else f" {'-':>{col}}"
-        row += f" {w['mean_c']:>7.2f}" if w["mean_c"] is not None else f" {'-':>7}"
-        row += f" {w['stdev_c']:>6.2f}" if w["mean_c"] is not None else f" {'-':>6}"
+            bk = w["per_judge"].get(l, {}).get("BK")
+            row += f" {bk:>{col}.2f}" if bk is not None else f" {'-':>{col}}"
+        row += f" {w['mean_bk']:>7.2f}" if w["mean_bk"] is not None else f" {'-':>7}"
+        row += f" {w['stdev_bk']:>6.2f}" if w["mean_bk"] is not None else f" {'-':>6}"
+        row += f" {w['mean_l']:>{l_col}.2f}" if w.get("mean_l") is not None else f" {'-':>{l_col}}"
         lines.append(row)
     lines.append("-" * len(head))
 
-    avg_row = f"{'avg C':{width}}"
+    # avg B+K row (per judge + consensus mean; no L here)
+    avg_bk_row = f"{'avg B+K':{width}}"
     for l in labels:
-        avg_c = agg["judge_summary"][l]["avg_c"]
-        avg_row += f" {avg_c:>{col}.2f}" if avg_c is not None else f" {'-':>{col}}"
-    consensus_avg = agg["consensus"]["avg_c"]
-    avg_row += f" {consensus_avg:>7.2f}" if consensus_avg is not None else f" {'-':>7}"
-    avg_row += f" {'':>6}"
-    lines.append(avg_row)
+        avg_bk = agg["judge_summary"][l].get("avg_bk")
+        avg_bk_row += f" {avg_bk:>{col}.2f}" if avg_bk is not None else f" {'-':>{col}}"
+    consensus_avg_bk = agg["consensus"].get("avg_bk")
+    avg_bk_row += f" {consensus_avg_bk:>7.2f}" if consensus_avg_bk is not None else f" {'-':>7}"
+    avg_bk_row += f" {'':>6} {'':>{l_col}}"
+    lines.append(avg_bk_row)
 
+    # avg L row (objective — same regardless of judge; shown in L column only)
+    avg_l_row = f"{'avg L':{width}}"
+    for _ in labels:
+        avg_l_row += f" {'-':>{col}}"
+    avg_l_row += f" {'-':>7} {'-':>6}"
+    consensus_avg_l = agg["consensus"].get("avg_l")
+    avg_l_row += f" {consensus_avg_l:>{l_col}.2f}" if consensus_avg_l is not None else f" {'-':>{l_col}}"
+    lines.append(avg_l_row)
+
+    # final source score = avg B+K (per judge) + avg L + Janus
     final_row = f"{'final source score (+Janus)':{width}}"
+    avg_l_val = agg["consensus"].get("avg_l") or 0.0
     for l in labels:
         fss = agg["judge_summary"][l]["final_source_score"]
         final_row += f" {fss:>{col}.2f}" if fss is not None else f" {'-':>{col}}"
     cfss = agg["consensus"]["final_source_score"]
     final_row += f" {cfss:>7.2f}" if cfss is not None else f" {'-':>7}"
-    final_row += f" {'':>6}"
+    final_row += f" {'':>6} {'':>{l_col}}"
     lines.append(final_row)
 
     lines.append("")
     lines.append(
         f"Janus bonus: +{janus_bonus:.0f} flat (per CHALLENGE.md). "
-        "Final source score = avg C + Janus."
+        "Final source score = avg B+K + avg L + Janus."
     )
     lines.append(
-        "Consensus = mean across judges per window, averaged over windows. "
-        "Low stdev = judges agree (score trustworthy); high stdev = judge bias."
+        "B+K from LLM judges (subjective); L = 10·exp(-0.5·proc_time) when B≥10 (objective). "
+        "Low stdev = judges agree on B+K; high stdev = judge bias."
+    )
+    lines.append(
+        "Consensus = mean across judges per window, averaged over windows."
     )
     return "\n".join(lines)
 
