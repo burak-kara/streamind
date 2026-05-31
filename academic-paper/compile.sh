@@ -32,7 +32,9 @@ set +e
 $PDFLATEX "$JOBNAME.tex"
 
 if ! $DRAFT; then
-    bibtex "$BUILDDIR/$JOBNAME"
+    # Relative path: paranoid openout_any=p blocks bibtex from writing its
+    # .blg to an absolute build/ path, silently leaving citations undefined.
+    bibtex "build/$JOBNAME"
     $PDFLATEX "$JOBNAME.tex"
     $PDFLATEX "$JOBNAME.tex"
 fi

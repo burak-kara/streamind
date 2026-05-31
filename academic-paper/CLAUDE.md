@@ -60,7 +60,10 @@ Key acronyms from `helpers/glossaries.tex` (use `\gls{key}`):
 |-----|-----------|
 | `webrtc` | WebRTC |
 | `rtp` | RTP |
-| `asr` | *(add if needed)* |
+| `asr` | ASR |
+| `llm` | LLM |
+| `awq` | AWQ (Activation-aware Weight Quantization) |
+| `vram` | VRAM |
 | `ai` | AI |
 | `gpu`, `cpu` | GPU, CPU |
 | `api` | API |
@@ -69,11 +72,12 @@ Key acronyms from `helpers/glossaries.tex` (use `\gls{key}`):
 
 Scoring formula (see root `CLAUDE.md`): `C_i = B_i + K_i + L_i`. Paper must explain:
 
-- Pipeline architecture (6 Juturna nodes)
-- Model choices (Whisper ASR, Qwen3.5 summarizer via Ollama/MLX)
+- Pipeline architecture (7 Juturna nodes)
+- Model choices (faster-whisper ASR, Qwen3.5 summarizer via in-process vLLM, int4-AWQ where VRAM-constrained)
+- Inference-engine choice (vLLM over SGLang / TensorRT-LLM / Ollama)
 - Latency optimisation strategy
 - Janus WebRTC integration and Janus bonus (+4)
-- Evaluation results and scoring analysis
+- Evaluation via cross-family multi-judge panel (Mistral-Small-24B, Phi-4, Gemma-3-27B), consensus mean/stdev
 
 ## Academic Writing & Proofread Mode
 
