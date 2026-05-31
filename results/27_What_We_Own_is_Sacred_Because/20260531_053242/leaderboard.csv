@@ -1,0 +1,7 @@
+rank,profile,run,score
+1,vllm-qwen3.5-4b,qwen3.5-4b/300/run2,40.02
+2,vllm-qwen3.5-4b,qwen3.5-4b/300/run3,40.01
+3,vllm-qwen3.5-4b,qwen3.5-4b/300/run1,40.01
+4,vllm-qwen3-4b-2507,qwen3-4b-2507/300/run3,39.22
+5,vllm-qwen3-4b-2507,qwen3-4b-2507/300/run2,39.21
+6,vllm-qwen3-4b-2507,qwen3-4b-2507/300/run1,39.21
