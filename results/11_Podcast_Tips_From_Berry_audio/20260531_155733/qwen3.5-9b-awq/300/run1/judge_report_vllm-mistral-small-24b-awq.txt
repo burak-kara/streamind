@@ -1,0 +1,30 @@
+window                                                         B   K     L      C   proc   WER   R-L   K-J
+----------------------------------------------------------------------------------------------------------
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_0.json  23   2  4.51  29.51   1.59  0.24 0.346 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_1.json  22   6  3.77  31.77   1.95  0.34 0.140 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_2.json  24   2  3.64  29.64   2.02  0.27 0.185 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_3.json  21   2  3.77  26.77   1.95  0.31 0.126 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_4.json  25   6  3.65  34.65   2.01  0.36 0.144 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_5.json  23   2  3.70  28.70   1.99  0.29 0.178 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_6.json  22   2  3.70  27.70   1.99  0.34 0.162 0.000
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_7.json  24   6  3.90  33.90   1.88  0.27     -     -
+_audio/20260531_155733/qwen3.5-9b-awq/300/run1/window_8.json  21   2 10.00  33.00   0.00  0.67     -     -
+----------------------------------------------------------------------------------------------------------
+avg                                                          22.8 3.3  4.52  30.63   1.71  0.34 0.183 0.000
+max possible                                                  25   6 10.00  41.00      -  0.00 1.000 1.000
+min possible                                                   5  -6  0.00  -1.00      -     - 0.000 0.000
+
+Final source score (avg C + Janus +4) = 34.63   (avg_C=30.63, janus_bonus=4.0)
+Theoretical bounds: per-chunk C in [-1, 41]; final source score in [3, 45].
+
+Scoring contract (CHALLENGE.md): C_i = B_i + K_i + L_i per chunk. B = sum of 5 Likert (1-5) criteria, range [5, 25]. K = 2 * (N_relevant - N_irrelevant) across 3 keywords, range [-6, +6]. L = 10 * exp(-0.5 * proc_time) iff B >= 10 else 0, capped [0, 10] (realistic max ~6 at proc 1-2 s). Final source score = mean(C_i) + Janus_bonus (+4 flat for using Janus). Submission scores then min-max normalised across submissions.
+
+WER scale: 0.00 = perfect | 0.01-0.10 excellent | 0.10-0.20 good
+           0.20-0.30 fair | 0.30-0.50 poor | >0.50 very poor
+           >1.00 possible (insertions exceed reference word count)
+           Lower is better. Independent of B/K/L scoring.
+
+Ground-truth (R-L = ROUGE-L F1, K-J = keyword Jaccard):
+  R-L: 0.000 = no overlap | 1.000 = identical summary. Higher is better.
+  K-J: 0.000 = no keyword overlap | 1.000 = identical set. Higher is better.
+  Independent diagnostic signal, not part of B/K/L scoring.

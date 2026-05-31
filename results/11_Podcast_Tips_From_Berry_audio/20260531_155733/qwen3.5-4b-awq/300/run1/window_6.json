@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "The discussion covers the shift from traditional baked-in podcast ads to Dynamic Ad Insertion (DAI), highlighting its ability to serve different ads per download based on factors like geography, date ranges, or download volume caps. Specific examples include Marc Maron and Marco Arment discussing the limitations of static ads, while Kaitlyn Thompson warns against selling shows with permanent ads due to lack of future revenue. The conversation concludes with a case study of 'Welcome to Nightville' using DAI to create three different episode endings, demonstrating creative applications beyond advertising.",
+  "keywords": [
+    "Dynamic Ad Insertion",
+    "Podcast Marketing",
+    "Welcome to Nightville"
+  ],
+  "proc_time": 0.9455227851867676
+}
