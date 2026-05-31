@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "The discussion highlights Dynamic Ad Insertion (DAI) as a superior alternative to traditional baked-in ads, allowing hosts to serve targeted advertisements based on geography, date ranges, or download volume caps. Specific examples include Welcome to Nightville using DAI to deliver three different creative endings for their 133rd episode and the ability to monetize back catalogs with time-sensitive ads. The speakers emphasize that while DAI offers significant revenue and creative flexibility, it requires careful editing to avoid permanent ad clutter in files.",
+  "keywords": [
+    "Dynamic Ad Insertion",
+    "Welcome to Nightville",
+    "Marc Maron"
+  ],
+  "proc_time": 2.9046359062194824
+}
