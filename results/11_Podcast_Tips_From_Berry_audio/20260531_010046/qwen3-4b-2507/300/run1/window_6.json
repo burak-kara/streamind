@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "The meeting discussed dynamic ad insertion (DAI) as a method to serve different ads to listeners based on location, date, or download timing, improving ad relevance and monetization. Specific examples include Welcome to Nightville using DAI to deliver three different episode endings randomly to listeners, and Kaitlyn Thompson noting that baked-in ads remain static and lose value over time. The group concluded that DAI allows for better targeting, back-catalog monetization, and creative experimentation beyond traditional advertising.",
+  "keywords": [
+    "Dynamic Ad Insertion",
+    "Welcome to Nightville",
+    "DAI"
+  ],
+  "proc_time": 1.3722405433654785
+}

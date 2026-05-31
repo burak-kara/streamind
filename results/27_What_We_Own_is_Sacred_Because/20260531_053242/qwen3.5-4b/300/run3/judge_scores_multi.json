@@ -1,0 +1,156 @@
+{
+  "judges": [
+    "vllm-mistral-small-24b-awq",
+    "vllm-phi-4-awq",
+    "vllm-gemma3-27b-it-int4-awq"
+  ],
+  "windows": [
+    {
+      "path": "results/27_What_We_Own_is_Sacred_Because/20260531_053242/qwen3.5-4b/300/run3/window_0.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 6.02296486085275,
+          "C": 36.02296486085275
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 6.02296486085275,
+          "C": 37.02296486085275
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 6.02296486085275,
+          "C": 37.02296486085275
+        }
+      },
+      "mean_c": 36.68963152751942,
+      "stdev_c": 0.4714045207910317
+    },
+    {
+      "path": "results/27_What_We_Own_is_Sacred_Because/20260531_053242/qwen3.5-4b/300/run3/window_1.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.531398754685849,
+          "C": 35.53139875468585
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.531398754685849,
+          "C": 36.53139875468585
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.531398754685849,
+          "C": 35.53139875468585
+        }
+      },
+      "mean_c": 35.86473208801919,
+      "stdev_c": 0.4714045207910317
+    },
+    {
+      "path": "results/27_What_We_Own_is_Sacred_Because/20260531_053242/qwen3.5-4b/300/run3/window_2.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.245978849311404,
+          "C": 35.245978849311406
+        },
+        "vllm-phi-4-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.245978849311404,
+          "C": 35.245978849311406
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.245978849311404,
+          "C": 36.245978849311406
+        }
+      },
+      "mean_c": 35.57931218264474,
+      "stdev_c": 0.4714045207910317
+    },
+    {
+      "path": "results/27_What_We_Own_is_Sacred_Because/20260531_053242/qwen3.5-4b/300/run3/window_3.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.152894733444706,
+          "C": 35.152894733444704
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.152894733444706,
+          "C": 36.152894733444704
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.152894733444706,
+          "C": 36.152894733444704
+        }
+      },
+      "mean_c": 35.81956140011137,
+      "stdev_c": 0.4714045207910317
+    },
+    {
+      "path": "results/27_What_We_Own_is_Sacred_Because/20260531_053242/qwen3.5-4b/300/run3/window_4.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.768464741480333,
+          "C": 35.76846474148033
+        },
+        "vllm-phi-4-awq": {
+          "B": 25,
+          "K": 6,
+          "L": 5.768464741480333,
+          "C": 36.76846474148033
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 24,
+          "K": 6,
+          "L": 5.768464741480333,
+          "C": 35.76846474148033
+        }
+      },
+      "mean_c": 36.101798074813665,
+      "stdev_c": 0.4714045207910317
+    }
+  ],
+  "judge_summary": {
+    "vllm-mistral-small-24b-awq": {
+      "avg_c": 35.54434038795501,
+      "final_source_score": 39.54434038795501,
+      "n": 5
+    },
+    "vllm-phi-4-awq": {
+      "avg_c": 36.34434038795501,
+      "final_source_score": 40.34434038795501,
+      "n": 5
+    },
+    "vllm-gemma3-27b-it-int4-awq": {
+      "avg_c": 36.14434038795501,
+      "final_source_score": 40.14434038795501,
+      "n": 5
+    }
+  },
+  "consensus": {
+    "avg_c": 36.01100705462168,
+    "final_source_score": 40.01100705462168,
+    "n_windows": 5
+  }
+}
