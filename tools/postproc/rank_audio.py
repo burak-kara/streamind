@@ -91,7 +91,7 @@ def main() -> int:
             # Treat as results/ root — iterate audio dirs one level down
             found = False
             for child in sorted(d.iterdir()):
-                if child.is_dir() and _is_audio_dir(child):
+                if child.is_dir() and child.name != "prev_results" and _is_audio_dir(child):
                     rank_audio_dir(child)
                     found = True
             if not found:

@@ -386,6 +386,12 @@ PYEOF
   log "=== audio done -> $SUMMARY ==="
   ALL_SUMMARIES+=("$SUMMARY")
 
+  # Rebuild cross-stamp ranking for this audio dir (all stamps seen so far).
+  AUDIO_DIR="$(dirname "$COMPARE_DIR")"
+  log "Updating cross-stamp leaderboard: $AUDIO_DIR"
+  uv run python tools/postproc/rank_audio.py "$AUDIO_DIR" >> "$MLOG" 2>&1 \
+    || log "WARN rank_audio.py failed for $AUDIO_DIR (non-fatal)"
+
   MLOG="results/compare_${GSTAMP}.log"   # restore global logger for the next boundary
 done
 
