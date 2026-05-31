@@ -1,7 +1,7 @@
-rank,profile,run,score
-1,vllm-qwen3.5-4b,qwen3.5-4b/300/run2,40.02
-2,vllm-qwen3.5-4b,qwen3.5-4b/300/run3,40.01
-3,vllm-qwen3.5-4b,qwen3.5-4b/300/run1,40.01
-4,vllm-qwen3-4b-2507,qwen3-4b-2507/300/run3,39.22
-5,vllm-qwen3-4b-2507,qwen3-4b-2507/300/run2,39.21
-6,vllm-qwen3-4b-2507,qwen3-4b-2507/300/run1,39.21
+rank,profile,run,avg_bk,avg_l,score
+1,vllm-qwen3.5-4b,run2,30.47,5.55,40.02
+2,vllm-qwen3.5-4b,run1,30.47,5.55,40.01
+3,vllm-qwen3.5-4b,run3,30.47,5.54,40.01
+4,vllm-qwen3-4b-2507,run3,30.13,5.08,39.22
+5,vllm-qwen3-4b-2507,run2,30.13,5.08,39.21
+6,vllm-qwen3-4b-2507,run1,30.13,5.07,39.21

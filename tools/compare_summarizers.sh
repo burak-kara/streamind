@@ -312,23 +312,51 @@ for AUDIO in "${AUDIOS[@]}"; do
   done
 
   # --- per-audio summary / leaderboard ---
-  # Build the sorted leaderboard rows ONCE as score<TAB>profile<TAB>run TSV
-  # (descending), then render both the human table (SUMMARY) and the machine
-  # table (CSV) from the same data so they can never disagree.
+  # Build the sorted leaderboard rows ONCE as TSV:
+  #   final_score <TAB> avg_bk <TAB> avg_l <TAB> profile <TAB> run
+  # (descending by final_score), then render both the human table (SUMMARY) and
+  # the machine table (CSV) from the same data so they can never disagree.
+  # Scores come from judge_scores_multi.json (machine-readable, avoids fragile
+  # text grep). run = last path component only (e.g. "run2").
   LEADER_ROWS=$(
     for d in "${DONE_DIRS[@]}"; do
-      rpt="$d/judge_report_multi.txt"
-      score=$(grep -iE 'final source score' "$rpt" 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+' | tail -1)
-      # label = profile @ <model>/<window>/run<K> (relative to the stamp root)
-      printf '%s\t%s\t%s\n' "${score:-0}" "${DIR_PROFILE[$d]:-?}" "${d#"$COMPARE_DIR"/}"
+      profile="${DIR_PROFILE[$d]:-?}"
+      rel="${d#"$COMPARE_DIR"/}"
+      run="${rel##*/}"   # last component = run<K>
+      json="$d/judge_scores_multi.json"
+      if [ -f "$json" ]; then
+        _s=$(python3 - "$json" <<'PYEOF'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+    c = d.get("consensus", {})
+    final = c.get("final_source_score") or 0
+    avg_bk = c.get("avg_bk") or 0
+    avg_l = c.get("avg_l") or 0
+    print(f"{final:.2f}\t{avg_bk:.2f}\t{avg_l:.2f}")
+except Exception:
+    print("0\t0\t0")
+PYEOF
+)
+        IFS=$'\t' read -r _final _avg_bk _avg_l <<< "$_s"
+      else
+        _final=0; _avg_bk=0; _avg_l=0
+      fi
+      printf '%s\t%s\t%s\t%s\t%s\n' \
+        "${_final:-0}" "${_avg_bk:-0}" "${_avg_l:-0}" "$profile" "$run"
     done | sort -rn
   )
 
-  # Leaderboard table only -> CSV (rank,profile,run,score). Fields carry no
-  # commas (profile names + slashed run paths), so plain unquoted CSV is safe.
+  # Leaderboard table only -> CSV (rank,profile,run,avg_bk,avg_l,score).
+  # Fields carry no commas, so plain unquoted CSV is safe.
   {
-    echo "rank,profile,run,score"
-    printf '%s\n' "$LEADER_ROWS" | awk -F'\t' 'NF{print NR","$2","$3","($1=="0"?"N/A":$1)}'
+    echo "rank,profile,run,avg_bk,avg_l,score"
+    printf '%s\n' "$LEADER_ROWS" | awk -F'\t' 'NF{
+      bk = ($2=="0" ? "N/A" : $2)
+      al = ($3=="0" ? "N/A" : $3)
+      sc = ($1=="0" ? "N/A" : $1)
+      print NR","$4","$5","bk","al","sc
+    }'
   } > "$CSV"
 
   {
@@ -338,8 +366,14 @@ for AUDIO in "${AUDIOS[@]}"; do
     echo "  window=${WINDOW}s  judges=${JUDGE_PROFILES[*]}"
     echo "=================================================="
     echo
-    echo "## Leaderboard (final source score, +Janus — higher is better)"
-    printf '%s\n' "$LEADER_ROWS" | awk -F'\t' 'NF{printf "  %-28s %-32s %s\n", $2, $3, ($1=="0"?"N/A":$1)}'
+    echo "## Leaderboard (final = avg B+K + avg L + Janus — higher is better)"
+    printf '  %-28s %-8s %7s %6s %7s\n' "profile" "run" "avg_BK" "avg_L" "score"
+    printf '%s\n' "$LEADER_ROWS" | awk -F'\t' 'NF{
+      bk = ($2=="0" ? "   N/A" : sprintf("%7.2f", $2))
+      al = ($3=="0" ? "  N/A"  : sprintf("%6.2f", $3))
+      sc = ($1=="0" ? "   N/A" : sprintf("%7.2f", $1))
+      printf "  %-28s %-8s %s %s %s\n", $4, $5, bk, al, sc
+    }'
     echo
     for d in "${DONE_DIRS[@]}"; do
       echo "## ${DIR_PROFILE[$d]:-?}  (${d#"$COMPARE_DIR"/})"
