@@ -7,6 +7,7 @@ tmp/
 
 # Logs
 *.log
+*.pipelog
 
 # Environment files
 .env
