@@ -7,11 +7,10 @@
     "prompt_template_file": "summarize_prompt.txt",
     "dtype": "bfloat16",
     "gpu_memory_utilization": 0.85,
-    "max_model_len": 2048,
+    "max_model_len": 4096,
     "max_tokens": 384,
-    "temperature": 0.3,
+    "temperature": 0.15,
     "top_p": 0.9,
-    "repetition_penalty": 1.05,
     "enforce_eager": false,
     "limit_mm_per_prompt": {"image": 0}
   }
