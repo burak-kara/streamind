@@ -115,3 +115,19 @@ Preserve all custom macros from `helpers/commands.tex` unchanged.
 ### When asked for a scientific review
 
 Switch to reviewer mode: evaluate as a senior IEEE MMSP reviewer. Provide Major and Minor Comments. Do not mix with proofreading output.
+
+### References
+
+- Use `\cite{}` with keys from `references.bib`.
+- Do not fabricate references. If a citation is missing, flag with `% TODO: Missing citation for [claim]`.
+- Use this format for non academic misc/online resources:
+
+```latex
+@misc{label,
+ title        = {TTitle of the resource},
+year         = {year},
+ author       = {Author Name(s)},
+ note         = {Accessed on <date>},
+ howpublished = {[Online] Available: \url{<URL>}}
+}
+```
