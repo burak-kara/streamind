@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "The discussion highlights the shift from static, pre-recorded podcast ads to Dynamic Ad Insertion (DAI), which allows advertisers to serve targeted, time-sensitive, or geo-specific ads based on listener data rather than embedding them permanently in the audio file. While DAI offers benefits like precise audience segmentation and cost management for high-volume shows, the conversation also explores creative applications beyond advertising, citing the 'Welcome to Nightville' experiment where the team used DAI to deliver multiple episode endings to different listeners.",
+  "keywords": [
+    "Dynamic Ad Insertion",
+    "podcasting",
+    "targeted advertising"
+  ],
+  "proc_time": 1.301027536392212
+}

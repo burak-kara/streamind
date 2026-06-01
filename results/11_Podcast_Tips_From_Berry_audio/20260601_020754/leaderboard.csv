@@ -1,0 +1,5 @@
+rank,profile,run,avg_bk,avg_l,score
+1,vllm-qwen3.5-4b,run2,29.33,5.70,39.03
+2,vllm-qwen3.5-4b-awq,run2,28.15,6.82,38.97
+3,vllm-qwen3.5-4b-awq,run1,28.15,6.81,38.96
+4,vllm-qwen3.5-4b,run1,28.48,5.62,38.10

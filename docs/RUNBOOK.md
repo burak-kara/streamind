@@ -201,7 +201,7 @@ Safe to leave running overnight.
 ./tools/compare_summarizers.sh \
   --runs 2 \
   --audios 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting/audio.opus' 'datasets/rev16/11_Podcast_Tips_From_Berry/audio.opus' 'datasets/rev16/27_What_We_Own_is_Sacred_Because_We_Are_Sacred/audio.opus' \
-  --profiles vllm-qwen3.5-4b-awq vllm-qwen3.5-9b-awq vllm-qwen3.5-9b
+  --profiles vllm-qwen3.5-4b-awq vllm-qwen3.5-4b
 
 # same profiles across every rev16 episode in one unattended run
 ./tools/compare_summarizers.sh \

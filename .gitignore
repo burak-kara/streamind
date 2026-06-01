@@ -8,6 +8,7 @@ tmp/
 # Logs
 *.log
 *.pipelog
+**/**/.stage/
 
 # Environment files
 .env
