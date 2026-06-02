@@ -45,8 +45,6 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import ollama
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 REV16_DIR = REPO_ROOT / "datasets" / "rev16"
@@ -356,6 +354,9 @@ def main() -> int:
         return 1
 
     prompt_template = _read_prompt_template()
+    # Lazy import: ollama is a finetune-only dependency (`uv sync --extra
+    # finetune`), so the pure helpers (and their tests) load without it.
+    import ollama
     teacher_client = ollama.Client(host=args.teacher_endpoint)
     judge_client = ollama.Client(host=args.judge_endpoint) if args.judge_endpoint != args.teacher_endpoint else teacher_client
 
