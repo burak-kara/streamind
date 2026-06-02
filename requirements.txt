@@ -1,7 +1,0 @@
-juturna
-faster-whisper
-ollama
-httpx
-numpy
-pytest
-pytest-asyncio

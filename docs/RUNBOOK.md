@@ -112,8 +112,9 @@ Flags (`tools/send_audio.py`):
 | `--max-duration <sec>` | cap streaming to N seconds (e.g. `1800` = 30 min); audio beyond this is never sent | no cap |
 
 Heartbeat logs elapsed/total every 60s and surfaces WebRTC state, so mid-stream
-truncation is visible without log spelunking. Same path in dev and production —
-do **not** swap to an `audio_file` source for testing.
+truncation is visible without log spelunking. Same path in dev and production:
+audio always enters through Janus → `audio_rtp` (a Juturna built-in; there is no
+file-source node).
 
 ---
 
@@ -196,18 +197,18 @@ Safe to leave running overnight.
 # bake-off two summarizers on one episode at the 300 s submission window
 ./tools/compare_summarizers.sh \
   --audios 'datasets/rev16/26_Episode_338_Special_Guest_Rob_O'Neill/audio.opus' \
-  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+  --profiles vllm-qwen3.5-4b-awq
 
 
 ./tools/compare_summarizers.sh \
   --runs 2 \
   --audios 'datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting/audio.opus' 'datasets/rev16/11_Podcast_Tips_From_Berry/audio.opus' 'datasets/rev16/27_What_We_Own_is_Sacred_Because_We_Are_Sacred/audio.opus' \
-  --profiles vllm-qwen3.5-4b-awq vllm-qwen3.5-4b
+  --profiles vllm-qwen3.5-4b-awq
 
 # same profiles across every rev16 episode in one unattended run
 ./tools/compare_summarizers.sh \
   --audios datasets/rev16/*/audio.opus \
-  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+  --profiles vllm-qwen3.5-4b-awq
 ```
 
 Flags: `--audios <a...>` (required, iterated — each audio gets its own results
@@ -248,7 +249,7 @@ tmux new -s bakeoff                       # fresh session (or: tmux attach -t ba
 cd ~/Desktop/streamind
 ./tools/compare_summarizers.sh --runs 3 \
   --audios datasets/rev16/*/audio.opus \
-  --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+  --profiles vllm-qwen3.5-4b-awq
 ```
 
 Detach (leaves it running): prefix `Ctrl-b` **then** `d`. Reattach later:

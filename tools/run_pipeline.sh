@@ -21,9 +21,9 @@ Options:
   -h, --help             Show this help message
 
 Examples:
-  $0 -p vllm-qwen3.5-4b
-  $0 --window 30 --profile vllm-qwen3.5-4b
-  $0 -p vllm-qwen3.5-4b --asr small.en
+  $0 -p vllm-qwen3.5-4b-awq
+  $0 --window 30 --profile vllm-qwen3.5-4b-awq
+  $0 -p vllm-qwen3.5-4b-awq --asr small.en
 
 Judge runs offline after the pipeline exits:
   uv run python tools/eval_quality.py results/<model>/<window>/ --judge-profile <judge_profile>
