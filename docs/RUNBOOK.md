@@ -24,8 +24,8 @@ missing.
 
 ```bash
 ./tools/fetch_models.sh <hf_id> <local_name>
-# e.g.
-./tools/fetch_models.sh Qwen/Qwen3.5-4B qwen3.5-4b
+# e.g. (locked submission summarizer)
+./tools/fetch_models.sh Qwen/Qwen3.5-4B-AWQ qwen3.5-4b-awq
 ```
 
 ASR model (`deepdml/faster-whisper-large-v3-turbo-ct2`) auto-resolves to
@@ -62,7 +62,7 @@ for local dev run the pipeline natively (§3) instead, and only start `janus`.
 ./tools/run_pipeline.sh -p <profile> -a small.en         # ASR override (A/B)
 
 # e.g.
-./tools/run_pipeline.sh -p vllm-qwen3.5-9b -a small.en
+./tools/run_pipeline.sh -p vllm-qwen3.5-4b-awq          # locked submission profile
 ```
 
 Flags (`tools/run_pipeline.sh`):
