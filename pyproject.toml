@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Everything dev-only: unit tests, audio injection, and the finetune toolchain.
+# Dev-only: unit tests, audio injection, offline eval/judge tooling.
 # Submission image runs `uv sync` with no extras.
 dev = [
     "pytest",
@@ -25,13 +25,18 @@ dev = [
     "aiortc",
     "torch",
     "transformers",
+    "sentencepiece",
+    "jiwer",
+]
+# Parked M4 finetune toolchain (research-only; abandoned for submission — all
+# runs scored below base). Isolated so dev/test installs stay lean.
+finetune = [
+    "ollama",
     "peft>=0.13",
     "trl>=0.12",
     "accelerate>=1.0",
     "bitsandbytes>=0.44",
     "datasets>=3.0",
-    "sentencepiece",
-    "jiwer",
 ]
 
 [tool.setuptools]
