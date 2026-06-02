@@ -111,7 +111,7 @@ uv sync --extra dev && .venv/bin/pytest tests/
 
 # Lab (uni-lab) — full pipeline; repo at ~/Desktop/streamind
 ssh uni-lab && cd ~/Desktop/streamind && git pull && uv sync --extra dev
-./tools/fetch_models.sh Qwen/Qwen3.5-4B-AWQ qwen3.5-4b-awq  # once, idempotent
+./tools/fetch_models.sh cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4 qwen3.5-4b-awq  # once, idempotent
 docker compose up -d janus                      # first run builds image (~15 min)
 ./tools/run_pipeline.sh -p vllm-qwen3.5-4b-awq  # then feed audio from a 2nd session:
 uv run python tools/send_audio.py 'datasets/rev16/<episode>/audio.opus'
@@ -136,7 +136,7 @@ and mid-dev `rsync`.
 
 ## Current Model Choices
 
-- **Summarizer (locked):** `Qwen/Qwen3.5-4B-AWQ` (Apache-2.0, AWQ-int4, ~6 GB). Profile: `pipelines/summarizer/vllm-qwen3.5-4b-awq.json`. Local dir: `./models/qwen3.5-4b-awq/`.
+- **Summarizer (locked):** `cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4` (AWQ-int4 of Qwen3.5-4B, Apache-2.0, ~5.5 GB). Profile: `pipelines/summarizer/vllm-qwen3.5-4b-awq.json`. Local dir: `./models/qwen3.5-4b-awq/`.
 - **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (a single GPU — 24 GB dev 4090 or 32 GB prod Pro 4500 — cannot hold the full panel co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
   - `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: not cleanly int4 (~26 GB on disk → OOM on 24 GB).
   - `casperhansen/phi-4-awq` (Microsoft, ~8.5 GB AWQ-int4, MIT). Profile: `pipelines/judge/vllm-phi-4-awq.json`. Local dir: `./models/phi-4-awq/`.

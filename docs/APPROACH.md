@@ -126,44 +126,58 @@ Eight sequential Juturna nodes, wired in `pipelines/config-base.json`:
 
 ## Measured performance
 
-Per-window averages on the rev16 oneill fixture (~75 min audio,
-15 × 300 s windows), `tools/eval_quality.py` with the
-`vllm-mistral-small-24b-awq` judge:
+Submission summarizer **`Qwen3.5-4B-AWQ`** (AWQ-int4, profile
+`vllm-qwen3.5-4b-awq.json`), 300 s windows. Scored offline by the
+cross-family 3-judge consensus panel (`mistral-small-24b-awq`,
+`phi-4-awq`, `gemma3-27b-it-int4-awq`) via `tools/eval_multi_judge.py`;
+each value is the per-window mean over the three judges, averaged over
+windows and over repeated runs per fixture. Janus `+4` applied at the
+audio level.
 
-| Model | B (≤25) | K (≤6) | L (≤10) | C (avg) | Janus | **Final** |
-|-------|---------|--------|---------|---------|-------|-----------|
-| Qwen3.5-4B (base) | 22.0 | 6.0 | 5.69 | 33.69 | +4 | **37.69** |
+| Fixture (300 s windows) | B (≤25) | K (≤6) | L (≤10) | C (avg) | Janus | **Final** |
+|-------------------------|---------|--------|---------|---------|-------|-----------|
+| rev16 ep27 (What We Own) | 24.5 | 6.0 | 6.57 | 37.02 | +4 | **41.02** |
+| rev16 ep10 (Own Lane)    | 23.9 | 5.3 | 7.06 | 36.32 | +4 | **40.32** |
+| ietf Media-Over-QUIC     | 23.8 | 5.8 | 6.73 | 36.24 | +4 | **40.24** |
+| ietf Computing-Aware-Tr  | 23.6 | 5.9 | 6.79 | 36.18 | +4 | **40.18** |
+| rev16 ep11 (Podcast Tips)| 23.2 | 5.1 | 6.79 | 35.07 | +4 | **39.07** |
+| **mean ± sd (5 fixtures)** | **23.8** | **5.6** | **6.79** | **36.2** | +4 | **40.2 ± 0.6** |
 
-Container smoke-tested end-to-end with a Crime Town podcast preview
-(~3 min): all 7 windows landed with the challenge-format schema;
-`proc_time` 0.22–0.78 s on LLM windows (`L_i ≈ 7.8`), <1 ms on
-extractive-fallback windows. The end-of-stream flush captured the
-final 4 s partial window correctly.
+`L ≈ 6.8` corresponds to ~0.77 s `proc_time` per window; every window
+clears the `B_i ≥ 10` gate so the latency reward always applies.
+Judge agreement is high (per-window C stdev across the panel ≈ 0.3–0.5),
+so the consensus is corroborated rather than driven by a single model.
 
 ## Submission packaging
 
 - **`Dockerfile`** targets `nvidia/cuda:12.4.1-runtime-ubuntu22.04`,
-  installs Python 3.12 + uv, runs `uv sync` (vLLM is a base dependency;
-  no extras needed in the image). The build then invokes
-  `./tools/fetch_models.sh Qwen/Qwen3.5-4B qwen3.5-4b` to bake the
-  summarizer weights, and `huggingface_hub.snapshot_download(...)` to
-  bake `faster-whisper-large-v3-turbo`. The resulting image carries
-  every model byte; **zero network dependency at runtime**.
+  installs Python 3.12 + uv, runs `uv sync --no-install-project` (vLLM and
+  `huggingface-hub` are base dependencies; no extras enter the image). The
+  build then invokes `./tools/fetch_models.sh
+  cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4 qwen3.5-4b-awq` to bake the
+  summarizer weights, and
+  `huggingface_hub.snapshot_download(...)` to bake
+  `faster-whisper-large-v3-turbo`. The resulting image carries every model
+  byte; **zero network dependency at runtime**.
 - **`docker-compose.yml`** runs the Janus service and the pipeline
   service. Janus forwards RTP to the pipeline container on UDP/8888.
   `WINDOW_SECONDS` and `SUMMARIZER_PROFILE` are env-overridable for
   rapid iteration (`WINDOW_SECONDS=30 docker compose up -d`).
 - **Entry point** `docker/entrypoint-pipeline.sh` calls
-  `tools/run_pipeline.sh --window $WINDOW_SECONDS --summarizer
-  $SUMMARIZER_PROFILE`. The launch uses juturna's `--auto` flag so the
-  container starts without interactive input.
+  `tools/run_pipeline.sh --window $WINDOW_SECONDS --profile
+  $SUMMARIZER_PROFILE` (default profile `vllm-qwen3.5-4b-awq`). The launch
+  uses juturna's `--auto` flag so the container starts without interactive
+  input.
 - **`destination_endpoint`** is left empty in the committed
-  `pipelines/config-base.json`. Per the challenge spec, the receiving
-  URL was not published as of submission; result files are written to
-  `./results/<model>/<window_s>/window_N.json` and the host volume
-  mount exposes them. **Set this string to the evaluation endpoint and
-  the transmitter will POST every window** (httpx, configurable
-  timeout) in addition to the local write.
+  `pipelines/config-base.json` — the challenge spec publishes no fixed
+  receiving URL, and the graded artifact is the local progressive-summary
+  JSON. Every window is always written to
+  `./results/<model>/<window_s>/window_N.json` (exposed via the host
+  volume mount). To enable POSTing, the evaluator sets the
+  `DESTINATION_ENDPOINT` environment variable (`DESTINATION_ENDPOINT=...
+  docker compose up`); `result_transmitter` reads it as a fallback when
+  the config field is empty and POSTs every window (httpx, configurable
+  timeout) in addition to the local write — no file edit required.
 - **`.dockerignore`** keeps the image lean (~20 GB content vs ~150 GB
   with default context) by excluding `models/` (baked separately),
   `datasets/`, `results/`, `.venv/`, and `tools/finetune/runs/`.
