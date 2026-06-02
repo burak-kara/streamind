@@ -59,4 +59,10 @@ EXPOSE 8888/udp
 ENV SUMMARIZER_PROFILE=vllm-qwen3.5-4b-awq \
     WINDOW_SECONDS=300
 
+# Weights are baked into the layers above; forbid any runtime network fetch so
+# the image runs fully offline (and fails loud, not hangs, if code ever tries).
+# Set AFTER the build-time downloads so those still succeed.
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
 ENTRYPOINT ["/usr/local/bin/entrypoint-pipeline.sh"]
