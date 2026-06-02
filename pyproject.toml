@@ -3,7 +3,9 @@ name = "streamind"
 version = "0.1.0"
 requires-python = ">=3.12"
 # Submission runtime: vLLM in-process + Janus audio stack + ASR + HTTP.
-# Model weights are baked into the submission Docker image at build time.
+# Model weights are baked into the submission Docker image at build time via
+# huggingface-hub (kept in base deps — pure-Python, no torch — so the lean
+# `uv sync --no-install-project` build venv can fetch weights without --extra dev).
 dependencies = [
     "juturna",
     "faster-whisper",
@@ -11,16 +13,16 @@ dependencies = [
     "numpy",
     "vllm",
     "nvidia-cublas-cu12",
+    "huggingface-hub",
 ]
 
 [project.optional-dependencies]
-# Everything dev-only: unit tests, audio injection, model fetching,
-# and the finetune toolchain. Submission image runs `uv sync` with no extras.
+# Everything dev-only: unit tests, audio injection, and the finetune toolchain.
+# Submission image runs `uv sync` with no extras.
 dev = [
     "pytest",
     "pytest-asyncio",
     "aiortc",
-    "huggingface-hub",
     "torch",
     "transformers",
     "peft>=0.13",
