@@ -11,6 +11,9 @@ from __future__ import annotations
 import re
 from collections import Counter
 
+# Challenge contract: every window output carries exactly this many keywords.
+REQUIRED_KEYWORD_COUNT = 3
+
 
 BANNED_KEYWORDS = {
     "general", "discussion", "meeting", "topic", "content",
@@ -74,7 +77,7 @@ def extract_keywords_from_transcript(transcript: str, need: int) -> list[str]:
     return [canonical[k] for k in ranked[:need]]
 
 
-def ensure_three_keywords(keywords: list, transcript: str = "") -> list[str]:
+def ensure_three_keywords(keywords: list[str], transcript: str = "") -> list[str]:
     """Guarantee exactly 3 keywords: dedupe, strip banned, backfill from transcript.
 
     Steps:
@@ -93,19 +96,23 @@ def ensure_three_keywords(keywords: list, transcript: str = "") -> list[str]:
             seen.add(key)
             deduped.append(k)
     kw = deduped
-    if len(kw) < 3:
-        extras = extract_keywords_from_transcript(transcript, 3 - len(kw) + 5)
+    if len(kw) < REQUIRED_KEYWORD_COUNT:
+        # Pull a few extra candidates (deficit + 5 buffer) so banned/dupe filtering
+        # below still leaves enough to reach the required count.
+        extras = extract_keywords_from_transcript(
+            transcript, REQUIRED_KEYWORD_COUNT - len(kw) + 5
+        )
         for e in extras:
             if e.lower() in seen or e.lower() in BANNED_KEYWORDS:
                 continue
             kw.append(e)
             seen.add(e.lower())
-            if len(kw) >= 3:
+            if len(kw) >= REQUIRED_KEYWORD_COUNT:
                 break
     for fb in FINAL_FALLBACKS:
-        if len(kw) >= 3:
+        if len(kw) >= REQUIRED_KEYWORD_COUNT:
             break
         if fb.lower() not in seen:
             kw.append(fb)
             seen.add(fb.lower())
-    return kw[:3]
+    return kw[:REQUIRED_KEYWORD_COUNT]

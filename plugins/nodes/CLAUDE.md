@@ -4,7 +4,6 @@
 
 | Folder | Node | Role |
 | --------- | ------ | ------ |
-| `source/_audio_file/` | `audio_file` | WAV file source for local testing via Janus |
 | `proc/_audio_chunker/` | `audio_chunker` | Splits RTP audio into short overlapping chunks |
 | `proc/_novel_extractor/` | `novel_extractor` | Deduplicates overlapping chunk content |
 | `proc/_transcriber_whisper/` | `transcriber_whisper` | ASR via faster-whisper |
@@ -28,13 +27,13 @@ Output schema: same as the live window JSON plus `B_breakdown`, `B`, `K`, `L`, `
 **`summarizer_vllm`** — Native CUDA inference via [vLLM](https://github.com/vllm-project/vllm) `LLM` class, in-process. No daemon. vLLM is a base dependency; `uv sync` installs it (Linux + CUDA only).
 
 - **Model source:** local filesystem path (`./models/<name>`). Never an HF id at runtime. Pipeline aborts at warmup if the directory is missing — clear error directs the user to `tools/fetch_models.sh`.
-- **Config (`config.toml` defaults):** `model_name`, `prompt_template_file` (default `summarize_prompt.txt`), `dtype` (default `float16`), `gpu_memory_utilization` (0.85), `max_model_len` (2048), `max_tokens` (150), `temperature` (0.3), `top_p` (0.9), `repetition_penalty` (1.05), `enforce_eager` (false).
+- **Config (`config.toml` defaults):** `model_name`, `prompt_template_file` (default `summarize_prompt.txt`), `dtype` (default `float16`), `gpu_memory_utilization` (0.85), `max_model_len` (2048), `max_tokens` (256), `temperature` (0.3), `top_p` (0.9), `repetition_penalty` (1.05), `enforce_eager` (false). These are node defaults; the chosen summarizer profile (e.g. `vllm-qwen3.5-4b-awq.json`) overrides them when `assemble_config.py` merges it at launch.
 - **Output contract:** strict JSON `{"summary": ..., "keywords": [3 strings]}`. Output goes through the shared `keywords.ensure_three_keywords()` helper which guarantees the count and bans generic terms.
 - **Failure paths never emit `summary=""`.** Two cases are caught explicitly:
   1. Transcript shorter than `min_transcript_chars` (default 80) — LLM is skipped entirely.
   2. LLM call raised, JSON parse failed, or LLM returned `summary=""`/`null`.
   Both fall through to `_summarizer_common/extractive.py:extractive_summary()`, which returns the first sentence(s) of the transcript capped at ~300 chars. Verbatim → factual_consistency floor is high, costs ~0 ms → L bonus preserved.
-- **Prompt:** `summarize_prompt.txt` — model-agnostic, includes `/no_think` to suppress thinking traces on Qwen-family models.
+- **Prompt:** `summarize_prompt.txt` — model-agnostic, includes `/nothink` to suppress thinking traces on Qwen-family models.
 
 ## Model Choices
 
