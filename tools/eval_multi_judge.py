@@ -16,7 +16,7 @@ across repeated loads.
 Usage (on uni-lab, after the summarizer pipeline exits):
 
     uv run python tools/eval_multi_judge.py results/<run>/300/ \
-      --judge-profiles vllm-mistral-small-24b-awq vllm-llama-3.1-8b vllm-gemma-2-27b-it-awq \
+      --judge-profiles vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq \
       --audio datasets/rev16/<episode>/audio.opus
 
 Outputs (next to the source results):

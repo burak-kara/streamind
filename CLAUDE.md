@@ -73,7 +73,7 @@ See **Scoring Constraints** section for formula and limits. Full spec in [`docs/
 
 ```text
 plugins/nodes/        # Juturna node implementations
-  source/             # _audio_file (WAV file source for local testing)
+  source/             # (none — audio_rtp is a Juturna built-in source)
   proc/               # _audio_chunker, _novel_extractor, _transcriber_whisper,
                       # _window_aggregator, _hallucination_filter,
                       # _summarizer_vllm, _summarizer_common (shared helpers)
@@ -151,7 +151,7 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX
 - `destination_endpoint` in `pipelines/config-base.json` must be set to the challenge POST URL before submission — currently `""` (results still write locally when empty). Set in M3.
 - **Challenge output format**: `result_transmitter` maps internal keys to challenge-required keys: `window_start` → `from`, `window_end` → `to`, `latency` → `proc_time`. Output must contain exactly: `from`, `to`, `summary`, `keywords` (3 items), `proc_time`.
 - `encoding_clock_chan: "opus/48000/1"` in `config-base.json` declares mono Opus per challenge spec. Verify against actual Janus stream before submission.
-- Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
+- Local + production same environment: both go through Janus → `audio_rtp` (the only source; the `audio_file` test node was removed). Inject audio with `tools/send_audio.py`.
 - To inject an audio file into pipeline: `uv run python tools/send_audio.py <file>` (accepts wav, opus, mp3, m4a — anything ffmpeg decodes). Add `--max-duration <sec>` to cap streaming (e.g. `--max-duration 1800` for 30 min).
 - `uv sync` and `uv sync --extra dev` must run on `uni-lab` — vLLM + torch cu124 wheels do not install on Apple Silicon.
 - **ASR model override**: `./tools/run_pipeline.sh -a <model>` overrides ASR model without editing config-base.json. Useful for A/B comparisons (e.g. `-a small.en` vs default `large-v3-turbo`).

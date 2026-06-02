@@ -30,7 +30,7 @@
 # Example:
 #   ./tools/compare_summarizers.sh \
 #       --audios datasets/rev16/*/audio.opus \
-#       --profiles vllm-qwen3-4b-2507 vllm-qwen3.5-4b
+#       --profiles vllm-qwen3.5-4b-awq
 #
 # Safe to leave running overnight. All artifacts land under results/.
 set -uo pipefail
