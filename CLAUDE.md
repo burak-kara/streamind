@@ -111,9 +111,9 @@ uv sync --extra dev && .venv/bin/pytest tests/
 
 # Lab (uni-lab) — full pipeline; repo at ~/Desktop/streamind
 ssh uni-lab && cd ~/Desktop/streamind && git pull && uv sync --extra dev
-./tools/fetch_models.sh <hf_id> <local_name>   # once, idempotent
+./tools/fetch_models.sh Qwen/Qwen3.5-4B-AWQ qwen3.5-4b-awq  # once, idempotent
 docker compose up -d janus                      # first run builds image (~15 min)
-./tools/run_pipeline.sh -p vllm-<local_name>    # then feed audio from a 2nd session:
+./tools/run_pipeline.sh -p vllm-qwen3.5-4b-awq  # then feed audio from a 2nd session:
 uv run python tools/send_audio.py 'datasets/rev16/<episode>/audio.opus'
 
 # Score after the pipeline exits (cross-family panel, sequential, VRAM-safe)
@@ -136,12 +136,11 @@ and mid-dev `rsync`.
 
 ## Current Model Choices
 
-- **Summarizer:** `Qwen/Qwen3.5-4B` (Apache-2.0, BF16, ~10 GB w/ KV at 2K). Profile: `pipelines/summarizer/vllm-qwen3.5-4b.json`. Local dir: `./models/qwen3.5-4b/`.
+- **Summarizer (locked):** `Qwen/Qwen3.5-4B-AWQ` (Apache-2.0, AWQ-int4, ~6 GB). Profile: `pipelines/summarizer/vllm-qwen3.5-4b-awq.json`. Local dir: `./models/qwen3.5-4b-awq/`.
 - **Judge (offline only) — cross-family panel.** Multiple judges from different families avoid single-model bias. Run sequentially (a single GPU — 24 GB dev 4090 or 32 GB prod Pro 4500 — cannot hold the full panel co-resident) via `tools/eval_multi_judge.py`, one subprocess per judge so process exit reclaims VRAM before the next loads. Combined report (`judge_report_multi.txt` + `judge_scores_multi.json`) shows each judge's C side-by-side plus a consensus mean + stdev — low stdev corroborates the score, high stdev flags bias. Qwen judges excluded (summarizer family → self-bias). Single-judge `tools/eval_quality.py` still works unchanged.
   - `stelterlab/Mistral-Small-24B-Instruct-2501-AWQ` (~13 GB AWQ-int4, Apache-2.0, text-only). Profile: `pipelines/judge/vllm-mistral-small-24b-awq.json`. Local dir: `./models/mistral-small-24b-awq/`. Previous pick `cyankiwi/Qwen3.5-27B-AWQ-BF16-INT4` dropped 2026-05-20: not cleanly int4 (~26 GB on disk → OOM on 24 GB).
   - `casperhansen/phi-4-awq` (Microsoft, ~8.5 GB AWQ-int4, MIT). Profile: `pipelines/judge/vllm-phi-4-awq.json`. Local dir: `./models/phi-4-awq/`.
   - `gaunernst/gemma-3-27b-it-int4-awq` (Google, ~18 GB int4-AWQ). Profile: `pipelines/judge/vllm-gemma3-27b-it-int4-awq.json`. Local dir: `./models/gemma3-27b-it-int4-awq/`. Uses `dtype: bfloat16` (Gemma overflows at fp16) and `gpu_memory_utilization: 0.90` (18 GB weights leave tight KV room on the 24 GB dev card). Requires a vLLM build with Gemma-3 support.
-- **Fallback summarizer:** `Qwen/Qwen3.5-9B` if 4B B_i averages < 15. Same prompt + tooling; just swap profile.
 
 See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX/Ollama variants exist.
 
