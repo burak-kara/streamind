@@ -36,7 +36,7 @@ RUN uv venv --python 3.12 .venv \
 # Bake LLM weights into image (no runtime download).
 COPY tools/fetch_models.sh ./tools/fetch_models.sh
 RUN chmod +x tools/fetch_models.sh \
-    && ./tools/fetch_models.sh Qwen/Qwen3.5-4B qwen3.5-4b
+    && ./tools/fetch_models.sh cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4 qwen3.5-4b-awq
 
 # Pre-populate faster-whisper model (submission container has no network).
 # faster-whisper accepts a local dir path as model_name; config-base.json
@@ -56,7 +56,7 @@ RUN mkdir -p /app/tmp /app/results
 
 EXPOSE 8888/udp
 
-ENV SUMMARIZER_PROFILE=vllm-qwen3.5-4b \
+ENV SUMMARIZER_PROFILE=vllm-qwen3.5-4b-awq \
     WINDOW_SECONDS=300
 
 ENTRYPOINT ["/usr/local/bin/entrypoint-pipeline.sh"]

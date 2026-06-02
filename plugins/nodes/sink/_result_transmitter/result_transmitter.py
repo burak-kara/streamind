@@ -1,3 +1,4 @@
+import os
 import json
 import typing
 import logging
@@ -14,7 +15,10 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
     def __init__(self, destination_endpoint: str = "", results_dir: str = "./results",
                  timeout: int = 10, debug: bool = False, **kwargs):
         super().__init__(**kwargs)
-        self._endpoint = destination_endpoint
+        # Config value wins; otherwise fall back to the DESTINATION_ENDPOINT env
+        # var so an evaluator can inject the challenge POST target at runtime
+        # without editing the committed config. Empty = local-results-only.
+        self._endpoint = destination_endpoint or os.environ.get("DESTINATION_ENDPOINT", "")
         self._results_dir = Path(results_dir)
         self._timeout = timeout
         self._debug = debug
