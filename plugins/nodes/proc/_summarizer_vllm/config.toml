@@ -2,7 +2,7 @@
 # `model_name` MUST be a local filesystem path (./models/<name>); the node
 # refuses to start if the directory is missing.
 [arguments]
-model_name = "./models/qwen3.5-4b"
+model_name = "./models/qwen3.5-4b-awq"
 prompt_template_file = "summarize_prompt.txt"
 dtype = "float16"
 gpu_memory_utilization = 0.85

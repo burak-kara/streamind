@@ -107,3 +107,24 @@ class TestResultTransmitter:
             mock_post.assert_called_once()
             call_kwargs = mock_post.call_args
             assert "http://example.com/submit" in str(call_kwargs)
+
+    @patch.dict(os.environ, {"DESTINATION_ENDPOINT": "http://env.example.com/submit"})
+    def test_endpoint_falls_back_to_env_when_config_empty(self):
+        from result_transmitter import ResultTransmitter
+
+        node = ResultTransmitter(destination_endpoint="")
+        assert node._endpoint == "http://env.example.com/submit"
+
+    @patch.dict(os.environ, {"DESTINATION_ENDPOINT": "http://env.example.com/submit"})
+    def test_config_endpoint_wins_over_env(self):
+        from result_transmitter import ResultTransmitter
+
+        node = ResultTransmitter(destination_endpoint="http://config.example.com/submit")
+        assert node._endpoint == "http://config.example.com/submit"
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_endpoint_empty_when_neither_set(self):
+        from result_transmitter import ResultTransmitter
+
+        node = ResultTransmitter(destination_endpoint="")
+        assert node._endpoint == ""

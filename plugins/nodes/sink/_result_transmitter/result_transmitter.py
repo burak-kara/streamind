@@ -50,7 +50,7 @@ class ResultTransmitter(Node[ObjectPayload, ObjectPayload]):
         clean = Path(name).name if "/" in name else name
         return clean.replace(":", "-")
 
-    def update(self, message: Message[ObjectPayload]):
+    def update(self, message: Message[ObjectPayload]) -> None:
         window_id = message.payload.get("window_id", 0)
         model_name = message.payload.get("model_name", "unknown")
         window_duration = int(round(
