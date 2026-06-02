@@ -25,7 +25,7 @@ missing.
 ```bash
 ./tools/fetch_models.sh <hf_id> <local_name>
 # e.g. (locked submission summarizer)
-./tools/fetch_models.sh Qwen/Qwen3.5-4B-AWQ qwen3.5-4b-awq
+./tools/fetch_models.sh cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4 qwen3.5-4b-awq
 ```
 
 ASR model (`deepdml/faster-whisper-large-v3-turbo-ct2`) auto-resolves to

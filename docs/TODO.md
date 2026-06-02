@@ -16,8 +16,13 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
 Model locked: **`qwen3.5-4b-awq`** (profile `vllm-qwen3.5-4b-awq.json`, dir `./models/qwen3.5-4b-awq/`).
 
 - [x] **Model locked.** `qwen3.5-4b-awq` selected as submission summarizer.
-- [ ] **Record locked B/K/L/C breakdown in `docs/APPROACH.md`.**
-- [ ] **M3: Dockerfile** — bake `qwen3.5-4b-awq` weights, populate `destination_endpoint`, end-to-end container smoke test.
+  HF id `cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4` (the `Qwen/Qwen3.5-4B-AWQ` label was wrong — no such repo).
+- [x] **Record locked B/K/L/C breakdown in `docs/APPROACH.md`.** 3-judge consensus, 5 fixtures: Final **40.2 ± 0.6** (range 39.07–41.02), best 41.02. B≈23.8 / K≈5.6 / L≈6.79 / C≈36.2 / +4 Janus.
+- [x] **M3: Dockerfile** — bakes `cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4` → `./models/qwen3.5-4b-awq` + faster-whisper; `huggingface-hub` moved to base deps so the lean build venv can fetch; `--auto` launch for detached containers; `.dockerignore`.
+- [x] **`destination_endpoint` portable.** `result_transmitter` falls back to `DESTINATION_ENDPOINT` env var (default `""`, local results always written); compose passes it through.
+- [x] **Container build verified on uni-lab.** Image dated 2026-06-02; `--network none` run confirms AWQ (5.2 G) + whisper (1.6 G) weights baked, zero runtime download.
+- [ ] **Runtime smoke (user-run on uni-lab):** `WINDOW_SECONDS=30 docker compose --env-file /dev/null up` + `send_audio.py` via Janus → ≥1 `window_*.json` with exactly `{from,to,summary,keywords[3],proc_time}`. Watch Janus→pipeline RTP routing + VRAM < 24 GB.
+- [ ] **Submission bundle** — assemble after runtime smoke passes.
 
 ### Future work (post-submission)
 
