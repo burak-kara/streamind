@@ -24,6 +24,7 @@
 #   -r, --runs <n>              runs per profile       (default 1; >1 measures variance)
 #   -b, --timeout-buffer <sec>  seconds past audio     (default 180; warmup + flush)
 #   -c, --min-coverage <frac>   min first-run coverage (default 0.85; abort if truncated)
+#   -d, --max-duration <sec>    cap audio streaming    (default 0 = no cap; e.g. 1800 = 30 min)
 #   -h, --help                  show this help
 #
 # Example:
@@ -54,6 +55,7 @@ WINDOW=300
 RUNS=1
 TIMEOUT_BUFFER=180
 MIN_COV=0.85
+MAX_DUR=0
 AUDIOS=()
 PROFILES=()
 
@@ -77,6 +79,7 @@ while [ $# -gt 0 ]; do
     -r|--runs)           RUNS="${2:-}"; shift 2 ;;
     -b|--timeout-buffer) TIMEOUT_BUFFER="${2:-}"; shift 2 ;;
     -c|--min-coverage)   MIN_COV="${2:-}"; shift 2 ;;
+    -d|--max-duration)   MAX_DUR="${2:-}"; shift 2 ;;
     -h|--help)           usage 0 ;;
     --)                  shift; break ;;
     -*)  echo "ERROR: unknown flag $1" >&2; usage 1 ;;
@@ -147,6 +150,7 @@ log "=== summarizer comparison: ${#AUDIOS[@]} audio(s) × ${#PROFILES[@]} profil
 log "audios:         ${AUDIOS[*]}"
 log "summarizers:    ${PROFILES[*]}"
 log "judges (fixed): ${JUDGE_PROFILES[*]}"
+[ "${MAX_DUR:-0}" -gt 0 ] && log "max-duration:   ${MAX_DUR}s per audio"
 
 # --- helpers ---
 # These operate on per-audio globals set by the outer loop below: AUDIO, DUR,
@@ -208,7 +212,9 @@ run_pipeline() {
   sleep 3
 
   log "${profile}: streaming ~${DUR}s real-time"
-  uv run python tools/send_audio.py "$AUDIO" >>"$plog" 2>&1 || log "WARN send_audio nonzero ($profile)"
+  _send_args=("$AUDIO")
+  [ "${MAX_DUR:-0}" -gt 0 ] && _send_args+=(--max-duration "$MAX_DUR")
+  uv run python tools/send_audio.py "${_send_args[@]}" >>"$plog" 2>&1 || log "WARN send_audio nonzero ($profile)"
   log "${profile}: stream done — waiting for auto-stop"
   wait "$pid" 2>/dev/null
   # Even on a clean auto-stop, vLLM's in-process unload is leaky — an EngineCore
@@ -273,6 +279,10 @@ for AUDIO in "${AUDIOS[@]}"; do
 
   DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$AUDIO")
   [ -n "$DUR" ] || die "could not read duration of $AUDIO"
+  if [ "${MAX_DUR:-0}" -gt 0 ] && awk "BEGIN{exit !($DUR > $MAX_DUR)}"; then
+    log "audio ${DUR}s exceeds --max-duration ${MAX_DUR}s — capping"
+    DUR=$MAX_DUR
+  fi
   TIMEOUT=$(awk "BEGIN{printf \"%d\", $DUR + $TIMEOUT_BUFFER}")
 
   log "=== audio: $AUDIO ==="

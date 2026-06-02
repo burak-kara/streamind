@@ -109,6 +109,7 @@ Flags (`tools/send_audio.py`):
 | `--room` | VideoRoom room ID | `1234` |
 | `--pipeline-host` | host where `audio_rtp` listens | `host.docker.internal` |
 | `--pipeline-port` | UDP port of `audio_rtp` | `8888` |
+| `--max-duration <sec>` | cap streaming to N seconds (e.g. `1800` = 30 min); audio beyond this is never sent | no cap |
 
 Heartbeat logs elapsed/total every 60s and surfaces WebRTC state, so mid-stream
 truncation is visible without log spelunking. Same path in dev and production —
@@ -213,7 +214,9 @@ Flags: `--audios <a...>` (required, iterated — each audio gets its own results
 tree + leaderboard), `--profiles <p...>` (required, iterated),
 `-w|--window <sec>` (default 300), `-r|--runs <n>` (default 1),
 `-b|--timeout-buffer <sec>` (default 180), `-c|--min-coverage <frac>` (default
-0.85, abort if first run truncates). Preflight verifies every audio + GPU + every
+0.85, abort if first run truncates), `-d|--max-duration <sec>` (default: no cap
+— cap streaming per audio, e.g. `1800` for 30 min; timeout + coverage are
+computed against the capped duration). Preflight verifies every audio + GPU + every
 summarizer and judge model dir once, before any multi-hour run.
 
 All artifacts land under one per-invocation root

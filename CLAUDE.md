@@ -153,7 +153,7 @@ See [`plugins/nodes/CLAUDE.md`](plugins/nodes/CLAUDE.md) for node layout. No MLX
 - **Challenge output format**: `result_transmitter` maps internal keys to challenge-required keys: `window_start` → `from`, `window_end` → `to`, `latency` → `proc_time`. Output must contain exactly: `from`, `to`, `summary`, `keywords` (3 items), `proc_time`.
 - `encoding_clock_chan: "opus/48000/1"` in `config-base.json` declares mono Opus per challenge spec. Verify against actual Janus stream before submission.
 - Local + production same environment: both go through Janus → `audio_rtp`. Don't swap to `audio_file` for testing.
-- To inject an audio file into pipeline: `uv run python tools/send_audio.py <file>` (accepts wav, opus, mp3, m4a — anything ffmpeg decodes)
+- To inject an audio file into pipeline: `uv run python tools/send_audio.py <file>` (accepts wav, opus, mp3, m4a — anything ffmpeg decodes). Add `--max-duration <sec>` to cap streaming (e.g. `--max-duration 1800` for 30 min).
 - `uv sync` and `uv sync --extra dev` must run on `uni-lab` — vLLM + torch cu124 wheels do not install on Apple Silicon.
 - **ASR model override**: `./tools/run_pipeline.sh -a <model>` overrides ASR model without editing config-base.json. Useful for A/B comparisons (e.g. `-a small.en` vs default `large-v3-turbo`).
 - `tools/finetune/` is **parked** until M4 (`prepare_rev16.py` and `eval_finetuned.py` still use `ollama` Python client — will be rewritten to vLLM in M4).
