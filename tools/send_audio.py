@@ -68,9 +68,14 @@ async def send_audio(
     room: int = 1234,
     pipeline_host: str = "host.docker.internal",
     pipeline_port: int = 8888,
+    max_duration: float | None = None,
 ) -> None:
-    duration = audio_duration(audio_path)
-    log.info("Audio: %s  (%.1fs)", audio_path, duration)
+    full_duration = audio_duration(audio_path)
+    duration = min(full_duration, max_duration) if max_duration else full_duration
+    if max_duration and full_duration > max_duration:
+        log.info("Audio: %s  (%.1fs → capped to %.1fs)", audio_path, full_duration, duration)
+    else:
+        log.info("Audio: %s  (%.1fs)", audio_path, duration)
 
     async with httpx.AsyncClient() as client:
 
@@ -171,7 +176,7 @@ async def send_audio(
         log.info("RTP forward active: %s", event.get("plugindata", {}).get("data", {}))
 
         # ── 8. Stream for the duration of the audio ──────────────────────────
-        log.info("Streaming %.1fs of audio to pipeline...", duration)
+        log.info("Streaming %.1fs of audio to pipeline...", duration)  # effective duration after cap
 
         # Keep the Janus HTTP session alive by polling; without this the session
         # expires (~60s) and Janus tears down the WebRTC connection mid-stream.
@@ -251,6 +256,11 @@ def main() -> None:
         "--pipeline-port", type=int, default=8888,
         help="UDP port of the pipeline's audio_rtp node (default: 8888)",
     )
+    parser.add_argument(
+        "--max-duration", type=float, default=None, metavar="SECONDS",
+        help="Cap streaming to this many seconds (e.g. 1800 for 30 min). "
+             "Audio beyond this point is never sent. Default: no cap.",
+    )
     args = parser.parse_args()
 
     asyncio.run(send_audio(
@@ -259,6 +269,7 @@ def main() -> None:
         room=args.room,
         pipeline_host=args.pipeline_host,
         pipeline_port=args.pipeline_port,
+        max_duration=args.max_duration,
     ))
 
 
