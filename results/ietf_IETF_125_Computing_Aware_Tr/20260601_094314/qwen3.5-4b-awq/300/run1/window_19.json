@@ -1,0 +1,11 @@
+{
+  "from": 5557.0,
+  "to": 5857.0,
+  "summary": "UNACO proposes a unified architecture enabling bidirectional awareness and joint orchestration between optical transport networks and AI computing infrastructure to address inefficiencies in distributed AI training and inference. Unlike traditional traffic steering approaches, UNACO acts as a lifecycle orchestrator that integrates storage, compute, and optical states to provision new physical or logical links on demand before service initiation. This solution bridges separate network and compute providers through standardized interfaces, allowing the system to evaluate service intents and coordinate resources across distinct domains to maximize compute efficiency.",
+  "keywords": [
+    "UNACO",
+    "joint orchestration",
+    "AI infrastructure"
+  ],
+  "proc_time": 0.7924938201904297
+}

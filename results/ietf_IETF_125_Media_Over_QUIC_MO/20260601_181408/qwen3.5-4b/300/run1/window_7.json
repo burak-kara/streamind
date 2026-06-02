@@ -1,0 +1,11 @@
+{
+  "from": 2100.0,
+  "to": 2400.0,
+  "summary": "The presentation validates a proposed multi-modal feedback mechanism for video streaming through controlled experiments comparing systems with and without feedback. Results demonstrate that feedback significantly improves performance under poor network conditions, reducing frame intervals and storage rates while enabling dynamic adjustment of AI-generated video quality based on real-time delivery status.",
+  "keywords": [
+    "video streaming",
+    "multi-modal feedback",
+    "packet loss"
+  ],
+  "proc_time": 0.8354837894439697
+}

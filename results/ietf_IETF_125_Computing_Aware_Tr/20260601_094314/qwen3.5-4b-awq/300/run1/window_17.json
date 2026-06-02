@@ -1,0 +1,11 @@
+{
+  "from": 4957.0,
+  "to": 5257.0,
+  "summary": "The discussion addressed timing mismatches in BGP protocols while introducing a new framework for Optical Transport Network (OTN) that combines compute and network awareness to support high-demand workloads like AI training and inference. This proposed solution extends the existing CAD framework by utilizing OTN to create deterministic, hard-isolated transport paths through optical containers, ensuring low latency and high bandwidth required for synchronized GPU clusters and telehealth services. The workflow involves identifying services via their IDs, measuring resource states, and selecting optimal instances and paths based on factors such as pulse latency, continuity, and current compute availability before mapping traffic into optical containers for delivery.",
+  "keywords": [
+    "OTN",
+    "deterministic transport",
+    "compute-aware networking"
+  ],
+  "proc_time": 0.973505973815918
+}

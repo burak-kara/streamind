@@ -1,0 +1,11 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The discussion focused on defining access control mechanisms for CDN edge resources, specifically how to authorize clients to request specific tracks while preventing unauthorized redistribution. Participants clarified that while content itself may not be encrypted, permissions are managed via tokens to restrict which assets a client can subscribe to, particularly for scenarios involving multiple customers sharing a single relay. The conversation also addressed catalog management strategies, noting that new tracks are added based on publisher needs and that the system supports dynamic updates to track availability without requiring constant redefinition.",
+  "keywords": [
+    "CDN",
+    "access control",
+    "track catalog"
+  ],
+  "proc_time": 0.8046107292175293
+}

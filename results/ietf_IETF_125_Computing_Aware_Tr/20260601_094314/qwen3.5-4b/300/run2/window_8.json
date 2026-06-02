@@ -1,0 +1,11 @@
+{
+  "from": 2257.0,
+  "to": 2557.0,
+  "summary": "The team presented updates to a data model for CATs, incorporating feedback from reviewers to refine terminology, document structure, and alignment with free work standards. Key changes include defining new interfaces like CATS-SBI and CSMA API, establishing the CAS state model structure, and removing dependencies on specific solutions to ensure broader applicability.",
+  "keywords": [
+    "CATs",
+    "CAS model",
+    "interfaces"
+  ],
+  "proc_time": 0.8645000457763672
+}

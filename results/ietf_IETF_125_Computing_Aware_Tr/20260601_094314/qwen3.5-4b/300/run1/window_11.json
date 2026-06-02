@@ -1,0 +1,11 @@
+{
+  "from": 3217.0,
+  "to": 3517.0,
+  "summary": "The speakers discussed a lightweight service table architecture designed to facilitate traffic steering without interfering with network convergence, emphasizing the importance of running the framework to validate its design. A question regarding the distinction between L1 and L2 metrics was addressed by explaining that the proposed approach abstracts physical details from the service side, though the discussion was deferred to an offline session due to its specificity. The meeting concluded with an introduction to a new topic analyzing the applicability of existing ITF protocols for 3K areas, focusing on metrics collection, distribution, and path selection.",
+  "keywords": [
+    "service table",
+    "traffic steering",
+    "protocol analysis"
+  ],
+  "proc_time": 1.3308415412902832
+}

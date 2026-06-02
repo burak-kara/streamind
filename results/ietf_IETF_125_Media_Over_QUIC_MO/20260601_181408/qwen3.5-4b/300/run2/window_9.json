@@ -1,0 +1,11 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The meeting discussed the compatibility of a proposed draft with current implementations and highlighted the need for detailed metrics regarding large-scale deployments and specific use cases like real-time video generation. A subsequent presentation introduced Mock/QMux as a critical TCP fallback mechanism required when UDP-based protocols fail due to enterprise firewalls, mobile carrier restrictions, or rate limiting, ensuring broader adoption in constrained environments.",
+  "keywords": [
+    "Mock",
+    "QMux",
+    "real-time video"
+  ],
+  "proc_time": 0.9736385345458984
+}

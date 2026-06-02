@@ -1,0 +1,11 @@
+{
+  "from": 4181.0,
+  "to": 4481.0,
+  "summary": "The discussion focused on refining filter syntax to support complex queries like keyframe scrubbing, logical operators (AND/OR), and exclusive value ranges. A significant update introduced the Track Selection Filter, which allows selecting top N tracks based on specific property values across a namespace, designed to improve scalability by running once at the relay ingress rather than per subscriber. The team clarified that while publishers can self-filter known properties, relays must aggregate and propagate all filter requests upstream to the original publisher to ensure accurate data delivery.",
+  "keywords": [
+    "Track Selection Filter",
+    "Relay Aggregation",
+    "Property Filtering"
+  ],
+  "proc_time": 1.2707929611206055
+}

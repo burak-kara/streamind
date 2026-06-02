@@ -1,0 +1,11 @@
+{
+  "from": 5257.0,
+  "to": 5557.0,
+  "summary": "The working group discussed criteria for evaluating matrix and optical network performance, including GPU load, latency, and link quality, while requesting feedback from specific technical committees. A presentation by Zheng He from BOPT clarified that the UNANCO project focuses on optical networks to support distributed AI workloads requiring hard isolation, zero jitter, and deterministic latency, which only optical layers like OTN can guarantee.",
+  "keywords": [
+    "distributed AI",
+    "OTN",
+    "network isolation"
+  ],
+  "proc_time": 0.6468961238861084
+}

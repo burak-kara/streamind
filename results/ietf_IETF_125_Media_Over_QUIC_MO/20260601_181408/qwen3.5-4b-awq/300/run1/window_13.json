@@ -1,0 +1,11 @@
+{
+  "from": 3881.0,
+  "to": 4181.0,
+  "summary": "The team finalized a new PR 1518 that reduces the scope of the previous filter implementation by removing location and group filters while introducing new range and track filters along with ANSETs for complex filtering logic. Key technical updates include simplifying setup options to a total max filter range across all parameters, allowing multi-valued parameters to repeat with different values to avoid protocol violations, and clarifying interactions between subgroup closing and other specification components.",
+  "keywords": [
+    "filter specifications",
+    "ANSETs",
+    "multi-valued parameters"
+  ],
+  "proc_time": 0.7539091110229492
+}

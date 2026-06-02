@@ -1,0 +1,11 @@
+{
+  "from": 4357.0,
+  "to": 4657.0,
+  "summary": "The discussion outlines three BGP mechanisms for constraining metadata distribution: non-advertisement communities, route filters, and AS-specific updates to prevent cross-border propagation of sensitive information. It further details how PTP Metadata utilizes sub-TLVs like Site Preference Index and Physical Availability Index to map L2 policies and shared resources, enabling efficient single-message withdrawals for affected prefixes. Additionally, Service Delay Prediction and Service Oriented Capability sub-TLVs are introduced to map service processing delays and computing resource capabilities to CATS metrics.",
+  "keywords": [
+    "BGP metadata",
+    "sub-TLVs",
+    "cross-border constraints"
+  ],
+  "proc_time": 0.8387939929962158
+}

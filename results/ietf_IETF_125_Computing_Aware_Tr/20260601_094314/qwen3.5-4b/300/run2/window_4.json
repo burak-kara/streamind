@@ -1,0 +1,11 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The meeting discussed the motivation and architectural design for the new CASOM framework, which aims to extend OAM capabilities from the network layer to the surface instance to prevent traffic steering failures caused by unmonitored service instances. The proposed solution defines two new components, SIOM and SVCOM, leveraging existing ITF standards to provide status monitoring, metric tracking, policy verification, and end-to-end performance measurement across multi-domain scenarios. While the team acknowledged the utility of the OAM work, a question was raised regarding the terminology used for network layers versus levels, prompting an evaluation of whether to adjust these terms to align with previous documentation.",
+  "keywords": [
+    "CASOM",
+    "OAM",
+    "surface instance"
+  ],
+  "proc_time": 1.4880211353302002
+}

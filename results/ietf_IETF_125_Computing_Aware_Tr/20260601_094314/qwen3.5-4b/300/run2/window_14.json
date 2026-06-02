@@ -1,0 +1,11 @@
+{
+  "from": 4057.0,
+  "to": 4357.0,
+  "summary": "The discussion focused on refining a draft analyzing BGP-LLS and LX protocols for Connection Availability Tracking (CAT), clarifying that the document should analyze protocols rather than propose solutions. Participants addressed concerns regarding high-rate data changes and agreed to incorporate considerations for data volume and churn rates to help determine suitable protocols. Additionally, an update was provided on using the Metadata Pass Attribute in BGP to distribute CAT metrics efficiently within limited domains.",
+  "keywords": [
+    "BGP-LLS",
+    "CAT metrics",
+    "Metadata Pass Attribute"
+  ],
+  "proc_time": 1.115870475769043
+}

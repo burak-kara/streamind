@@ -1,0 +1,11 @@
+{
+  "from": 5557.0,
+  "to": 5857.0,
+  "summary": "UNACO proposes a unified architecture enabling bidirectional awareness and joint orchestration between optical transport networks and AI computing infrastructure to solve efficiency losses caused by isolated resource scheduling. By integrating storage, compute, and optical states into a single framework, UNACO distinguishes itself from CATS through its lifecycle approach that provisions new optical links on demand rather than merely steering traffic over existing paths. This solution bridges the gap between network and compute providers via standardized interfaces, allowing service providers to translate AI intents into coordinated resource allocation across distinct domains.",
+  "keywords": [
+    "joint orchestration",
+    "optical networks",
+    "AI computing"
+  ],
+  "proc_time": 1.3164763450622559
+}

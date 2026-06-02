@@ -1,0 +1,11 @@
+{
+  "from": 6517.0,
+  "to": 6817.0,
+  "summary": "The discussion addresses the limitations of current networks in handling AI traffic, noting that existing mechanisms fail to distinguish between critical tasks like gradient synchronization and less urgent operations. A proposed solution involves a semantic-aware framework where applications provide metadata regarding traffic urgency and resource preferences to enable intelligent network scheduling and prioritization.",
+  "keywords": [
+    "AI traffic",
+    "network semantics",
+    "load balancing"
+  ],
+  "proc_time": 0.8059372901916504
+}

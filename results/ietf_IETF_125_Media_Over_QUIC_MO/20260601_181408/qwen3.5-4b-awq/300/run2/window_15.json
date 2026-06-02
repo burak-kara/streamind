@@ -1,0 +1,11 @@
+{
+  "from": 4481.0,
+  "to": 4781.0,
+  "summary": "The discussion explains that the track filter mechanism operates exclusively at the edge relay level, where the relay compares metrics from all directly connected original publishers to select the top N tracks based on specified properties like audio level. Subscribers configure this filter via the subscribe namespace by defining the metric to monitor, the desired number of top tracks, and optional timeout parameters, while the relay manages state transitions including newly selected, selected, and deselected tracks without propagating filter logic to individual publishers. Additionally, the team removed the rigid MaxTracks constraint previously enforced by both relays and subscribers, granting relays full autonomy to purge state as needed, and introduced a 'conflicting filters' error to prevent relays from processing overly complex filter configurations.",
+  "keywords": [
+    "edge relay",
+    "track filter",
+    "state transitions"
+  ],
+  "proc_time": 1.2446088790893555
+}

@@ -1,0 +1,11 @@
+{
+  "from": 6217.0,
+  "to": 6517.0,
+  "summary": "The presentation introduced ODSI, an open, decentralized, and scalable framework for large language model inference inspired by blockchain technology, featuring three core components: a transport protocol for data transfer between nodes, a coordination mechanism for utilizing distributed computing power, and an economic design to incentivize participation. Following the introduction, audience member Tran Yang asked about the optimal approach for load balancing traffic to appropriate model instances at the edge, specifically comparing application-layer strategies like GSLB against network-layer solutions such as Content Addressable Storage (CAS). The presenter clarified that while CAS considers both computing and network resources, the framework aims to distribute requests based on content characteristics, leaving the specific implementation choice open for further discussion.",
+  "keywords": [
+    "ODSI",
+    "decentralized inference",
+    "load balancing"
+  ],
+  "proc_time": 1.6774499416351318
+}

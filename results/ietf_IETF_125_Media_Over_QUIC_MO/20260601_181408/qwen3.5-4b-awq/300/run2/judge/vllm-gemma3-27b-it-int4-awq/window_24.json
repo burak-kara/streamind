@@ -1,0 +1,31 @@
+{
+  "from": 7181.0,
+  "to": 7289.0,
+  "summary": "The team confirmed the selection of VI-64 as the chosen option after a brief discussion, noting that no objections were raised. They scheduled the next inter-meeting for March 30th at 16:30 UTC to showcase a server site ABR demo from Disney, followed by a hybrid interim meeting in London in June and another in Vienna. The conversation concluded with a mention of a potential demonstration involving a deposit of Bakhti.",
+  "keywords": [
+    "VI-64",
+    "inter-meeting",
+    "server site ABR"
+  ],
+  "proc_time": 0.7740654945373535,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.790688569122143,
+  "C": 37.79068856912214,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.3176895306859206,
+  "asr_transcript": "That one's a little close. You might want to take the list, Alan, but I think that's a useful signal. I will put a thread on the list if people want to add additional. All right, excellent. OK, thank you very much, Alan. I didn't think we were going to... Hey, I've got a slide. The next one will terminate in less than 30 seconds. because it's a 30 second editorial bike shed if you want to take VI-64 or V-64. I already picked one. Somebody opened a PR. What did you pick? It's currently VI64 for variable. Can anyone not live with VI-64, say so? Say so now. Huh? Okay. okay no one said anything go with it all right thanks alan i didn't think we face fun of errands, but there you go. Our next inter-meeting. is March 30th at 1630. 30 UTC. We didn't have time for a demo today of server site ABR from the folks at Disney. Tentatively, it is planned for the 30th. So those of you who might be interested in that, encourage you to try to attend on the 30th i'm going to put out a call on the list for other items that day and um i will see many of you the virtual and many others, many others. of you at our hybrid interim in london in june as i announced in the the first session and the rest of you will see you in vienna thank you Marguerite. Martin, it originally was just I, but then somebody said, well, if I ever wanted to show... a deposit of like Bakhti over back to you over over quick, then you need to see which that light puts.",
+  "reference_slice": "ight want to take the list, Alan, but I think that's a useful signal that can inform. I will put a thread on the list if people want to add additional. All right, excellent. Okay, thank you very much, Alan. I didn't think we're going to... Hey, I've got a slide. The next one will terminate in less than 30 seconds. Because it's a 30-second editorial bike shed. If you want to take VI-64 or V-64. I already picked one. Somebody opened to PR. What did you pick? It's currently VI64 for variable... Can anyone not live with V64? Say so now? Okay. No one said anything. Go with it. All right. Thanks, Alan. I didn't think we'd face plan on veterans, but there you go. Our next interim meeting is March 30th at 1630 UTC. We had, we didn't have time for a... a demo today of server site ABR from the folks at Disney. Tentatively, it is planned from the 30th. So those of you might be interested in that, I encourage you to try to attend on the 30th. I'm going to put out a call on the list for other agenda items that day. And I will see many of you at the virtual and many others of you at our hybrid interim in London in June, as I announced in the first session, and the rest of you will see you in Vienna. Thank you. Martin, it originally was just I. But then somebody would say, well, if I ever wanted to show a posit of, like, mock T over, just over quick, then you need to see what, like, Thank you."
+}

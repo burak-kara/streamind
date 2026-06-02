@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "Jiang Minghui presented Xquake's adoption of MOQ in Alibaba's production environments, highlighting significant latency reductions in top-of-voice search, cloud rendering, and AI assistance compared to WebRTC. The team explained that while MOQ offers superior transport-layer performance, they developed a new draft to integrate application-layer feedback for dynamic bitrate adaptation, which further improves user experience.",
+  "keywords": [
+    "MOQ",
+    "latency",
+    "Alibaba"
+  ],
+  "proc_time": 0.6232962608337402
+}

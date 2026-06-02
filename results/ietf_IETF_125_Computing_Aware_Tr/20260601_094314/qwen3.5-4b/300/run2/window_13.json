@@ -1,0 +1,11 @@
+{
+  "from": 3757.0,
+  "to": 4057.0,
+  "summary": "The discussion focuses on extending Control Plane protocols like BGP-LSP, PIRs, and BGP Flow Spec to support Computer Network Security (CAS) requirements, including new metrics and match criteria. The Data Plane is designed to leverage existing IPv6 and SRv6 infrastructure for packet classification and forwarding without requiring new hardware, while Control Plane enhancements enable better OAM and telemetry capabilities. The speaker emphasizes that this draft serves as an initial proposal aiming to analyze existing protocols for CAS integration and seeks feedback on deployment recommendations.",
+  "keywords": [
+    "Computer Network Security",
+    "BGP extensions",
+    "SRv6 forwarding"
+  ],
+  "proc_time": 1.309586524963379
+}

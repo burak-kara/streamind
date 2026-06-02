@@ -1,0 +1,11 @@
+{
+  "from": 2557.0,
+  "to": 2857.0,
+  "summary": "The working group plans to finalize upcoming drafts before presenting a new strategy to the full group. A new proposal suggests replacing detailed computing metrics with a lightweight Public Service Table to manage service discovery and allocation. This approach hides hardware complexity while providing clients and service providers with essential information like required inputs, storage needs, and available global slots.",
+  "keywords": [
+    "service-oriented",
+    "Public Service Table",
+    "traffic steering"
+  ],
+  "proc_time": 0.8832285404205322
+}

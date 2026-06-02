@@ -1,0 +1,11 @@
+{
+  "from": 2857.0,
+  "to": 3157.0,
+  "summary": "The presentation outlines a framework for service-level abstraction that transforms raw hardware metrics into actionable service units, enabling the Control Plane Service (CPS) to optimize resource allocation based on combined computing and network delays. This approach ensures strict compatibility with existing components while preserving privacy by keeping raw metrics local, and demonstrates a scalable mechanism for managing service state through simple increment and decrement operations during traffic flow. The discussion concludes with a Q&A session addressing the synchronization challenges between computing metric advertisements and network topology updates required for optimal path selection.",
+  "keywords": [
+    "service abstraction",
+    "resource optimization",
+    "privacy preservation"
+  ],
+  "proc_time": 0.8388826847076416
+}

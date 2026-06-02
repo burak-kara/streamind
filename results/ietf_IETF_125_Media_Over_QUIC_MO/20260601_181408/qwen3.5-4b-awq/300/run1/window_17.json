@@ -1,0 +1,11 @@
+{
+  "from": 5081.0,
+  "to": 5381.0,
+  "summary": "The discussion addresses mitigation strategies for resource asymmetry in subscription relays by implementing filters that allow relays to detect overload conditions and propagate aggregated constraints upstream. New mechanisms include a 'conflicting filters' error to reject excessive aggregation work and a 'prefix overlap' error to handle namespace collisions across multiple subscribers, ensuring the system remains robust despite inherent design limitations. The team plans to gather final feedback from submitters before closing the issue tracker, while addressing specific questions regarding deselection timers, production property filters, and security measures against recursive publishing.",
+  "keywords": [
+    "subscription relays",
+    "resource asymmetry",
+    "namespace filtering"
+  ],
+  "proc_time": 0.8719511032104492
+}

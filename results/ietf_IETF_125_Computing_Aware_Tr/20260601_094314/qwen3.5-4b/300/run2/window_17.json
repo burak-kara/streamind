@@ -1,0 +1,11 @@
+{
+  "from": 4957.0,
+  "to": 5257.0,
+  "summary": "The presentation addressed challenges in multi-site computing where traditional packet-based traffic steering fails to meet the stringent latency and determinism requirements of high-demand workloads like model training and inference. The proposed solution extends the Control and Orchestration Service (CAS) framework into Optical Transport Networks (OTN) to provide deterministic, high-bandwidth transport with guaranteed performance. By combining compute and optical matrices, the system maps traffic into optical containers and selects optimal paths based on factors such as pulse latency, continuity, and resource states to ensure end-to-end hard isolation for critical service flows.",
+  "keywords": [
+    "OTN",
+    "deterministic transport",
+    "CAS framework"
+  ],
+  "proc_time": 1.372103214263916
+}

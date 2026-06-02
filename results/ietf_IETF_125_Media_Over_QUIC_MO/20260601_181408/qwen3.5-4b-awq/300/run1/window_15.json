@@ -1,0 +1,11 @@
+{
+  "from": 4481.0,
+  "to": 4781.0,
+  "summary": "The discussion explains that the track filter mechanism operates exclusively at the edge relay level, where the relay compares metrics from all connected original publishers to select the top N tracks based on specified properties like audio level without propagating the filter logic back to the publishers. New features introduced include the ability for relays to dynamically purge state and a new 'conflicting filters' error to prevent overly complex filter configurations, alongside detailed state transitions tracking tracks through unknown, newly selected, selected, and deselected states.",
+  "keywords": [
+    "edge relay",
+    "track filter",
+    "state transitions"
+  ],
+  "proc_time": 0.8330154418945312
+}

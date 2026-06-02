@@ -1,0 +1,11 @@
+{
+  "from": 3300.0,
+  "to": 3581.0,
+  "summary": "The meeting discussed two proposals to resolve ALPN version explosion issues in QUIC/Moq implementations: upgrading Web Transport's ALPN to include protocol versions and consolidating QUIC and Moq version identification into a single TLS ALPN field. Participants debated the trade-offs between these approaches, noting that while a unified ALPN simplifies the draft, it may complicate early deployments where servers must support multiple protocols simultaneously. The group agreed to consolidate the technical details into the Moq draft and directed attendees to follow up on specific implementation questions through external channels.",
+  "keywords": [
+    "QUIC",
+    "ALPN",
+    "version negotiation"
+  ],
+  "proc_time": 1.3719673156738281
+}

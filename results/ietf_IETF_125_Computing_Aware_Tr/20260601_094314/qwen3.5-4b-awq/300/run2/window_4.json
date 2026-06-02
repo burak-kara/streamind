@@ -1,0 +1,11 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The discussion outlines the motivation and architectural vision for a new OAM framework designed to monitor and ensure end-to-end connectivity for Service Function Chaining (SFC) across surface instances. The proposed solution leverages existing ITU-T OAM standards while introducing two new components, SIOM for status and metric monitoring, and SVCOM for policy verification and forwarding behavior analysis. Key decisions involve defining specific metrics to detect service instance failures and ensuring root cause analysis for traffic steering issues, though a follow-up question raised concerns regarding the consistency of layer terminology in the proposed metrics.",
+  "keywords": [
+    "SFC",
+    "OAM framework",
+    "service instance"
+  ],
+  "proc_time": 0.8915615081787109
+}

@@ -1,0 +1,35 @@
+window                                   mistral-smal    phi-4-awq gemma3-27b-i    mean  stdev       L
+------------------------------------------------------------------------------------------------------
+08/qwen3.5-4b-awq/300/run1/window_0.json        30.00        31.00        31.00   30.67   0.47    6.72
+08/qwen3.5-4b-awq/300/run1/window_1.json        24.00        24.00        31.00   26.33   3.30    6.63
+8/qwen3.5-4b-awq/300/run1/window_10.json        26.00        31.00        31.00   29.33   2.36    5.90
+8/qwen3.5-4b-awq/300/run1/window_11.json        27.00        27.00        31.00   28.33   1.89    6.26
+8/qwen3.5-4b-awq/300/run1/window_12.json        30.00        31.00        31.00   30.67   0.47    7.30
+8/qwen3.5-4b-awq/300/run1/window_13.json        30.00        31.00        31.00   30.67   0.47    6.86
+8/qwen3.5-4b-awq/300/run1/window_14.json        30.00        31.00        30.00   30.33   0.47    6.56
+8/qwen3.5-4b-awq/300/run1/window_15.json        30.00        31.00        31.00   30.67   0.47    6.59
+8/qwen3.5-4b-awq/300/run1/window_16.json        30.00        31.00        30.00   30.33   0.47    6.70
+8/qwen3.5-4b-awq/300/run1/window_17.json        29.00        29.00        30.00   29.33   0.47    6.47
+8/qwen3.5-4b-awq/300/run1/window_18.json        29.00        27.00        29.00   28.33   0.94    6.92
+8/qwen3.5-4b-awq/300/run1/window_19.json        29.00        31.00        29.00   29.67   0.94    6.32
+08/qwen3.5-4b-awq/300/run1/window_2.json        31.00        31.00        31.00   31.00   0.00    7.38
+8/qwen3.5-4b-awq/300/run1/window_20.json        27.00        29.00        30.00   28.67   1.25    6.30
+8/qwen3.5-4b-awq/300/run1/window_21.json        27.00        27.00        29.00   27.67   0.94    7.01
+8/qwen3.5-4b-awq/300/run1/window_22.json        29.00        29.00        31.00   29.67   0.94    6.71
+8/qwen3.5-4b-awq/300/run1/window_23.json        30.00        30.00        29.00   29.67   0.47    7.35
+8/qwen3.5-4b-awq/300/run1/window_24.json        30.00        27.00        31.00   29.33   1.70    7.14
+08/qwen3.5-4b-awq/300/run1/window_3.json        30.00        25.00        31.00   28.67   2.62    6.75
+08/qwen3.5-4b-awq/300/run1/window_4.json        29.00        31.00        31.00   30.33   0.94    6.36
+08/qwen3.5-4b-awq/300/run1/window_5.json        30.00        31.00        31.00   30.67   0.47    6.44
+08/qwen3.5-4b-awq/300/run1/window_6.json        30.00        31.00        30.00   30.33   0.47    5.79
+08/qwen3.5-4b-awq/300/run1/window_7.json        30.00        31.00        31.00   30.67   0.47    6.80
+08/qwen3.5-4b-awq/300/run1/window_8.json        30.00        29.00        30.00   29.67   0.47    7.06
+08/qwen3.5-4b-awq/300/run1/window_9.json        30.00        27.00        31.00   29.33   1.70    6.70
+------------------------------------------------------------------------------------------------------
+avg B+K                                         29.08        29.32        30.44   29.61               
+avg L                                               -            -            -       -      -    6.68
+final source score (+Janus)                     39.76        40.00        41.12   40.29               
+
+Janus bonus: +4 flat (per CHALLENGE.md). Final source score = avg B+K + avg L + Janus.
+B+K from LLM judges (subjective); L = 10·exp(-0.5·proc_time) when B≥10 (objective). Low stdev = judges agree on B+K; high stdev = judge bias.
+Consensus = mean across judges per window, averaged over windows.

@@ -1,0 +1,11 @@
+{
+  "from": 2100.0,
+  "to": 2257.0,
+  "summary": "The presenter outlined four new security components\u2014regular key rotation, CSCI ID, certificate binding, and traffic cleaning/overlay-underlay isolation\u2014while noting that previous security measures remain unchanged. During the Q&A, the audience requested alignment with the framework document's security considerations and clarification on risk priorities for CAS elements, with plans to address these in the next version.",
+  "keywords": [
+    "key rotation",
+    "CAS elements",
+    "security framework"
+  ],
+  "proc_time": 0.9425437450408936
+}

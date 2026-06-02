@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "Jiang Minghui presented the production experience and new ideas regarding MOQ (Media Over QUIC) at Alibaba Group, highlighting its superior performance compared to WebSocket and WebRTC in scenarios like top-of-voice search, cloud rendering, and AI assistance. The presentation detailed significant latency reductions achieved by MOQ, such as a 75% decrease in connection latency for top-of-voice search and over 50% reduction in first-frame latency for cloud rendering, driven by zero RTT and flexible medium-level abstraction. While current implementations rely on transport-layer feedback, the speaker emphasized the need for application-layer feedback to dynamically adjust media quality based on network conditions, which is essential for eliminating stalling and optimizing performance.",
+  "keywords": [
+    "Media Over QUIC",
+    "latency reduction",
+    "application-layer feedback"
+  ],
+  "proc_time": 1.0913994312286377
+}

@@ -1,0 +1,11 @@
+{
+  "from": 6881.0,
+  "to": 7181.0,
+  "summary": "The meeting discussed changing a draft requirement from 'should' to 'must' regarding the preservation of non-minimal coding in canonical encodings. After a vote where 15 participants favored the change and 5 opposed, the group decided to proceed with making the requirement mandatory, noting that while some preferred the flexibility of 'should', the consensus moved forward to finalize the decision.",
+  "keywords": [
+    "canonical encodings",
+    "minimal coding",
+    "requirement change"
+  ],
+  "proc_time": 1.003258466720581
+}

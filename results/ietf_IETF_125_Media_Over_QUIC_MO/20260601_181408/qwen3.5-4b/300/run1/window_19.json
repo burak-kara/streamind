@@ -1,0 +1,11 @@
+{
+  "from": 5681.0,
+  "to": 5981.0,
+  "summary": "The discussion addressed technical challenges in edge relays regarding data restriction, conflict handling, and the mechanics of deselecting tracks versus publishing done, clarifying that ingress must continue while egress stops during deselection. The team also debated the validity of overlapping filters between subscribers, agreeing that while technically possible, propagating such conflicts upstream violates protocol rules and may require local filtering or rejection. Finally, the conversation shifted to open issues in the transport draft, specifically deciding to add a properties field to the request message to accommodate track properties.",
+  "keywords": [
+    "edge relay",
+    "track filters",
+    "transport draft"
+  ],
+  "proc_time": 1.5139946937561035
+}

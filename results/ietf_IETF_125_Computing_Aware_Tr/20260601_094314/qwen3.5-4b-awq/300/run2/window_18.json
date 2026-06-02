@@ -1,0 +1,11 @@
+{
+  "from": 5257.0,
+  "to": 5557.0,
+  "summary": "The working group discussed criteria for evaluating network resources, including server-side metrics like GPU load and memory alongside optical parameters such as latency and link quality. Participants clarified that the discussion focuses on building a CAT system atop an existing OTN infrastructure rather than the reverse, prompting a call for input from specific technical teams. The presentation concluded by outlining the rationale for prioritizing optical networks, emphasizing their ability to provide the hard isolation and deterministic performance required for distributed AI workloads.",
+  "keywords": [
+    "CAT system",
+    "OTN infrastructure",
+    "distributed AI"
+  ],
+  "proc_time": 0.7509839534759521
+}

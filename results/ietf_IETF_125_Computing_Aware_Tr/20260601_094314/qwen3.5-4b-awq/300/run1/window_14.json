@@ -1,0 +1,11 @@
+{
+  "from": 4057.0,
+  "to": 4357.0,
+  "summary": "The discussion focused on refining the BGP-LLS draft to analyze protocol extensions for CAT systems rather than proposing specific solutions, with a particular emphasis on incorporating considerations for data volume and the rate of state changes to ensure appropriate protocol selection. Participants also addressed the implementation of metadata pass attributes within BGP, noting that these attributes should be optional and non-transitive to limit data propagation while requiring capability announcements during the BGP open message phase.",
+  "keywords": [
+    "BGP-LLS",
+    "CAT metrics",
+    "metadata pass"
+  ],
+  "proc_time": 0.7331192493438721
+}

@@ -1,0 +1,11 @@
+{
+  "from": 3817.0,
+  "to": 4117.0,
+  "summary": "The discussion analyzes protocol extensions for Control Plane and Data Plane components within a Computer-Aided System (CAS), focusing on extending BGP-LSP, PIRs, PECP, and BGP Flow Spec to support computer component metrics and performance constraints. The speaker clarifies that the current draft serves as an analytical framework rather than a prescriptive solution, leaving specific protocol recommendations for future drafts. Questions regarding deployment strategies were addressed by confirming the draft's role in analyzing existing protocols like BGP-LLS and LXS to enable efficient networking convergence.",
+  "keywords": [
+    "BGP-LSP",
+    "CAS",
+    "protocol extensions"
+  ],
+  "proc_time": 1.3357586860656738
+}

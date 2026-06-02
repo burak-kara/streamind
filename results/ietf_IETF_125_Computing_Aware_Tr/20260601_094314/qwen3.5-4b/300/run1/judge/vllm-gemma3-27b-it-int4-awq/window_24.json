@@ -1,0 +1,31 @@
+{
+  "from": 7117.0,
+  "to": 7205.0,
+  "summary": "The meeting concluded after addressing concerns regarding whether the recent presentation on 'round cats' aligned with the project charter, which the group determined did not explicitly cover adopting this work. Following a brief exchange where one participant noted login issues, the team agreed to wrap up their discussions and continue collaborating via email and in person.",
+  "keywords": [
+    "project charter",
+    "round cats",
+    "meeting closure"
+  ],
+  "proc_time": 0.8284215927124023,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 22,
+  "keyword_flags": [
+    true,
+    true,
+    false
+  ],
+  "K": 2,
+  "L": 6.608616293587311,
+  "C": 30.60861629358731,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.40372670807453415,
+  "asr_transcript": "don't all jump in with me, me, me, me. because we do have a charter um and we have to stick inside that charter, and we do need... to take our work step by step carefully. Any last comments? Well done for using the tool and coming... to the queue come to the queue I'm sorry I can't log in right now for some reason. Kiriti Kompala was the last presentation in charge. I don't think it was in charter for adopting this. of adopting as work or anything like that. No, it was a topic in Charter. in terms of hearing the discussion to. find out what people are doing and thinking about round cats. That's why it was on the agenda in the if there's time to talk about it section. it doesn't feel to me like this is. something that's in the current charter. Okay, thank you. All right, then that's us done. We will see you. in the corridors, on email and in Vienna. Okay, thank you everyone. We're going to close our meeting. Thank you.",
+  "reference_slice": "ybe start pushing ideas on the mailing list. Don't all jump in with me, me, me, me, because we do have a charter and we have to stick inside that charter, and we do need to take our work step by step carefully. Any last comments? Well done for using the tool and coming to the queue. Come to the queue. I'm sorry, I can't log in right now for some reason. Curity Compella. Was the last presentation in charter? I don't think it was in charter for adopting us work or anything like that. No, was the topic in charter. topic in charter. In terms of hearing the discussion to find out what people are doing and thinking about round cats, that's why it was on the agenda in the, if there's time to talk about it section. But it doesn't feel to me like this is something that's in the current charter. Okay. Thank you. All right, then that's "
+}

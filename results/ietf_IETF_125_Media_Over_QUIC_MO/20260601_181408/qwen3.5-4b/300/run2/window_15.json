@@ -1,0 +1,11 @@
+{
+  "from": 4481.0,
+  "to": 4781.0,
+  "summary": "The discussion explains that the track filter operates at the edge relay level, allowing it to compare metrics from multiple co-located publishers and select the top N based on criteria like audio level without propagating the filter logic to individual publishers. Key features include the ability to specify properties and timeouts within the subscribe namespace, while recent updates allow relays to dynamically manage state purging and introduce an error for overly complex filters. State transitions were detailed, covering how tracks move from unknown to newly selected, selected, and finally deselected if they fail to meet performance thresholds.",
+  "keywords": [
+    "track filter",
+    "edge relay",
+    "state transitions"
+  ],
+  "proc_time": 1.408959150314331
+}

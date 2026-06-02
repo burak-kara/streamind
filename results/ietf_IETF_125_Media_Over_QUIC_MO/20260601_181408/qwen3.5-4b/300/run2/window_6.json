@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "Jiang Minghui presented the production experience and performance benefits of using MOQ (Quick Media Optimization) in Alibaba Group's real-time communication scenarios, such as top-of-voice search, cloud rendering, and AI assistance. While initial comparisons showed significant latency reductions compared to WebRTC, the speaker highlighted that transport-layer feedback alone is insufficient for optimal quality adaptation, motivating the development of an application-layer feedback mechanism to dynamically adjust media rates based on network conditions.",
+  "keywords": [
+    "MOQ",
+    "latency",
+    "real-time communication"
+  ],
+  "proc_time": 1.132565975189209
+}

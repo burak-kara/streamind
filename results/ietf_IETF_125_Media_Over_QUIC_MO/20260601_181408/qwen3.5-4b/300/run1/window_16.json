@@ -1,0 +1,11 @@
+{
+  "from": 4781.0,
+  "to": 5081.0,
+  "summary": "The discussion outlines the protocol for managing track subscriptions, including explicit signaling via request updates with forward flags to handle deselection and reselection states. Key features covered include pinning specific tracks within a namespace to prevent eviction, applying track property filters to block unwanted codecs, and clarifying interactions between various filter types. Additionally, the meeting addresses security concerns regarding asymmetric attacks caused by complex filter configurations and introduces relay protection mechanisms to mitigate resource exhaustion.",
+  "keywords": [
+    "track filtering",
+    "relay protection",
+    "subscription management"
+  ],
+  "proc_time": 1.1019604206085205
+}

@@ -1,0 +1,11 @@
+{
+  "from": 6757.0,
+  "to": 7057.0,
+  "summary": "The presentation proposes a 'thematic contract' where applications provide semantic traffic details to the network, enabling intelligent routing and prioritization for AI workloads. This concept is executed by IntelliNode, a framework that combines traffic semantics with real-time network states to make microsecond-level decisions on scheduling and resource allocation. Future plans involve refining the contract model, defining header extensions for line-rate transmission, clarifying decision boundaries, and building prototypes to validate performance improvements.",
+  "keywords": [
+    "AI workloads",
+    "thematic contract",
+    "IntelliNode"
+  ],
+  "proc_time": 1.164539098739624
+}

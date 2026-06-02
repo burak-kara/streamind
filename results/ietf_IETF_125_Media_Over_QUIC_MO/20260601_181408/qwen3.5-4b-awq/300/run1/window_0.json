@@ -1,0 +1,11 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "The meeting addressed technical challenges regarding audio quality and outlined the agenda for discussing working group updates and mock T issues before handing control to Mike English. Mike provided a brief report on the Hackathon, noting that efforts are currently focused on integrating components into the automated interoperability test runner and resolving issues related to Docker image builds and version assignments. He demonstrated the current state of the test runner interface, showing various test runs pairing relay and client implementations while highlighting mixed results and ongoing debugging efforts.",
+  "keywords": [
+    "mock T",
+    "interoperability",
+    "Hackathon"
+  ],
+  "proc_time": 0.7942297458648682
+}

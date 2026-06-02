@@ -1,0 +1,11 @@
+{
+  "from": 4481.0,
+  "to": 4781.0,
+  "summary": "The discussion explains that the track filter operates at the edge relay level to select the top N tracks based on specified metrics like audio levels from multiple publishers within a namespace, rather than being propagated to individual publishers. New features include removing the rigid MaxTracks limit to allow relays flexible state management and adding a 'conflicting filters' error for complex filter scenarios. Additionally, the state transition lifecycle for tracks is defined, covering states such as unknown, newly selected, selected, and deselected, which determines whether track objects are forwarded to subscribers.",
+  "keywords": [
+    "track filter",
+    "edge relay",
+    "state transitions"
+  ],
+  "proc_time": 1.541982889175415
+}

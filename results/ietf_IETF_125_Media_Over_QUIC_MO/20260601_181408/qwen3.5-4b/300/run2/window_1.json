@@ -1,0 +1,11 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "The meeting reviewed the current state of test specifications for interoperability, emphasizing their role in defining diverse implementations. Discussion shifted to versioning strategy, where participants debated delaying the move to Draft 18 until after the June interim to avoid the complexity of supporting multiple versions simultaneously, ultimately deciding to target Draft 18 for the upcoming London interop. The session concluded with a brief introduction to an update on streaming formats MSF and CMSF.",
+  "keywords": [
+    "interoperability",
+    "versioning",
+    "streaming formats"
+  ],
+  "proc_time": 1.1433708667755127
+}

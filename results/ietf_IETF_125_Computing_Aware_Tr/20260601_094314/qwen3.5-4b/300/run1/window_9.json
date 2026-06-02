@@ -1,0 +1,11 @@
+{
+  "from": 2617.0,
+  "to": 2917.0,
+  "summary": "The presentation proposes replacing detailed computing metrics with a lightweight Public Service Table to streamline service discovery and traffic steering for clients and CPSs. This registry hides hardware complexity by advertising standardized service configurations, including input requirements, computing time, and resource slots, which are used to allocate and deploy services efficiently. Once deployed, services report results using simplified units like globally available slots, ensuring the network only manages essential service-level information rather than granular metrics.",
+  "keywords": [
+    "Public Service Table",
+    "service deployment",
+    "traffic steering"
+  ],
+  "proc_time": 1.1093575954437256
+}

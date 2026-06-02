@@ -1,0 +1,11 @@
+{
+  "from": 4717.0,
+  "to": 5017.0,
+  "summary": "The meeting reviewed three metadata routing scenarios defined in the IDR document, ranging from metadata having highest priority to serving as a tiebreaker, while identifying critical gaps such as missing service instance IDs, lack of TTL support, and insufficient scalability for dynamic matrix classes. Discussion highlighted a timing mismatch between rapid 5G UE mobility changes and slower CAST control loops, prompting a request for suggested mechanisms to address this latency issue.",
+  "keywords": [
+    "metadata routing",
+    "BGP integration",
+    "timing mismatch"
+  ],
+  "proc_time": 1.0618760585784912
+}

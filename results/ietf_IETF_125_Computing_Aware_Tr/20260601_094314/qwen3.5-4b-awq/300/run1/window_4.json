@@ -1,0 +1,11 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The discussion outlines the motivation and architectural vision for a new CASOM framework designed to monitor and ensure end-to-end Surface Instance connectivity for CATS, addressing potential failures when existing OEM services are offloaded or crash. The proposed solution leverages existing ITF OEM standards while introducing two new components, SIOM for status and metric monitoring, and SVCOM for policy verification and performance measurement across multi-domain scenarios. While the team acknowledges the utility of the OAM work, a question was raised regarding the consistency of terminology, specifically the use of 'layer' versus 'level' in metric definitions, prompting an evaluation of necessary term adjustments.",
+  "keywords": [
+    "CASOM",
+    "CATS",
+    "OAM"
+  ],
+  "proc_time": 0.9782943725585938
+}

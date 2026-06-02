@@ -1,0 +1,11 @@
+{
+  "from": 600.0,
+  "to": 900.0,
+  "summary": "The meeting successfully renamed the streaming format from MOQT Streaming Format (MSF) to MOQT Streaming Format (CMSF) and finalized a fragment-based URL scheme for client-side communication. Key decisions included implementing variable substitution for personalized catalogs, defining a secure object encryption scheme for end-to-end protection, and establishing a media timeline track for seeking capabilities in live streams.",
+  "keywords": [
+    "MOQT Streaming Format",
+    "fragment-based URL",
+    "secure object encryption"
+  ],
+  "proc_time": 1.0094962120056152
+}

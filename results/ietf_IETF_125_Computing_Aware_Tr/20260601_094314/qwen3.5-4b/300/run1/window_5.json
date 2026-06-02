@@ -1,0 +1,11 @@
+{
+  "from": 1417.0,
+  "to": 1717.0,
+  "summary": "The meeting addressed terminology alignment between CASOM and CATS working groups, specifically regarding Layer 0 through Layer 2 metrics versus traditional network layers, while confirming a focus on measuring CATS system performance rather than network plumbing. Additionally, a presentation on security considerations for CAS Draft 4 was delivered, outlining potential risks across functional components such as CSMA, CNMA, CPI, CTI, and the cache forwarder, along with proposed protection strategies.",
+  "keywords": [
+    "CASOM",
+    "security risks",
+    "CATS"
+  ],
+  "proc_time": 1.1350772380828857
+}

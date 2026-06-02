@@ -1,0 +1,31 @@
+{
+  "from": 2100.0,
+  "to": 2257.0,
+  "summary": "The meeting reviewed new security updates including regular key rotation, CSCI ID, certificate binding, traffic cleaning, and overlay/underlay isolation, while confirming that previous security components like CPS security and workflow metrics remain unchanged. The team addressed questions regarding alignment with the security framework document and prioritizing multiple identified risks for future versions.",
+  "keywords": [
+    "security updates",
+    "CSCI ID",
+    "risk prioritization"
+  ],
+  "proc_time": 0.5822219848632812,
+  "B_breakdown": {
+    "factual_consistency": 4,
+    "relevance": 4,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 21,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 7.474327140395704,
+  "C": 34.4743271403957,
+  "judge_model": "./models/phi-4-awq",
+  "asr_wer": 1.2098765432098766,
+  "asr_transcript": "So the content mirrors are as follow. First one is regular key. rotating and the second one is CSCI ID. and certificate binding and the next. is traffic cleaning and the last one is. overlay and underlay isolation. Oh, um, the, the security. the security, I just, I just. introduced this update in this version. and there are two components security. the security we have introduced in the last in the last version these two including cps security CPS security and underlying infrastructure security is. not changed in this version. Oh, and this. service now's workflow and metric distribution. workflow has also not changed. in this version. So that's all for my presentation if any question Jim, please. Yeah, good morning. Thank you for the presentation. thing that was going through my mind is... is have you cross-referenced this against the security considerations? that we pulled out in the in the framework document that I've got on the telechat coming up. And if you haven't... please take a look at that security considerations section. There's a lot of things. in there that are called out in the framework that would certainly need. be taken care of so it's difficult for me to tell just looking at this presentation I haven't read your draft at this point I love you. Some echoes from the remote, I think. So, yeah, so the question, as I heard it was, please look at the security considerations. the framework document and make sure. that you're properly tied in with those. Okay, okay, okay, thank you. Another suggestion. that please sort out which biscuit has a higher priority because you list so many risks behind today you can behind the CAS elements. So just to select which one is more important. okay okay and we'll consider it and do something in the next next version. OK, thank you. And we go to next.",
+  "reference_slice": "are as follow. The first one is encrypt and incremental updates. We can store rules in AES-256 encrypt form and implement incredible updates with multi-factor authentication to prevent unauthorized modification. And next is active standby CTC cross-validation. cross-validation. We can deploy primary and backup CTCs on the ingrat forwarder and forward traffic only when both updates and are consistent along single point hijack errors. So the next is log classification operations in real time. And the last one is validation CSID and the CSCI ID, the CSI ID. So the last one, the last component security I will introduce today is cast forwarder security. And the potential risks are as follow. The first one is encryption key leakage and the stolen keys enable the encryption of lowerland traffic and theft of service requests. The next is fake service instance forwarding. The traffic is forwarded to the traffic is forwarded to. unverified fake instances leading to hijacking and the last one is flat traffic attack malicious request consume badness and computing resources so the content mirrors are as follow first one is regular key rotating and the second one is CSCI ID and certificate certificate binding and the next is traffic cleaning and the last one is overlay and underlay isolation. The security, the security I just, I just introduced is update in this version. And there are two component security we have introduced in the last version. So these two, including CPS securit"
+}

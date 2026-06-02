@@ -1,0 +1,11 @@
+{
+  "from": 600.0,
+  "to": 900.0,
+  "summary": "The meeting successfully renamed the streaming format from MOQT Streaming Format (MSF) to MOQT Secure Format (MSF) and its CMAF-compliant variant to CMSF, establishing a unified naming convention. Key technical updates included adopting a fragment-based URL scheme for client-side metadata, implementing variable substitution for personalized catalogs, and defining a new encryption mechanism for secure object delivery.",
+  "keywords": [
+    "MOQT",
+    "fragment-based URLs",
+    "secure objects"
+  ],
+  "proc_time": 1.0220484733581543
+}

@@ -1,0 +1,11 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The meeting discussed technical differences in protocol formats, specifically regarding positive acknowledgments and latency reporting metrics, and explored compatibility with existing drafts. Participants reviewed an application use case involving real-time video generation for human-AI interaction, emphasizing the need for high frame rates and adaptive inference frameworks to handle dynamic network conditions. Additionally, a presentation on Mock/QMux highlighted its necessity as a TCP fallback mechanism to ensure reliability in enterprise environments where UDP traffic is blocked or restricted by firewalls and carriers.",
+  "keywords": [
+    "video generation",
+    "QMux",
+    "TCP fallback"
+  ],
+  "proc_time": 1.2026488780975342
+}

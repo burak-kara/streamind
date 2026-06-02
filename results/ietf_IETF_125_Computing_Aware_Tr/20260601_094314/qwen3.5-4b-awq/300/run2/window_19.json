@@ -1,0 +1,11 @@
+{
+  "from": 5557.0,
+  "to": 5857.0,
+  "summary": "UNACO proposes a unified compute-optical orchestrator that enables bidirectional awareness and joint orchestration between optical transport networks and AI computing infrastructure to address inefficiencies in distributed AI training and inference. Unlike traditional traffic steering approaches, UNACO integrates storage, compute, and optical states to provision new physical or logical links on-demand before service initiation, bridging separate network and compute providers through standardized interfaces. This architecture enhances existing ACTN frameworks by introducing a dedicated compute power scheduler domain to ensure optimal resource allocation across distinct data centers.",
+  "keywords": [
+    "joint orchestration",
+    "AI infrastructure",
+    "optical provisioning"
+  ],
+  "proc_time": 0.8254079818725586
+}

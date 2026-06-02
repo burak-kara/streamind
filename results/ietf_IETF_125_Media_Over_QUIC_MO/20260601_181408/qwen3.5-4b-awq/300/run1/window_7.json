@@ -1,0 +1,11 @@
+{
+  "from": 2100.0,
+  "to": 2400.0,
+  "summary": "The speakers conducted controlled experiments comparing video streaming performance with and without end-to-end feedback mechanisms, demonstrating that feedback significantly reduces storage rates and improves frame rates even under severe packet loss conditions. They introduced a new multi-modal feedback draft designed to carry real-time delivery status reports, enabling dynamic adjustments to AI inference pipelines based on connection quality. Key findings indicate that while feedback adds minimal overhead in good networks, it provides substantial performance gains in poor conditions by allowing adaptive switching between media quality levels.",
+  "keywords": [
+    "video streaming",
+    "feedback mechanism",
+    "AI inference"
+  ],
+  "proc_time": 0.7724511623382568
+}

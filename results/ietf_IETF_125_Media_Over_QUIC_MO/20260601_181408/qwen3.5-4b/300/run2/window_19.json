@@ -1,0 +1,11 @@
+{
+  "from": 5681.0,
+  "to": 5981.0,
+  "summary": "The discussion addressed technical challenges in edge relays regarding data restriction, conflict handling, and the mechanics of deselecting subscribers versus publishing done events. Participants clarified that while ingress must continue to inspect objects, egress stops during deselection, and conflicting overlapping filters between subscribers are invalid and require either local filtering or rejection. The conversation also covered feedback aggregation strategies from Alibaba experiments and a decision to add a properties field to the request message for track status.",
+  "keywords": [
+    "edge relay",
+    "track filters",
+    "feedback aggregation"
+  ],
+  "proc_time": 1.342968225479126
+}

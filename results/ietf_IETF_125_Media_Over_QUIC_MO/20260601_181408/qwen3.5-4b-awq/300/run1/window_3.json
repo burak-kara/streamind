@@ -1,0 +1,11 @@
+{
+  "from": 900.0,
+  "to": 1200.0,
+  "summary": "The discussion outlines several proposed enhancements to media streaming protocols, including a compression scheme for fixed-duration GOPs to reduce JSON verbosity, a dual-track zapping method to enable rapid stream switching with minimal latency, and the ability for players to publish their own logs and metrics directly via the catalog. Additional proposals involve simplifying initialization data delivery through dedicated init tracks that support dynamic updates during long-running streams, alongside debates on whether to use tracks or object properties for parameter set adjustments.",
+  "keywords": [
+    "streaming",
+    "latency",
+    "initialization"
+  ],
+  "proc_time": 0.7859041690826416
+}

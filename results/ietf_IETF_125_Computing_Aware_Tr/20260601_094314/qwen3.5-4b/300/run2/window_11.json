@@ -1,0 +1,11 @@
+{
+  "from": 3157.0,
+  "to": 3457.0,
+  "summary": "The meeting discussed a lightweight service unit table mechanism where the service side provides gas changes to update slots without requiring detailed network metrics, allowing the SDN controller to steer traffic while avoiding interference with network convergence. Participants clarified that L1 and L2 metrics represent normalized physical matrices used by the service layer to calculate requirements, which are then sent to the network without exposing underlying physical details. Due to the specificity of the technical questions regarding metric aggregation, the group decided to move further discussions offline and focus on updating the CAS working group document.",
+  "keywords": [
+    "SDN controller",
+    "service unit table",
+    "L1 L2 metrics"
+  ],
+  "proc_time": 1.3338971138000488
+}

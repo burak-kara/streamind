@@ -1,0 +1,11 @@
+{
+  "from": 3881.0,
+  "to": 4181.0,
+  "summary": "The team finalized a new PR 1518 that reduces the scope of the previous filter implementation by removing location and group filters while introducing ANSETs to support complex 'and/or' combinations across remaining filters. Key technical updates include changing max filter ranges to apply globally across all parameters, simplifying wire encoding, and allowing multi-valued parameters to repeat with different ANSET values to prevent DOS vectors and improve relay efficiency.",
+  "keywords": [
+    "ANSETs",
+    "range filters",
+    "multi-valued parameters"
+  ],
+  "proc_time": 1.1186225414276123
+}

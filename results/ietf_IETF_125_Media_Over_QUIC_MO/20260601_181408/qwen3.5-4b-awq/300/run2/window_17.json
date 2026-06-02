@@ -1,0 +1,11 @@
+{
+  "from": 5081.0,
+  "to": 5381.0,
+  "summary": "The discussion addresses mitigation strategies for resource asymmetry in relay systems by introducing new error types such as 'conflicting filters' and 'prefix overlap' to prevent excessive aggregation work. Proposals include having relays propagate filters upstream while aggregating subscriber data, with edge relays allowed to impose limits on large namespaces or conflicting requests. The team acknowledges inherent limitations and emphasizes that relays must exercise caution, while requesting final feedback from submitters before closing related GitHub issues.",
+  "keywords": [
+    "relay filters",
+    "resource asymmetry",
+    "namespace overlap"
+  ],
+  "proc_time": 0.7756907939910889
+}

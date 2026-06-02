@@ -1,0 +1,11 @@
+{
+  "from": 2400.0,
+  "to": 2700.0,
+  "summary": "The presentation outlined a multimodal feedback mechanism designed to bridge the gap between the application and transport layers by incorporating application-level adjustments such as bitrate resolution and inference parameters. The speaker detailed how this closed-loop system utilizes receiver-side signals like loss rates and buffer levels to adjust transmission, citing production data from Alibaba to validate its effectiveness. While acknowledging the need for broader testing across multiple subscribers, the team invited further discussion and contributions to the GitHub repository to advance the draft toward standardization.",
+  "keywords": [
+    "multimodal feedback",
+    "bandwidth estimation",
+    "closed-loop system"
+  ],
+  "proc_time": 1.217806339263916
+}

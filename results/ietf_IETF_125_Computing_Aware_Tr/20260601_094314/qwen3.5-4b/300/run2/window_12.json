@@ -1,0 +1,11 @@
+{
+  "from": 3457.0,
+  "to": 3757.0,
+  "summary": "The presentation outlines China Mobile's analysis of the KVT-4K protocols for cancer, focusing on extending existing ITF protocols to support the Control and Automation System (CAS). The discussion details how the CAS framework operates across control, data, and managed planes to collect metrics, perform path selection, and execute traffic steering. Specific protocol extensions are highlighted for the control plane, including metric distribution via EGRAS nodes, optimal path calculation using PCEP, and traffic steering mechanisms.",
+  "keywords": [
+    "KVT-4K",
+    "CAS framework",
+    "protocol extensions"
+  ],
+  "proc_time": 1.22371244430542
+}

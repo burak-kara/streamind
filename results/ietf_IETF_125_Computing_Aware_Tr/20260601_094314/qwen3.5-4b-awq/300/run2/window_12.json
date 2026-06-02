@@ -1,0 +1,11 @@
+{
+  "from": 3457.0,
+  "to": 3757.0,
+  "summary": "The presentation outlines China Mobile's analysis of the KVT-4K protocol draft, which focuses on extending existing ITF protocols to support the CAS framework rather than proposing new protocols. The discussion details how the Control Plane Application handles metrics distribution, path selection, and traffic steering across the control, data, and managed planes using extensions like YANG, BGP, and PCEP. Additionally, the Management Control Plane addresses configuration, provisioning, and monitoring capabilities through extended YANG models for policy and mapping management.",
+  "keywords": [
+    "CAS Framework",
+    "Protocol Extensions",
+    "Traffic Steering"
+  ],
+  "proc_time": 0.8001031875610352
+}

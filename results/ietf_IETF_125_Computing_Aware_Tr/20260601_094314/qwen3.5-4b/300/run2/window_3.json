@@ -1,0 +1,11 @@
+{
+  "from": 900.0,
+  "to": 1200.0,
+  "summary": "The meeting focused on finalizing the communication matrix definitions for Level 1 and Level 2 metrics, with participants agreeing to defer unresolved technical questions to the working group's last call rather than making immediate decisions. The discussion also covered updates to the CATS-OM document, which clarified its motivation, refined the four-layer CASOM model, and incorporated feedback from previous reviewers before proceeding to ISG review.",
+  "keywords": [
+    "communication matrix",
+    "CATS-OM",
+    "CASOM layering"
+  ],
+  "proc_time": 1.0727550983428955
+}

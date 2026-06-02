@@ -1,0 +1,11 @@
+{
+  "from": 600.0,
+  "to": 900.0,
+  "summary": "The meeting discussed the formulation of matrix registry entries for CAS Level 1 and Level 2 metrics, establishing templates based on RFC standards while noting that Level 1 matrices remain diverse and normalization functions are provided as examples rather than enforced mandates. The presentation detailed five specific matrices including their definitions, measurement methods utilizing tools like Prometheus or NetConf, and the roles of CNMA and CSMA agents in data collection.",
+  "keywords": [
+    "CAS metrics",
+    "matrix registry",
+    "normalization"
+  ],
+  "proc_time": 1.0449986457824707
+}

@@ -1,0 +1,11 @@
+{
+  "from": 5681.0,
+  "to": 5981.0,
+  "summary": "The discussion addressed technical challenges in managing edge relays with multiple publishers, specifically how to handle data conflicts and resource limits when subscribers have overlapping filters. Clarifications were provided regarding the relay's behavior during deselection, confirming that while the relay must ingress all objects to inspect them before deciding whether to egress, it stops forwarding upon deselection and retains the track alias temporarily to allow for potential reselection. The team also agreed to add a 'properties' field to the request message to accommodate track properties, despite acknowledging that this is currently the only message type utilizing such data.",
+  "keywords": [
+    "edge relay",
+    "track filter",
+    "deselection"
+  ],
+  "proc_time": 0.9184408187866211
+}

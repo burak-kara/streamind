@@ -1,0 +1,11 @@
+{
+  "from": 3300.0,
+  "to": 3581.0,
+  "summary": "The discussion explores two proposals to address ALPN version explosion in QUIC/MoQ implementations: upgrading Web Transport to negotiate protocol versions via TLS ALPN alongside QMUX parameters, or consolidating all version details into a single TLS ALPN field. Participants debated the trade-offs between these approaches, noting that while a unified ALPN simplifies the specification, it may complicate early private deployments requiring specific port configurations. The group ultimately agreed to consolidate the draft content into the main MoQ draft and directed further technical discussions regarding QMUX version negotiation to the Quick Session.",
+  "keywords": [
+    "QUIC",
+    "ALPN",
+    "version negotiation"
+  ],
+  "proc_time": 0.9168665409088135
+}

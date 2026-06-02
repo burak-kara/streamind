@@ -1,0 +1,11 @@
+{
+  "from": 6817.0,
+  "to": 7117.0,
+  "summary": "The discussion outlined how semantic contracts enable networks to distinguish traffic classes and apply specific policies, while IntelliNode serves as an internal framework for real-time scheduling decisions based on live network states. Future efforts focus on refining the semantic model, defining header extensions for efficient data transport, clarifying decision boundaries between endpoints and the network, and building prototypes to validate performance improvements for AI workloads. The meeting concluded by assigning the task of identifying relevant working groups and drafting necessary documentation to advance these initiatives.",
+  "keywords": [
+    "IntelliNode",
+    "semantic contracts",
+    "AI workloads"
+  ],
+  "proc_time": 1.218409538269043
+}

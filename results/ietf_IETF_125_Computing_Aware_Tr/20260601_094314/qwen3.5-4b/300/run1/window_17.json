@@ -1,0 +1,11 @@
+{
+  "from": 5017.0,
+  "to": 5317.0,
+  "summary": "The presentation introduces a new framework extending the Class of Service (CoS) concept to Optical Transport Networks (OTN) to address latency and determinism challenges in multi-site computing workloads like AI training and telehealth. By combining compute-side metrics with optical-layer parameters, the proposed solution uses OTN to provide end-to-end hard isolation and map traffic into optical containers, ensuring guaranteed performance for high-bandwidth, synchronized services.",
+  "keywords": [
+    "OTN",
+    "deterministic transport",
+    "compute-aware networking"
+  ],
+  "proc_time": 1.1071369647979736
+}

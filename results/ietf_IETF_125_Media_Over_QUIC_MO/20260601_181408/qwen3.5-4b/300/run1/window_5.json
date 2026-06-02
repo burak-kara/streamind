@@ -1,0 +1,11 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The discussion focused on defining access control mechanisms for CDN edge resources, specifically how to authorize clients to subscribe to tracks via tokens while keeping content unencrypted. The team addressed strategies for managing track catalogs, determining when to add new tracks versus reusing existing ones, and evaluated three methods for communicating inner segment initialization data within the catalog.",
+  "keywords": [
+    "CDN",
+    "track catalog",
+    "access control"
+  ],
+  "proc_time": 0.8868606090545654
+}

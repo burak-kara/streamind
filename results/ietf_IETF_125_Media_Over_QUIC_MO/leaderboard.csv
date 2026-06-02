@@ -1,0 +1,5 @@
+rank,stamp,profile,run,avg_bk,avg_l,score
+1,20260601_181408,vllm-qwen3.5-4b-awq,run1,29.61,6.68,40.29
+2,20260601_181408,vllm-qwen3.5-4b-awq,run2,29.41,6.77,40.19
+3,20260601_181408,vllm-qwen3.5-4b,run2,29.68,5.68,39.36
+4,20260601_181408,vllm-qwen3.5-4b,run1,29.65,5.66,39.31

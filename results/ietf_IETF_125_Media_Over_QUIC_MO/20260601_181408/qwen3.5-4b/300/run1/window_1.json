@@ -1,0 +1,11 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "The meeting discussed establishing a standardized test framework using specifications to ensure interoperability across diverse implementations. Participants debated the timeline for adopting draft 18 for the upcoming London interop, with consensus leaning toward skipping draft 17 due to its significant complexity compared to draft 16. The session concluded with a brief introduction to updates regarding streaming formats MSF and CMSF.",
+  "keywords": [
+    "interoperability",
+    "draft 18",
+    "streaming formats"
+  ],
+  "proc_time": 1.0170183181762695
+}

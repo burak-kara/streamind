@@ -1,0 +1,11 @@
+{
+  "from": 4057.0,
+  "to": 4357.0,
+  "summary": "The discussion focused on refining a draft regarding BGP-LLS and Lx protocol extensions for CAT systems, emphasizing that the current work should analyze protocols rather than propose specific solutions. Participants addressed concerns about handling fast-churning data rates and agreed to incorporate considerations on data volume and state change frequency to better determine suitable protocol applications. Additionally, an update was provided on using BGP metadata pass attributes for distributing CAT metrics, highlighting the need to limit these announcements to a small subset of prefixes to prevent excessive network overhead.",
+  "keywords": [
+    "BGP-LLS",
+    "CAT metrics",
+    "metadata pass"
+  ],
+  "proc_time": 0.830930233001709
+}

@@ -1,0 +1,11 @@
+{
+  "from": 5257.0,
+  "to": 5557.0,
+  "summary": "The meeting addressed the applicability of Optical Transport Network (OTN) systems for supporting CAT systems, emphasizing the need for collaboration between CCAMP, TEAS, and other groups to explore building CAT atop OTN infrastructure. A technical issue regarding slide uploads due to filename length was resolved, followed by a presentation from Zheng He detailing UNANCO updates which clarified the scope and resource models for distributed AI workloads requiring hard isolation and deterministic latency.",
+  "keywords": [
+    "OTN",
+    "CAT system",
+    "distributed AI"
+  ],
+  "proc_time": 1.1075499057769775
+}

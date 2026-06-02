@@ -1,0 +1,11 @@
+{
+  "from": 5681.0,
+  "to": 5981.0,
+  "summary": "The discussion addressed technical challenges in managing edge relays with multiple publishers, specifically how to handle data conflicts and resource constraints when subscribers deselect tracks. Clarifications were provided regarding the relay's role in ingesting data to inspect objects before deciding on egress, and the implications of using overlapping filters which may cause upstream propagation violations. Additionally, the team agreed to add a 'properties' field to the request message to accommodate track properties, while also noting the potential for aggregating subscriber feedback signals back to publishers.",
+  "keywords": [
+    "edge relay",
+    "track filtering",
+    "subscriber feedback"
+  ],
+  "proc_time": 0.8264915943145752
+}

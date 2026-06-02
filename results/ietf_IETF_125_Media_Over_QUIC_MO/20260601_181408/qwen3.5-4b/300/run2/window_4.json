@@ -1,0 +1,11 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The meeting presented proposals for transmitting Scuddy 35 data, mapping WebVTT and IMSC1 captions to an event timeline structure, and defining schemas for embedded captions (608/708) and authentication via Privacy Pass or Common Access Tokens. A follow-up discussion addressed the purpose of a logging track for debugging player performance rather than continuous monitoring, and a participant questioned the necessity of explicit authorization schemes given that encrypted tracks can already be secured through key management.",
+  "keywords": [
+    "Scuddy 35",
+    "caption transmission",
+    "authentication"
+  ],
+  "proc_time": 1.2240650653839111
+}

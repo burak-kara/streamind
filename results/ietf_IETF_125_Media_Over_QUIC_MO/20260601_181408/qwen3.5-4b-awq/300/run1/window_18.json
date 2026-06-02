@@ -1,0 +1,11 @@
+{
+  "from": 5381.0,
+  "to": 5681.0,
+  "summary": "The discussion evaluates whether to restrict subscription namespaces to non-recursive, single-property prefixes to simplify relay implementations and reduce resource usage. While some participants suggest limiting recursion to prevent handling large namespaces, others argue against imposing such restrictions upfront, preferring to allow applications flexibility and defer constraints until necessary. The consensus leans toward starting with minimal restrictions to avoid breaking existing use cases, while acknowledging that future extensions can address specific needs like active speaker tracking.",
+  "keywords": [
+    "subscription",
+    "recursion",
+    "relay"
+  ],
+  "proc_time": 0.7360892295837402
+}

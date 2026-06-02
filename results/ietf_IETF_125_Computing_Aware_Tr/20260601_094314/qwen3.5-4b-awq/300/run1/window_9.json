@@ -1,0 +1,11 @@
+{
+  "from": 2557.0,
+  "to": 2857.0,
+  "summary": "The working group plans to finalize upcoming drafts before presenting a new strategy to the full group, while Mina presents an updated draft computing metric as a service proposal. This proposal argues that detailed computing metrics are unnecessary for client consumption or traffic steering, suggesting instead that networks should only disseminate lightweight service-level information via a Public Service Table. This table would standardize service recipes and requirements, allowing the network to hide hardware complexity and manage resource allocation using simplified metrics like globally available slots.",
+  "keywords": [
+    "service-oriented approach",
+    "computing metrics",
+    "public service table"
+  ],
+  "proc_time": 0.7795088291168213
+}

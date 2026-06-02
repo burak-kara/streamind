@@ -1,0 +1,11 @@
+{
+  "from": 2100.0,
+  "to": 2400.0,
+  "summary": "The presentation details controlled experiments comparing video streaming performance with and without multi-objective quality (MOQ) feedback, demonstrating that end-to-end feedback significantly reduces storage rates and improves frame rates, especially under poor network conditions like 50% packet loss. The team proposes a new draft mechanism adding a dedicated feedback track to carry real-time delivery status and metrics, enabling dynamic switching of AI-generated video quality based on connection health.",
+  "keywords": [
+    "video streaming",
+    "multi-objective quality",
+    "feedback mechanism"
+  ],
+  "proc_time": 1.1324217319488525
+}

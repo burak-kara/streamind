@@ -1,0 +1,11 @@
+{
+  "from": 3581.0,
+  "to": 3881.0,
+  "summary": "The meeting discussed significant updates to the Mock T format, specifically the decision to move most metadata from the mock header into the mock payload to ensure opacity for relays. Key technical changes included adding a new time scale property for timestamp alignment, removing capture semantics, and splitting properties into public and private categories within the payload. The group also addressed editorial issues regarding registry collisions, clarified the scope of Lock outside Mock, and decided to revert frame marking extensions to use explicit lengths instead of minimal encoding to avoid confusion.",
+  "keywords": [
+    "Mock T",
+    "metadata migration",
+    "time scale"
+  ],
+  "proc_time": 1.2384862899780273
+}

@@ -1,0 +1,11 @@
+{
+  "from": 5081.0,
+  "to": 5381.0,
+  "summary": "The discussion focuses on implementing relay-side protections against resource overload caused by asymmetric subscription behaviors, including new errors for conflicting filters and prefix overlaps across multiple subscribers. The team outlined guidance for relays to aggregate filters upstream and enforce limits when direct connections create excessive load, while acknowledging inherent asymmetries in these capabilities. Questions were raised regarding the implementation of deselection timers and the handling of self-exclusions within the proposed changes.",
+  "keywords": [
+    "relay protection",
+    "subscription filtering",
+    "resource overload"
+  ],
+  "proc_time": 1.0770328044891357
+}

@@ -1,0 +1,11 @@
+{
+  "from": 3000.0,
+  "to": 3300.0,
+  "summary": "The discussion proposes implementing QMUX as a multiplexing layer between mock applications and the TCP/TLS stack to enable bidirectional control streams and unidirectional data streams, allowing existing Quick-based code to function across both UDP-friendly and non-UDP environments. While this approach offers compatibility benefits, it introduces trade-offs such as increased round-trip times (RTTs), loss of connection migration features, and potential head-of-line blocking. The conversation concludes by addressing identification mechanisms via ALPN and exploring strategies to minimize connection setup latency when negotiating QMUX support.",
+  "keywords": [
+    "QMUX",
+    "mock",
+    "QUIC"
+  ],
+  "proc_time": 1.3459768295288086
+}

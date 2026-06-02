@@ -1,0 +1,31 @@
+{
+  "from": 5857.0,
+  "to": 6157.0,
+  "summary": "The meeting discussed a new UCI interface capable of orchestrating traffic across computer nodes and an optical network, with plans to refine the architecture, clarify relationships with ACTN, and design a data model for WG adoption. Participants compared the proposed Layer One VPN concept to existing RFCs regarding optical trails and edge point discovery. Additionally, Hany Wang introduced two new IETF drafts focused on model inference: IDN for deploying deep learning models across heterogeneous clouds and edges, and ODI.",
+  "keywords": [
+    "UCI interface",
+    "IDN draft",
+    "Layer One VPN"
+  ],
+  "proc_time": 1.21828031539917,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 4,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 23,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 5.438182660507462,
+  "C": 34.438182660507465,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.5080321285140562,
+  "asr_transcript": "connected with the new UCI interface face. So instead of traffic. Routing traffic The UCO can take the customer. intense and orchestrate across two domains. include both Now computer nodes and the ACTN optic network. at the same time Uh, next steps. In the next steps, we will refine the architecture, clarify the relationship. with ACTN and detail the use cases. We also plan to update the draft name to better match the Lunako's scope. will not hold the scope. We also were designed or we'll design young data model for the interface. Welcome more reviews and hope to seek WG adoption. Thank you very much. Thank you, no one. in the queue. I have one question. On this slide, you list a relationship with cats. these cats, but as it shows, I. I didn't see the similarity before. the artery before them, or... If you want to promote this, you may too. you made to make a clear relationship between it. Okay, no more questions. Do you have anything? So this is... just to wake up Haomyang. I'm interested, you're almost as old as I am. whether this reminds you of layer one VP. Yeah, go ahead. Yes, this is. a kind of layer one VPN connection serving for. I believe somehow like cat service. Okay, thank you so So my advice to you is go and see if you can find the RFP. And finally, RFC is about layer one VPN. I'll drop a note to the mailing list. but layer one vpn was about providing optical creating optical trails between edge points and discovering the edge point. in the edge points, so it may be helpful. Huh? Okay, thank you, thank you very much. Um, so we just... Okay next Okay. Good afternoon, everybody. My name is Hany Wang from... Hi, I'm Hany Wang from Pongchen Laboratory. Today I'm going to introduce two IETF drafts that we wrote recently. one is about IDN, and the second one is about ODI. and due to time limits, I will just give a short. introduction of these two drafts and we welcome the feedback from the CAS working group. Unlike previous drafts in this working group, These two graphs are more about the or model inference aspects. Our first. draft is called IDN, it is intelligence. delivery network. In Canada's delivery network is a framework. for deploying the deep learning models. across the heterogeneous cloud and. edge nulls. This idea is inspired by the content delivery. a network and we In this idea, we deploy the... different models across the different layers.",
+  "reference_slice": "ct domains. The network provider and the computer power provider. In the real world, they are usually different entities or at least different departments. So we must standardize the control interface to bridge them. Unicu architecture builds on the top, built perfectly on the top of ACTN. The transport network controller is essentially as an ACTNPNPNC and the UTI interface is based on the ACTN MPI. But here is a critical difference. But here is a critical difference. The unified compute optical orchestrator act as an enhanced ACTN MDSC. We introduce a new domain. The compute power scheduler connected with the new UCI interface. So instead of traffic, routing traffic, the UCOOO can take the customers intense and orchestrate across two domains include both computer nodes and the ACTN optic networks at the same time. we will refine the architecture, clarify the relationship with ACTN, and details in use cases. We also plan to update the draft name to better match the Monaco's scope. We also will design young data model for the interface. Welcome more reviews and hope to seek WG adoption. Thank you very much. Thank you. No one in the queue. I have one question. About this slide, you list a relationship with cats. But as it shows, I didn't see the similarly before them. Or if you want to promote this, you may to promote this. you're made to make clear relationship between it. Okay. No more questions. Do you have anything? So this is just to wake up. Howmian. I'm interested, you're almost as old as I am, whether this reminds you of layer one VPN. Yeah, go ahead. Yes, this is a kind of layer one VPN connection serving for, I believe, somehow like CAT service. Yeah, okay, thank you. So my advice to you is, is go and see if you can find the RFCs about layer 1 VPN. I'll drop a note to the mailing list. But layer 1 VPN was about providing optical trails between edge points and discovering the edge points. So it may be helpful. Thank you. Thank you very much. Okay, next. Okay, good afternoon, everybody. My name is Haini Wong from Pongchernan Laboratory. Today I'm going to introduce two IETF drafts that we wrote recently. One is about IDN and the second one is about ODSI. Due to time limits, I will just give a short introduction of these two drafts. And we welcome. the feedback from the CATS working group. Unlike previous drafts in this working group, these two drafts are more about the LM or model inference aspects. Our first draft is called IDN. It is an intelligence delivery network. Intelligent Delivery Network is a framework. for deploying the different models across the heterogeneous cloud and edge nodes. And this idea is inspired by the content delivery network. And we, in this idea, we deploy the different models across the different layers of of the computing nodes, including the edge device, the network"
+}

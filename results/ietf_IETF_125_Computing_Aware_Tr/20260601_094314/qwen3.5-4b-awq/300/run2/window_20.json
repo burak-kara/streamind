@@ -1,0 +1,11 @@
+{
+  "from": 5857.0,
+  "to": 6157.0,
+  "summary": "The discussion focused on refining an architecture for the UCI interface that orchestrates traffic across computer nodes and the ACTN optic network, with plans to clarify relationships, update documentation names, and design a data model for WG adoption. Participants compared the proposed Layer One VPN concept to existing RFC standards regarding optical trails and edge point discovery, while another segment introduced new IETF drafts covering intelligent delivery networks and optical delivery networks for deep learning model deployment.",
+  "keywords": [
+    "UCI interface",
+    "Layer One VPN",
+    "intelligent delivery network"
+  ],
+  "proc_time": 0.7435977458953857
+}

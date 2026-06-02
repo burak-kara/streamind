@@ -1,0 +1,11 @@
+{
+  "from": 4357.0,
+  "to": 4657.0,
+  "summary": "The discussion outlines three BGP mechanisms for constraining metadata propagation: non-advertisement communities, route filters, and specifying intended ASes to prevent cross-border transmission. The conversation further details how PTP Metadata attributes, such as Site Preference Index and Physical Availability Index, map to CATS metrics to enable efficient single-message withdrawals for affected routes.",
+  "keywords": [
+    "BGP",
+    "metadata",
+    "CATS"
+  ],
+  "proc_time": 0.9286904335021973
+}

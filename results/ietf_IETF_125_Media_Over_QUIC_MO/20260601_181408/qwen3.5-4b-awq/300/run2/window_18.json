@@ -1,0 +1,11 @@
+{
+  "from": 5381.0,
+  "to": 5681.0,
+  "summary": "The discussion evaluates whether to enforce strict limitations on subscription namespaces, specifically restricting recursion and allowing only a single property per prefix, to simplify relay implementations and prevent namespace exhaustion. While some participants argue for these constraints to ensure predictable behavior and reduce implementation complexity, others advocate for a more permissive approach that allows applications to define their own namespace hierarchies and potentially work around restrictions if necessary. The consensus leans toward initially avoiding rigid bans on recursion, instead providing relays with the flexibility to handle large namespaces if needed while keeping the specification open for future extensions based on emerging use cases.",
+  "keywords": [
+    "subscription",
+    "namespace",
+    "recursion"
+  ],
+  "proc_time": 0.9019110202789307
+}

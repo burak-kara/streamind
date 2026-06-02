@@ -1,0 +1,11 @@
+{
+  "from": 600.0,
+  "to": 900.0,
+  "summary": "The working group successfully updated the document type to standard tracks and registered matrix entries for CAS Level 1 and Level 2 metrics, noting that the framework does not enforce specific normalization aggregation functions due to implementation diversity. The discussion outlined adherence to RFC templates for metric registration, detailed definitions for five specific matrices including normalization scores and measurement methods, and clarified the roles of the CNMA and CSMA agents in collecting network and computer metrics respectively.",
+  "keywords": [
+    "CAS metrics",
+    "matrix registry",
+    "measurement methods"
+  ],
+  "proc_time": 0.7222557067871094
+}

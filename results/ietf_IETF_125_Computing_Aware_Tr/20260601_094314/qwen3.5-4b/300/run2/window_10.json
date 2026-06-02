@@ -1,0 +1,11 @@
+{
+  "from": 2857.0,
+  "to": 3157.0,
+  "summary": "The presentation introduces CMAS, a framework that abstracts service-level information into actionable units while preserving privacy by keeping raw computing metrics local. It details how the Control Plane Service (CPS) combines advertised service tables with network metrics from the Network Metric Aggregator (CNMA) to calculate optimal service paths based on factors like cost and delay, using a scalable gas-based mechanism for state maintenance. The speaker concludes by addressing questions regarding the synchronization between compute metric updates and routing protocols to ensure consistent views of the network state.",
+  "keywords": [
+    "CMAS",
+    "service abstraction",
+    "gas metric"
+  ],
+  "proc_time": 1.268273115158081
+}

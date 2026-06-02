@@ -1,0 +1,11 @@
+{
+  "from": 2400.0,
+  "to": 2700.0,
+  "summary": "The presentation outlined a multimodal feedback mechanism designed to bridge the gap between the application and transport layers by incorporating application-level adjustments such as bitrate resolution and inference parameters. The team shared production data from Alibaba, emphasizing a closed-loop system where the CC algorithm receives signals like loss rates and buffer levels to optimize performance. While acknowledging the need for app-level feedback in large-scale distributions, the presenter noted that current tests utilize a single client-server scenario and invited further discussion on aggregation strategies and bandwidth estimation methods.",
+  "keywords": [
+    "multimodal feedback",
+    "bandwidth estimation",
+    "closed-loop"
+  ],
+  "proc_time": 1.2450778484344482
+}

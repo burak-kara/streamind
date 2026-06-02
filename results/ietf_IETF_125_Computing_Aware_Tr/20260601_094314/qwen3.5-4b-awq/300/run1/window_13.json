@@ -1,0 +1,11 @@
+{
+  "from": 3757.0,
+  "to": 4057.0,
+  "summary": "The discussion outlines a proposal for extending network protocols to support Computer-Aided Service (CAS) by enhancing existing frameworks like BGP-LSP, PIRs, and BGP Flow Spec with new metrics and match criteria for service-level operations. The data plane is designed to fully replace current forwarding mechanisms using IPv6 and SRv6, enabling packet classification, encapsulation, and decapsulation without introducing new protocols, while control plane extensions facilitate OAM enhancements and telemetry for forecasting. Participants acknowledged the draft as an initial version and highlighted its significance for networking convergence, with specific questions raised regarding recommended deployment protocols.",
+  "keywords": [
+    "CAS",
+    "SRv6",
+    "BGP"
+  ],
+  "proc_time": 0.9362545013427734
+}

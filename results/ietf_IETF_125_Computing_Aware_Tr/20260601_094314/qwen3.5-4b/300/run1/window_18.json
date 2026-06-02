@@ -1,0 +1,11 @@
+{
+  "from": 5317.0,
+  "to": 5617.0,
+  "summary": "The meeting addressed the applicability of Optical Transport Networks (OTN) to Cloud AI systems, specifically proposing UNACO to enable bidirectional awareness and joint orchestration between optical transport and AI infrastructure. The presentation highlighted that distributed AI workloads require hard isolation and deterministic latency, which only the optical layer can guarantee, leading to a proposal for UNACO within the CCAMP framework. Three primary use cases were identified, including remote AI access and distributed AI training/inference scenarios.",
+  "keywords": [
+    "UNACO",
+    "distributed AI",
+    "optical transport"
+  ],
+  "proc_time": 1.175483226776123
+}

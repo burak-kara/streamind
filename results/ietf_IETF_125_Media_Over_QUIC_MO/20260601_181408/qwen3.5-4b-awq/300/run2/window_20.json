@@ -1,0 +1,11 @@
+{
+  "from": 5981.0,
+  "to": 6281.0,
+  "summary": "The discussion centers on defining error handling for invalid variant encodings in the new mockt variant parser, specifically regarding the exclusion of seven-byte lengths and non-minimal encodings. While some participants argue that strictly enforcing minimal encodings and treating deviations as hard failures improves protocol robustness, others contend that maintaining extensibility points and allowing non-minimal encodings prevents future protocol limitations and aligns with existing error-handling patterns. The group ultimately acknowledges the lack of consensus on these technical details, noting that while banning seven-byte variants is acceptable, excluding non-minimal encodings remains contentious due to potential application needs for flexibility.",
+  "keywords": [
+    "variant parsing",
+    "extensibility",
+    "minimal encodings"
+  ],
+  "proc_time": 0.9971702098846436
+}

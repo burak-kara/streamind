@@ -1,0 +1,11 @@
+{
+  "from": 4657.0,
+  "to": 4957.0,
+  "summary": "The discussion addressed extending the IDEA document to define metadata route selection policies for BGP, specifically outlining three scenarios where metadata acts as a primary choice, an equal-level criterion, or a tiebreaker. Key gaps identified include the lack of service instance identification, the absence of TTL for metadata validity, and the need for hierarchical data types and dynamic class definitions to support large-scale processing. A follow-up question highlighted a potential conflict between rapid changes in 5G radio connection states and the slower operation times of current CAST control loops.",
+  "keywords": [
+    "BGP metadata",
+    "route selection",
+    "5G mobility"
+  ],
+  "proc_time": 0.860044002532959
+}

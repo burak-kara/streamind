@@ -1,0 +1,11 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The meeting presented proposals for transmitting Scuddy 35 data via an event timeline structure and standardized methods for delivering out-of-band captions (WebVTT/IMSC1) and embedded captions (608/708). Additionally, a scheme was introduced to communicate authentication requirements for tracks using Privacy Pass or Common Access Tokens, while a follow-up discussion addressed the purpose of a logging track for debugging player performance rather than continuous telemetry.",
+  "keywords": [
+    "Scuddy 35",
+    "accessibility",
+    "authentication"
+  ],
+  "proc_time": 1.1516649723052979
+}

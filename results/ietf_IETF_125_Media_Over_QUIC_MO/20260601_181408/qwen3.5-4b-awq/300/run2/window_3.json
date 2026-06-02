@@ -1,0 +1,11 @@
+{
+  "from": 900.0,
+  "to": 1200.0,
+  "summary": "The discussion outlines several proposed enhancements to media streaming protocols, including a compression scheme for fixed-duration GOPs to reduce JSON verbosity, a dual-track keyframe spacing method to enable rapid stream switching and low-latency playback, and the ability for players to publish their own logs and metrics via a bidirectional protocol. Additional proposals involve embedding initialization data directly in the catalog alongside dynamic 'init tracks' for runtime updates, and introducing object properties for parameter set adjustments, all aimed at improving efficiency, flexibility, and user experience.",
+  "keywords": [
+    "low-latency",
+    "keyframe-spacing",
+    "init-tracks"
+  ],
+  "proc_time": 0.8554010391235352
+}

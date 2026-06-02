@@ -1,0 +1,11 @@
+{
+  "from": 5981.0,
+  "to": 6281.0,
+  "summary": "The meeting discussed the implementation of a tri-state return mechanism in the new mockt variant parser, distinguishing between successful parses, invalid variants (specifically seven-byte lengths), and insufficient data. While some participants argued for eliminating invalid variants to ensure all encodings are valid and extensible, others strongly opposed this approach, citing the necessity of error handling for protocol integrity and the potential for future extensibility. The group reached no consensus on whether to strictly enforce minimal encodings or retain the ability to reject invalid inputs as protocol errors.",
+  "keywords": [
+    "variant parser",
+    "minimal encodings",
+    "protocol errors"
+  ],
+  "proc_time": 1.3276283740997314
+}

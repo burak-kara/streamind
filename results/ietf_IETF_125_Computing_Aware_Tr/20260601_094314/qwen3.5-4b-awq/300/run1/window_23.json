@@ -1,0 +1,11 @@
+{
+  "from": 6757.0,
+  "to": 7057.0,
+  "summary": "The discussion proposes a semantic contract between applications and networks to enable differentiated treatment of AI traffic based on factors like urgency and data type, moving beyond traditional one-size-fits-all approaches. This framework utilizes an intelligent network component called IntelliNode to combine semantic inputs with real-time network states, allowing for microsecond-level decisions on routing, buffering, and resource allocation. Future plans involve refining the contract model, defining transport mechanisms via hardware extensions, clarifying decision boundaries, and building prototypes to validate performance improvements for AI workloads.",
+  "keywords": [
+    "AI networking",
+    "semantic contracts",
+    "IntelliNode"
+  ],
+  "proc_time": 0.828174352645874
+}

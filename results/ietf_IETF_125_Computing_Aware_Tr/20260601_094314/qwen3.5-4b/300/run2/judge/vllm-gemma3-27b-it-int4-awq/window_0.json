@@ -1,0 +1,31 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "The meeting opened with administrative reminders regarding conduct, recording policies, and technical setup for both in-person and remote attendees. The primary agenda item involved reviewing working group documents, specifically focusing on the submission of the CASIMETRIC requirements to the ISG for consensus.",
+  "keywords": [
+    "CASIMETRIC",
+    "ISG",
+    "working group"
+  ],
+  "proc_time": 0.7607948780059814,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.835896700191486,
+  "C": 37.83589670019148,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.3885350318471338,
+  "asr_transcript": "Hello I'm sure Okay, good afternoon everyone. Welcome to Shenzhen. hope all of you have a good journey and it's the cat's working group meeting and we are pang liu and Peng Liu and Adrian as the co-chair. So first is a note well for every meeting. so you are agreed to follow the idea process and the policies and just remind that every participant I expected to have good behavior and to show your respect to your colleagues. And if you have any questions about the EIDA contribution. either contribution please see the and if you have any problems with the behavior of others, for instance, in some harassment policy. you can connect it, they. this team so just to say your questions and any concerns so So the audio and the video are recorded in the... ITF policies and For any advice, please talk to the chairs or the ADs. 80s so some meeting tips for the in-person participants, make sure to... and make sure to sign into the session via data tracker. And I see a lot of people here, but there's not enough people. just in the on-site data trackers. so join the mic queue and the participants in the show of your hands. Just to remind, keep the audio and video off if not using the on-site version. and for the remote mode participants make sure your audio and the video are off unless you are chairing or presenting. So please help to... take the minutes. I will also send the links to the chat box. So this is the agenda. for our meeting this time we have I have two working group document and I also have four. And those have four upcoming documents, including the OEM security model and. Yamamoto and the matrix related one. and we will discuss the protocol applicability and the optical with uh with cats and if there's time we also have some individual drafts, but please just pay attention to. the time and adjust your... with just your presentation. Jean Han, are you in the room? Dong Han? Yeah, thanks. Could you see? me your slides again? Can you email them to me? Your presentation. I don't have slides. Slides You have a conversation We didn't have it. Huh? Yeah. Yes, maybe he's not here. I'm going to show you a little bit more. I'm going to show you a little bit more. Let's see. \u90d1\u97e9 \u97e9\u6b63 \u97e9\u6b63 here Did you send your slides? Yes So I'll just go ahead. Yeah. Okay. so here's a working group document setters. We just sent the... the requirements use case and the framework through the ISG and And we have one active draft about. dropped about the chasmetrics need more discussion And so the milestones here, we just. uh we just to follow uh one is that we will submit today submit the casimetric to the ISG. We get with the consensus on it. Okay, sorry anyone has comment on the agenda?",
+  "reference_slice": "Hello, good afternoon, good afternoon everyone. Welcome to Shenzhenzhen, I hope all of you have good journey and it's the cast working group meeting and we are Pong Liu and Adrian as the chair so first is a note well for every meeting so you are agreed to follow the idea process and the policies and just remind that every participant I expected to have good behavior and to show your respect to your colleagues and if you have any questions about the either contribution please see the and if you have any problems with the behavior of others for instance in some harassment policy you can connect the ambitism so just to say your questions and any concerns so the audio understanding video are recorded in the ITF policies and for any advice please talk to the chairs or the 80s so some meeting tips for the in-person participants make sure to sign into the session via data tracker and I see a lot of people here but there's not enough people just in the on-site data trackers. So join the mic queue and the participant in show of your hands. And just to remind, keep the audio and video off if not using the on-site version. And for the remote participants, make sure your audio and video are off unless you are chairing or presenting. So please help to take the minutes. The chair just sends the also send the links with the chat box. So this is the agenda for our meeting this time. We have two working group document and also have four upcoming documents, including the OEM security model and the metrics related one. And we will discuss the protocol applicability and the optical applicability and the optical with cats. And if there is time, we also have some individual drafts, but please just pay attention to the time and adjust your presentation. John Han, are you in the room? John Han? Yeah, thanks. Could you send me your slides again? Can you email them to me? Your presentation. I want to say that in general. No. Don't have slides. Do you? Do you? He didn't have? He didn't. Maybe he's not. Do you? Is the Hanzenzen here? Did you send your slides? Yes? Yes. Maybe we have a order. Yes. So I just go ahead. Yeah. Okay. So here's a working group. the working group documents that centers, we just send the requirements, use case, and framework to the IESG, and we have one active draft about the custom metrics. Need more discussion. And so the milestones here, we just to follow. One is that we will submit the carometrics to the IESG. If we get. with consumers on it. Okay, sorry. Anyone has comments on the agenda? Okay, so we go to the presenta"
+}

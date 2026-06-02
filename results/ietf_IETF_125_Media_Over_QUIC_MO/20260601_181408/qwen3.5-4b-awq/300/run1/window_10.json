@@ -1,0 +1,11 @@
+{
+  "from": 3000.0,
+  "to": 3300.0,
+  "summary": "The discussion proposes implementing QMUX as a polyfill layer between mock applications and TCP/QUIC stacks to enable bidirectional control streams and unidirectional data streams, allowing existing mock-based applications to function across both UDP-friendly and QUIC environments without code changes. While this approach offers flexibility and reduces round-trip times for certain operations, it introduces trade-offs such as increased latency due to additional RTTs and the loss of native QUIC features like connection migration. The conversation concludes by addressing identification mechanisms, suggesting the use of Mock Layer Protocol Numbers (LPNs) to distinguish between standard and QMUX sessions, while noting challenges in negotiating versions and avoiding unnecessary connection setup delays.",
+  "keywords": [
+    "QMUX",
+    "mock protocol",
+    "stream multiplexing"
+  ],
+  "proc_time": 1.0566396713256836
+}

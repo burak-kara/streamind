@@ -1,0 +1,11 @@
+{
+  "from": 4781.0,
+  "to": 5081.0,
+  "summary": "The discussion outlines a protocol update where explicit signaling via 'forward equals zero' replaces silent inference for track deselection, allowing relays to manage subscriptions and handle reselections efficiently. Key features include the ability to pin specific tracks within namespaces to prevent eviction, apply track property filters to block unwanted codecs, and implement relay protection mechanisms against asymmetric DoS attacks caused by computationally expensive filter evaluations.",
+  "keywords": [
+    "track filtering",
+    "relay protection",
+    "explicit signaling"
+  ],
+  "proc_time": 1.0172820091247559
+}

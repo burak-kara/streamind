@@ -1,0 +1,11 @@
+{
+  "from": 0.0,
+  "to": 300.0,
+  "summary": "The meeting addressed audio quality issues, introduced an ITF note regarding intellectual property and code of conduct, and reviewed the progress of the Mock T hackathon focused on automating interoperability tests. The team discussed challenges in building Docker images and negotiating protocol versions while demonstrating the current state of the interop test runner interface.",
+  "keywords": [
+    "Mock T",
+    "interoperability",
+    "hackathon"
+  ],
+  "proc_time": 0.5832846164703369
+}

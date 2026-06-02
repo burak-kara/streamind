@@ -1,0 +1,11 @@
+{
+  "from": 4417.0,
+  "to": 4717.0,
+  "summary": "The discussion outlines three methods to prevent BGP updates from crossing borders: adding a non-transitive attribute, using a well-known community, and including an intended AS list within the update. The conversation further details how PTP Metadata maps to CATS specifications through sub-TLVs like Site Preference Index and Physical Availability Index, enabling efficient route withdrawals. Additionally, Service Delay Prediction and Service Oriented Capability attributes allow ingress nodes to make path selections based on both network conditions and service environments.",
+  "keywords": [
+    "BGP",
+    "PTP Metadata",
+    "CATS"
+  ],
+  "proc_time": 1.2037303447723389
+}

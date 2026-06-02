@@ -1,0 +1,11 @@
+{
+  "from": 1500.0,
+  "to": 1800.0,
+  "summary": "The discussion addressed the integration of network layer inputs with OAM systems, emphasizing that while existing network OAM handles general plumbing, the primary focus should remain on measuring CATS system performance rather than modifying network protocols. The conversation then shifted to security considerations for CAS version 4, identifying critical risks such as man-in-the-middle attacks, fake instance registrations, and denial-of-service attempts targeting service metric agents. Recommendations were provided to mitigate these threats by deploying the metric agent in a trusted zone within the serving site and enforcing rate limiting on incoming requests.",
+  "keywords": [
+    "CAS",
+    "security risks",
+    "CATS"
+  ],
+  "proc_time": 0.8535346984863281
+}

@@ -1,0 +1,11 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "The team discussed their test framework architecture, where specifications serve as the guiding principle for diverse implementations to ensure interoperability. Regarding versioning strategy, a consensus was reached to delay the interop target from draft 16 to draft 18, aiming to complete necessary wire image shuffling before the June interim. The meeting concluded with an action item to initiate a discussion on the mailing list regarding this shift to draft 18 for the London interop event.",
+  "keywords": [
+    "interoperability",
+    "draft 18",
+    "streaming formats"
+  ],
+  "proc_time": 0.7918698787689209
+}

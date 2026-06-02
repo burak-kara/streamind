@@ -1,0 +1,11 @@
+{
+  "from": 3457.0,
+  "to": 3757.0,
+  "summary": "The presentation outlines China Mobile's analysis of the KVT-4K protocol draft, which focuses on extending existing ITF protocols to support the CAS framework rather than proposing new protocols. The discussion details how the CAS architecture utilizes control, data, and management planes to handle metrics collection, path selection, and traffic steering through specific protocol extensions like BGP, PCEP, and YANG models. Key decisions involve integrating these extensions to enable dynamic service placement, optimal mass distribution, and automated configuration provisioning within the system.",
+  "keywords": [
+    "CAS framework",
+    "protocol extensions",
+    "traffic steering"
+  ],
+  "proc_time": 0.8132624626159668
+}

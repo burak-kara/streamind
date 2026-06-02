@@ -1,0 +1,11 @@
+{
+  "from": 5917.0,
+  "to": 6217.0,
+  "summary": "The meeting discussed a proposed Layer One VPN design for optical trails connecting edge points, with participants clarifying its relationship to existing concepts like Cat Service and RFPs. Additionally, speakers introduced two new IETF drafts focused on model inference: IDN, which defines a framework for deploying deep learning models across heterogeneous cloud and edge nodes, and ODI, which addresses similar inference challenges.",
+  "keywords": [
+    "Layer One VPN",
+    "IDN",
+    "model inference"
+  ],
+  "proc_time": 0.9945755004882812
+}

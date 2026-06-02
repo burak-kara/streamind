@@ -1,0 +1,11 @@
+{
+  "from": 1200.0,
+  "to": 1500.0,
+  "summary": "The meeting presented proposals for transmitting SCED 35 data, mapping WebVTT and IMSC1 content to an event timeline structure, and defining schemas for embedded captions (608/708) and authentication methods like Privacy Pass and Common Access Tokens. A follow-up discussion addressed the purpose of a specific track for logging player performance issues versus server-side metrics, clarifying that logs should be sent conditionally rather than continuously. Additionally, a participant questioned the authorization logic regarding encrypted tracks, suggesting that decryption keys could serve as the authorization mechanism.",
+  "keywords": [
+    "SCED 35",
+    "accessibility",
+    "authentication"
+  ],
+  "proc_time": 0.905188798904419
+}

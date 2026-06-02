@@ -1,0 +1,31 @@
+{
+  "from": 7057.0,
+  "to": 7205.0,
+  "summary": "The meeting concluded with a discussion on determining the next steps for the working group, specifically focusing on which documents and topics to prioritize within the existing charter. Participants emphasized the need to adhere strictly to the charter and proceed methodically rather than introducing new initiatives like round cats without clear authorization. The group agreed to finalize their agenda items and continue collaboration through email and in-person meetings in Vienna.",
+  "keywords": [
+    "working group",
+    "charter",
+    "next steps"
+  ],
+  "proc_time": 0.9736716747283936,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 6.145679137525763,
+  "C": 37.14567913752576,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.2518796992481203,
+  "asr_transcript": "your draft and to cast working group Okay, thank you. Good, so that brings us pretty much. to the end. Thank you for everybody for sticking exactly to your times. as as we said earlier, our next kind of step is... is to work out what documents the working group should... be picking up and moving forward, what topics. So if you have opinions on that, well, technically... there's a minute and a half, you could say them now, probably better. to find the chairs and let them know your opinion and maybe start pushing ideas on the mailing list don't all jump in with me, me, me, me. because we do have a charter um and we have to stick inside that charter, and we do need... to take our work step by step carefully. Any last comments? Well done for using the tool and coming... to the queue come to the queue I'm sorry I can't log in right now for some reason. Kiriti Kompala was the last presentation in charge. I don't think it was in charter for adopting this. of adopting as work or anything like that. No, it was a topic in Charter. in terms of hearing the discussion to. find out what people are doing and thinking about round cats. That's why it was on the agenda in the if there's time to talk about it section. it doesn't feel to me like this is. something that's in the current charter. Okay, thank you. All right, then that's us done. We will see you. in the corridors, on email and in Vienna. Okay, thank you everyone. We're going to close our meeting. Thank you.",
+  "reference_slice": " much to the end. Thank you for everybody for sticking exactly to your times. As we said earlier, our next kind of step is to work out what documents the working group should be picking up and moving forward, what topics. So if you have opinions on that, well, technically there's a minute and a half. You could say them now. Probably better to find the chairs and let them know your opinions and maybe start pushing ideas on the mailing list. Don't all jump in with me, me, me, me, because we do have a charter and we have to stick inside that charter, and we do need to take our work step by step carefully. Any last comments? Well done for using the tool and coming to the queue. Come to the queue. I'm sorry, I can't log in right now for some reason. Curity Compella. Was the last presentation in charter? I don't think it was in charter for adopting us work or anything like that. No, was the topic in charter. topic in charter. In terms of hearing the discussion to find out what people are doing and thinking about round cats, that's why it was on the agenda in the, if there's time to talk about it section. But it doesn't feel to me like this is something that's in the current charter. Okay. Thank you. All right, then that's us done. We will see you. We will see you in the on email and in Vienna. Okay, thank you everyone. We're going to close our meeting. Thank you. Thank you."
+}

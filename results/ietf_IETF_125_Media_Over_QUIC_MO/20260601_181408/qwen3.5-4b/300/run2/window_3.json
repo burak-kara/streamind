@@ -1,0 +1,11 @@
+{
+  "from": 900.0,
+  "to": 1200.0,
+  "summary": "The discussion highlights several proposed enhancements to media streaming protocols, including a compression scheme for fixed-duration GOPs to reduce JSON verbosity, a zapping mechanism using dual-track keyframe spacing for low-latency switching, and the ability for players to publish their own logs and metrics via a bidirectional protocol. Additional proposals cover embedding initialization data directly in the catalog and introducing dynamic init tracks to handle mid-stream configuration changes, alongside debates on whether parameter updates should be delivered as tracks or object properties.",
+  "keywords": [
+    "low-latency",
+    "zapping",
+    "init tracks"
+  ],
+  "proc_time": 1.2728357315063477
+}

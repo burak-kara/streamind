@@ -1,0 +1,11 @@
+{
+  "from": 2100.0,
+  "to": 2257.0,
+  "summary": "The meeting reviewed updates to security components including regular key rotation, CSCI ID, certificate binding, traffic cleaning, and overlay/underlay isolation, while noting that previous security frameworks and workflow metrics remain unchanged. Participants requested alignment with the security considerations from the framework document and clarification on prioritizing multiple identified risks for future versions.",
+  "keywords": [
+    "security updates",
+    "key rotation",
+    "risk prioritization"
+  ],
+  "proc_time": 0.5871133804321289
+}

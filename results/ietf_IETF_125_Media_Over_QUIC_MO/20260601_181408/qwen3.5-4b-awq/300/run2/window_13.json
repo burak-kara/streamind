@@ -1,0 +1,11 @@
+{
+  "from": 3881.0,
+  "to": 4181.0,
+  "summary": "The team finalized a new PR 1518 that reduces the scope of the previous effort by removing location and group filters while introducing range filters, track filters, and ANSETs to enable complex AND/OR combinations. Key technical updates include simplifying setup options to a total max filter range across all parameters, allowing multi-valued parameters to repeat with different values to avoid DOS vectors, and clarifying interactions regarding subgroup closing.",
+  "keywords": [
+    "ANSETs",
+    "range filters",
+    "multi-valued parameters"
+  ],
+  "proc_time": 0.7386698722839355
+}

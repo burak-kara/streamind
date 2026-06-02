@@ -1,0 +1,11 @@
+{
+  "from": 2017.0,
+  "to": 2317.0,
+  "summary": "The session covered updates to multi-factor authentication, active standby CTC cross-validation, and real-time log classification, followed by a detailed presentation on CAS order security addressing risks like key leakage and traffic hijacking alongside mitigation strategies such as certificate binding and traffic cleaning. Discussion participants reviewed the security framework alignment and prioritized specific risks for future versions, while a subsequent segment addressed data model updates for CATS based on recent peer feedback.",
+  "keywords": [
+    "CAS security",
+    "CTC cross-validation",
+    "data model"
+  ],
+  "proc_time": 1.0823261737823486
+}

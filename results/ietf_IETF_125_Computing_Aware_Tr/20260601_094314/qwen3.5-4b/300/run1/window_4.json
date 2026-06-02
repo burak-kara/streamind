@@ -1,0 +1,11 @@
+{
+  "from": 1117.0,
+  "to": 1417.0,
+  "summary": "The team finalized updates to the CASOM document, clarifying the motivation for extending existing O&M frameworks to cover surface instances and preventing traffic steering failures due to unmonitored service crashes. Four new O&M components were defined within the updated layering model: SIOM for instance status and metric monitoring, and SVCOM for policy verification, rule checking, and end-to-end latency measurement across multi-domain environments.",
+  "keywords": [
+    "CASOM",
+    "O&M",
+    "surface instances"
+  ],
+  "proc_time": 1.0417509078979492
+}

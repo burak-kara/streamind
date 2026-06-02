@@ -1,0 +1,11 @@
+{
+  "from": 5381.0,
+  "to": 5681.0,
+  "summary": "The discussion focuses on defining constraints for subscription namespaces and properties within the relay specification, specifically debating whether to enforce non-recursive subscriptions and single-property limits to simplify relay implementations. While some participants argue for strict limitations to ensure interoperability and reduce relay complexity, others advocate for a more flexible approach that allows applications to work around restrictions if necessary. The group concludes that while not every issue needs immediate resolution, clarifying these core concepts is essential before finalizing the specification.",
+  "keywords": [
+    "subscription",
+    "relay",
+    "namespace"
+  ],
+  "proc_time": 1.149479866027832
+}

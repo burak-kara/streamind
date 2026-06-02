@@ -1,0 +1,11 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The discussion addressed protocol compatibility concerns regarding a recent draft submission, with participants agreeing to follow up via direct connection to verify alignment and document findings. A technical presentation detailed the application use cases for real-time video generation, emphasizing the critical need for high frame rates and low latency to adapt to fluctuating network conditions. Additionally, the session explored the necessity of MockRTC's TCP fallback mechanism to ensure reliability in enterprise environments where UDP traffic is often blocked by firewalls or rate-limited by carriers.",
+  "keywords": [
+    "MockRTC",
+    "TCP fallback",
+    "real-time video"
+  ],
+  "proc_time": 0.8017914295196533
+}

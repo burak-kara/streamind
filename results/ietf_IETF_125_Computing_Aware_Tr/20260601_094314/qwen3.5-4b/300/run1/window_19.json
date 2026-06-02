@@ -1,0 +1,11 @@
+{
+  "from": 5617.0,
+  "to": 5917.0,
+  "summary": "The discussion addresses the inefficiency of current schedulers that ignore optical link congestion when assigning jobs to data centers, necessitating a unified approach called Unaco for joint orchestration of compute and optical resources. Unlike CATS which only steers traffic over existing paths, Unaco provisions new optical circuits before workloads begin by integrating storage, compute, and optical states through standardized interfaces with the ACTN network. Future steps involve refining the architecture, clarifying relationships with ACTN, and updating the draft name to better reflect its scope.",
+  "keywords": [
+    "Unaco",
+    "joint orchestration",
+    "optical provisioning"
+  ],
+  "proc_time": 1.348393440246582
+}

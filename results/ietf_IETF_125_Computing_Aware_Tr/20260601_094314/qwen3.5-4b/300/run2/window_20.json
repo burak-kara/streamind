@@ -1,0 +1,11 @@
+{
+  "from": 5857.0,
+  "to": 6157.0,
+  "summary": "The meeting discussed a new UCI interface capable of orchestrating traffic across computer nodes and an optical network, with plans to refine the architecture, clarify relationships with ACTN, and design a data model for WG adoption. Participants compared the proposed Layer One VPN concept to existing RFCs regarding optical trails and edge point discovery. Additionally, Hany Wang introduced two new IETF drafts focused on model inference: IDN for deploying deep learning models across heterogeneous clouds and edges, and ODI.",
+  "keywords": [
+    "UCI interface",
+    "IDN draft",
+    "Layer One VPN"
+  ],
+  "proc_time": 1.21828031539917
+}

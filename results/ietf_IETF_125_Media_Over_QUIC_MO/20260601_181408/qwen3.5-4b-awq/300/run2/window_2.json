@@ -1,0 +1,11 @@
+{
+  "from": 600.0,
+  "to": 900.0,
+  "summary": "The meeting confirmed the completion of renaming the streaming format from CARP to MSF (MOQT Streaming Format) and its CMAF-compliant variant to CMSF. Key technical updates included adopting a fragment-based URL scheme for namespace identification, implementing variable substitution for personalized catalogs, and defining support for secure objects via end-to-end encryption.",
+  "keywords": [
+    "MSF",
+    "CMSF",
+    "URL scheme"
+  ],
+  "proc_time": 0.612046480178833
+}

@@ -1,0 +1,11 @@
+{
+  "from": 3157.0,
+  "to": 3457.0,
+  "summary": "The discussion focused on optimizing slot usage through lightweight service tables that allow the service side to update values without requiring detailed network metrics, ensuring efficient traffic steering while avoiding interference with network convergence. Participants addressed the distinction between L1 and L2 metrics, noting that the current approach abstracts physical details to simplify service unit calculations, though further augmentation was suggested for clarity. The conversation concluded with a decision to move specific technical discussions offline and focus on updating the CAS working group documents to reflect these findings.",
+  "keywords": [
+    "SDN controller",
+    "service tables",
+    "network convergence"
+  ],
+  "proc_time": 0.8165283203125
+}

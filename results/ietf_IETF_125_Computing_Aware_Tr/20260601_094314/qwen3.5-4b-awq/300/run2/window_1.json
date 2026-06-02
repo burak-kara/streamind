@@ -1,0 +1,11 @@
+{
+  "from": 300.0,
+  "to": 600.0,
+  "summary": "Cheng Li from Huawei reported that the CATS Framework document has successfully passed the working group last call with strong support, addressing all IETF last call review comments except for pending confirmation from Giuseppe regarding RTG errors. The team plans to submit the revised draft to the IESG for final last call after obtaining confirmation from Giuseppe, anticipating publication as an RFC before the next meeting. Additionally, Magics from China Mobile introduced updates to the CAS Matrix definition document, highlighting new revisions and acknowledging contributions from Han Shi and Guan Mingzhen.",
+  "keywords": [
+    "CATS Framework",
+    "CAS Matrix",
+    "IETF last call"
+  ],
+  "proc_time": 0.8683321475982666
+}

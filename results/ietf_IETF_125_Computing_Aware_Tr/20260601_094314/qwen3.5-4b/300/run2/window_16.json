@@ -1,0 +1,11 @@
+{
+  "from": 4657.0,
+  "to": 4957.0,
+  "summary": "The meeting discussed extending the IDEA document to define how metadata attributes influence BGP path selection, specifically detailing three configurable scenarios ranging from metadata-first priority to metadata as a tiebreaker. Key gaps identified include the lack of service instance identification, missing TTL mechanisms for attribute validity, and the need for hierarchical data types to handle large datasets and dynamic class changes within the CATS framework. A follow-up question was raised regarding the latency mismatch between rapid 5G UE mobility states and the slower operation of the current matrix control loops.",
+  "keywords": [
+    "BGP selection",
+    "metadata attributes",
+    "CATS framework"
+  ],
+  "proc_time": 1.285987377166748
+}

@@ -1,0 +1,11 @@
+{
+  "from": 2917.0,
+  "to": 3217.0,
+  "summary": "The presentation introduces a system using simple tables to aggregate hardware metrics and network delays into a unified service table, enabling clients to select optimal services based on total delay while maintaining state through efficient gas-based tracking. Key advantages include service-level abstraction that decouples hardware complexity, strict compatibility with existing components, and privacy preservation by keeping raw metrics local. During Q&A, the speaker addressed concerns about synchronizing compute metric updates with network topology, explaining that the framework focuses solely on slot usage changes rather than detailed metric reconciliation.",
+  "keywords": [
+    "service table",
+    "gas metric",
+    "CMAS"
+  ],
+  "proc_time": 1.2413561344146729
+}

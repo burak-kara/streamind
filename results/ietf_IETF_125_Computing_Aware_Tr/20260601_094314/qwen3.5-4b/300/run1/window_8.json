@@ -1,0 +1,11 @@
+{
+  "from": 2317.0,
+  "to": 2617.0,
+  "summary": "The meeting discussed updates to the CAT system documentation and the CAS state model, including the removal of the forwarding play from the Young model and the definition of new interfaces like CATS-SBI and CSMA API. The working group plans to review recent drafts and determine the next steps for adoption after further deliberation.",
+  "keywords": [
+    "CAT system",
+    "CAS state model",
+    "working group"
+  ],
+  "proc_time": 0.8574934005737305
+}

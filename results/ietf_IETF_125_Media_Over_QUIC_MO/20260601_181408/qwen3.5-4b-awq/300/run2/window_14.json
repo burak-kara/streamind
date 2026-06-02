@@ -1,0 +1,11 @@
+{
+  "from": 4181.0,
+  "to": 4481.0,
+  "summary": "The discussion details advanced filtering mechanisms for object and track selection, emphasizing that property filters require both an 'an' set and property type to uniquely identify items. A new track selection filter was introduced to enable efficient, scalable filtering by selecting top tracks based on specific property values across an entire namespace, which runs first to optimize performance. This feature allows relays to aggregate and propagate filter requests upstream to the original publisher, enabling end-to-end filtering without requiring individual customization per subscriber.",
+  "keywords": [
+    "track selection",
+    "property filter",
+    "relay aggregation"
+  ],
+  "proc_time": 0.7757532596588135
+}

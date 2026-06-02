@@ -1,0 +1,11 @@
+{
+  "from": 3300.0,
+  "to": 3581.0,
+  "summary": "The discussion explores two proposals to resolve ALPN version explosion issues in QUIC/MQX implementations: upgrading Web Transport to negotiate MQX versions alongside H3 ALPN, or consolidating MQX and MQX versions into a single TLS ALPN field. Participants debated the trade-offs between these approaches, noting that while early private deployments face challenges due to rigid standards, a unified MQX ALPN strategy offers simplicity and avoids version proliferation. The group agreed to consolidate related specifications into a concise draft recommending MQX over MQX, with further technical details to be addressed in upcoming sessions.",
+  "keywords": [
+    "QUIC",
+    "ALPN",
+    "MQX"
+  ],
+  "proc_time": 0.9362127780914307
+}

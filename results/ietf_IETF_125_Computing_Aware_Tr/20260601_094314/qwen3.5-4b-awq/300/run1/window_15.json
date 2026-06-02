@@ -1,0 +1,11 @@
+{
+  "from": 4357.0,
+  "to": 4657.0,
+  "summary": "The discussion outlines three BGP mechanisms for constraining metadata propagation: non-advertisement communities, route filters, and AS-specific updates to prevent cross-border leakage. It further details how PTP Metadata sub-TLVs map to CATS metrics, including Site Preference Index, Physical Availability Index, Service Delay Prediction, and Service Oriented Capability, enabling efficient single-message withdrawals for affected routes.",
+  "keywords": [
+    "BGP metadata",
+    "CATS mapping",
+    "route filtering"
+  ],
+  "proc_time": 0.6864495277404785
+}

@@ -1,0 +1,11 @@
+{
+  "from": 4781.0,
+  "to": 5081.0,
+  "summary": "The discussion outlines the protocol updates for track management, including explicit signaling via forward equals zero flags to notify subscribers of deselection and reselection states, while allowing pinned subscriptions to persist regardless of metric changes. Additional enhancements cover namespace-level subscriptions, parameter updates requiring reevaluation, and new track property filters that block specific codecs based on defined criteria. To address security concerns regarding inherent asymmetry in these features, the team introduced relay protection guidance to mitigate potential denial-of-service attacks triggered by complex filter configurations.",
+  "keywords": [
+    "track management",
+    "relay protection",
+    "subscription filters"
+  ],
+  "proc_time": 0.8020925521850586
+}

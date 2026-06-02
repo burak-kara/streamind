@@ -1,0 +1,11 @@
+{
+  "from": 5981.0,
+  "to": 6281.0,
+  "summary": "The discussion centers on the design of the new mockt variant parser, specifically debating whether to enforce minimal encodings and reject seven-byte variants as invalid errors. While some participants argue that strict validation prevents protocol errors and simplifies parsing, others contend that maintaining an extensibility point is crucial for future growth and that rejecting certain inputs causes unnecessary session teardowns. The conversation highlights a lack of consensus regarding the trade-off between robustness and flexibility in handling non-minimal or invalid variant encodings.",
+  "keywords": [
+    "variant parser",
+    "minimal encodings",
+    "extensibility"
+  ],
+  "proc_time": 1.261185646057129
+}

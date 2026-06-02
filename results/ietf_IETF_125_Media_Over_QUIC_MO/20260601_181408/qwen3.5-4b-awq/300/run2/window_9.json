@@ -1,0 +1,11 @@
+{
+  "from": 2700.0,
+  "to": 3000.0,
+  "summary": "The discussion addressed protocol compatibility concerns regarding a recent draft submission, with participants agreeing to follow up via direct connection to verify alignment and document findings. A technical presentation detailed the application use cases for real-time video generation, emphasizing the need for high frame rates and adaptive inference frameworks to handle dynamic network conditions. Additionally, the session explored the necessity of MockRTCP fallback mechanisms over TCP to ensure reliability in enterprise environments where UDP or QUIC protocols may be blocked by firewalls or rate-limited by carriers.",
+  "keywords": [
+    "video generation",
+    "MockRTCP",
+    "network reliability"
+  ],
+  "proc_time": 0.8155505657196045
+}

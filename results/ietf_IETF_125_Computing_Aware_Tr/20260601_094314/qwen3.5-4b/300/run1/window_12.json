@@ -1,0 +1,11 @@
+{
+  "from": 3517.0,
+  "to": 3817.0,
+  "summary": "The discussion outlines the Control and Service Architecture (CAS) framework, which operates across three interconnected planes: control, data, and management. Key protocols are detailed for the control plane, covering matrix distribution via EGRAS nodes and PCEP extensions, traffic steering through BGP flows, and management capabilities utilizing YANG models for configuration, provisioning, and real-time telemetry. The presentation concludes by introducing the data plane's role in forwarding services based on these decisions.",
+  "keywords": [
+    "CAS framework",
+    "control plane",
+    "traffic steering"
+  ],
+  "proc_time": 1.1445538997650146
+}

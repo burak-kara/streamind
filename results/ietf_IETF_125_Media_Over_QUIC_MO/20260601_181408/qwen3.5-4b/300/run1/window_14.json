@@ -1,0 +1,11 @@
+{
+  "from": 4181.0,
+  "to": 4481.0,
+  "summary": "The discussion focused on refining property filters to support keyframe scrubbing, specifically addressing the need to include property types alongside values for unique identification. A new track selection filter was introduced to optimize scalability by allowing relays to apply a single filter at the ingress point rather than per-subscriber, ensuring efficient data propagation across the network. The conversation concluded with clarification on how these filters interact within the relay chain, confirming that while publishers handle self-filtering, relays must aggregate and forward these constraints upstream.",
+  "keywords": [
+    "property filters",
+    "track selection",
+    "relay optimization"
+  ],
+  "proc_time": 1.2294278144836426
+}

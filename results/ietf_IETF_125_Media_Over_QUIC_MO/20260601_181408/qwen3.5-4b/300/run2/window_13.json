@@ -1,0 +1,11 @@
+{
+  "from": 3881.0,
+  "to": 4181.0,
+  "summary": "The team finalized a new PR 1518 that reduces the scope of the previous filter implementation by removing location and group filters while introducing new range and track filters. A key architectural shift involves replacing single-value parameters with multi-valued ANSETs to enable complex 'and/or' combinations, which prevents Denial of Service attacks by allowing relays to express aggregated subscriptions succinctly.",
+  "keywords": [
+    "ANSETs",
+    "range filters",
+    "multi-valued parameters"
+  ],
+  "proc_time": 1.043818473815918
+}

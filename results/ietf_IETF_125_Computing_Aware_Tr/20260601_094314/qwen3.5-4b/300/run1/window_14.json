@@ -1,0 +1,11 @@
+{
+  "from": 4117.0,
+  "to": 4417.0,
+  "summary": "The meeting discussed a proposed protocol for distributing CATs metrics via BGP, addressing concerns about handling high rates of state change and data volume. The group agreed to incorporate considerations regarding data rates into the draft to better determine suitable protocols. Additionally, Linda Dunbar presented an update on using the metadata pass attribute in BGP for limited-domain distribution, emphasizing the need to restrict propagation of sensitive metrics within specific deployment regions.",
+  "keywords": [
+    "BGP",
+    "CATs metrics",
+    "metadata pass"
+  ],
+  "proc_time": 1.0558817386627197
+}

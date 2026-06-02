@@ -1,0 +1,11 @@
+{
+  "from": 5081.0,
+  "to": 5381.0,
+  "summary": "The discussion addresses inherent asymmetries in subscription systems by introducing relay-side mechanisms to mitigate resource overload, including propagation of filters, namespace size limits, and rejection of conflicting or overlapping prefixes across multiple subscribers. While acknowledging these measures are not bulletproof, the team emphasizes that relays must exercise caution and notes that further feedback is required before closing out the associated issues.",
+  "keywords": [
+    "subscription",
+    "relay",
+    "prefix overlap"
+  ],
+  "proc_time": 0.9502203464508057
+}
