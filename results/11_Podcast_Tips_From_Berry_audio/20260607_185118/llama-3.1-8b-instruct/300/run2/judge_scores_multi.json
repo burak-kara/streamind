@@ -1,0 +1,315 @@
+{
+  "judges": [
+    "vllm-mistral-small-24b-awq",
+    "vllm-phi-4-awq",
+    "vllm-gemma3-27b-it-int4-awq"
+  ],
+  "windows": [
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_0.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 19,
+          "K": 2,
+          "BK": 21.0,
+          "L": 4.8190765959570285,
+          "C": 25.81907659595703
+        },
+        "vllm-phi-4-awq": {
+          "B": 20,
+          "K": -2,
+          "BK": 18.0,
+          "L": 4.8190765959570285,
+          "C": 22.81907659595703
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 19,
+          "K": 6,
+          "BK": 25.0,
+          "L": 4.8190765959570285,
+          "C": 29.81907659595703
+        }
+      },
+      "mean_c": 26.15240992929036,
+      "stdev_c": 2.8674417556808756,
+      "mean_bk": 21.333333333333332,
+      "stdev_bk": 2.8674417556808756,
+      "mean_l": 4.8190765959570285
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_1.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 17,
+          "K": -6,
+          "BK": 11.0,
+          "L": 4.062703997053026,
+          "C": 15.062703997053026
+        },
+        "vllm-phi-4-awq": {
+          "B": 19,
+          "K": 2,
+          "BK": 21.0,
+          "L": 4.062703997053026,
+          "C": 25.062703997053028
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 17,
+          "K": 2,
+          "BK": 19.0,
+          "L": 4.062703997053026,
+          "C": 23.062703997053028
+        }
+      },
+      "mean_c": 21.062703997053028,
+      "stdev_c": 4.320493798938574,
+      "mean_bk": 17.0,
+      "stdev_bk": 4.320493798938574,
+      "mean_l": 4.062703997053026
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_2.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 16,
+          "K": 2,
+          "BK": 18.0,
+          "L": 3.967366911592828,
+          "C": 21.967366911592826
+        },
+        "vllm-phi-4-awq": {
+          "B": 19,
+          "K": 2,
+          "BK": 21.0,
+          "L": 3.967366911592828,
+          "C": 24.967366911592826
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 6,
+          "K": 2,
+          "BK": 8.0,
+          "L": 0.0,
+          "C": 8.0
+        }
+      },
+      "mean_c": 18.311577941061884,
+      "stdev_c": 7.393532296358556,
+      "mean_bk": 15.666666666666666,
+      "stdev_bk": 5.557777333511022,
+      "mean_l": 2.6449112743952186
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_3.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 23,
+          "K": 2,
+          "BK": 25.0,
+          "L": 4.3685999020642825,
+          "C": 29.368599902064283
+        },
+        "vllm-phi-4-awq": {
+          "B": 21,
+          "K": 2,
+          "BK": 23.0,
+          "L": 4.3685999020642825,
+          "C": 27.368599902064283
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 23,
+          "K": 6,
+          "BK": 29.0,
+          "L": 4.3685999020642825,
+          "C": 33.36859990206428
+        }
+      },
+      "mean_c": 30.03526656873095,
+      "stdev_c": 2.494438257849294,
+      "mean_bk": 25.666666666666668,
+      "stdev_bk": 2.494438257849294,
+      "mean_l": 4.3685999020642825
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_4.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 13,
+          "K": 2,
+          "BK": 15.0,
+          "L": 4.372057150106709,
+          "C": 19.37205715010671
+        },
+        "vllm-phi-4-awq": {
+          "B": 14,
+          "K": 6,
+          "BK": 20.0,
+          "L": 4.372057150106709,
+          "C": 24.37205715010671
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 5,
+          "K": -6,
+          "BK": -1.0,
+          "L": 0.0,
+          "C": -1.0
+        }
+      },
+      "mean_c": 14.24803810007114,
+      "stdev_c": 10.973513549327636,
+      "mean_bk": 11.333333333333334,
+      "stdev_bk": 8.956685895029603,
+      "mean_l": 2.914704766737806
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_5.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 21,
+          "K": -2,
+          "BK": 19.0,
+          "L": 4.8286114474702515,
+          "C": 23.82861144747025
+        },
+        "vllm-phi-4-awq": {
+          "B": 21,
+          "K": 6,
+          "BK": 27.0,
+          "L": 4.8286114474702515,
+          "C": 31.82861144747025
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 22,
+          "K": 6,
+          "BK": 28.0,
+          "L": 4.8286114474702515,
+          "C": 32.82861144747025
+        }
+      },
+      "mean_c": 29.49527811413692,
+      "stdev_c": 4.0276819911981905,
+      "mean_bk": 24.666666666666668,
+      "stdev_bk": 4.0276819911981905,
+      "mean_l": 4.8286114474702515
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_6.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 6,
+          "K": 2,
+          "BK": 8.0,
+          "L": 0.0,
+          "C": 8.0
+        },
+        "vllm-phi-4-awq": {
+          "B": 15,
+          "K": 2,
+          "BK": 17.0,
+          "L": 4.086396100410345,
+          "C": 21.086396100410344
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 5,
+          "K": -6,
+          "BK": -1.0,
+          "L": 0.0,
+          "C": -1.0
+        }
+      },
+      "mean_c": 9.362132033470115,
+      "stdev_c": 9.068030875315374,
+      "mean_bk": 8.0,
+      "stdev_bk": 7.3484692283495345,
+      "mean_l": 1.3621320334701148
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_7.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 22,
+          "K": 2,
+          "BK": 24.0,
+          "L": 4.776832989404607,
+          "C": 28.776832989404607
+        },
+        "vllm-phi-4-awq": {
+          "B": 22,
+          "K": 6,
+          "BK": 28.0,
+          "L": 4.776832989404607,
+          "C": 32.77683298940461
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 25,
+          "K": 6,
+          "BK": 31.0,
+          "L": 4.776832989404607,
+          "C": 35.77683298940461
+        }
+      },
+      "mean_c": 32.443499656071275,
+      "stdev_c": 2.867441755680877,
+      "mean_bk": 27.666666666666668,
+      "stdev_bk": 2.8674417556808756,
+      "mean_l": 4.776832989404607
+    },
+    {
+      "path": "results/11_Podcast_Tips_From_Berry_audio/20260607_185118/llama-3.1-8b-instruct/300/run2/window_8.json",
+      "per_judge": {
+        "vllm-mistral-small-24b-awq": {
+          "B": 21,
+          "K": 2,
+          "BK": 23.0,
+          "L": 9.99786995688213,
+          "C": 32.99786995688213
+        },
+        "vllm-phi-4-awq": {
+          "B": 23,
+          "K": 2,
+          "BK": 25.0,
+          "L": 9.99786995688213,
+          "C": 34.99786995688213
+        },
+        "vllm-gemma3-27b-it-int4-awq": {
+          "B": 9,
+          "K": 2,
+          "BK": 11.0,
+          "L": 0.0,
+          "C": 11.0
+        }
+      },
+      "mean_c": 26.331913304588085,
+      "stdev_c": 10.872003010318256,
+      "mean_bk": 19.666666666666668,
+      "stdev_bk": 6.182412330330469,
+      "mean_l": 6.66524663792142
+    }
+  ],
+  "judge_summary": {
+    "vllm-mistral-small-24b-awq": {
+      "avg_c": 22.799235438947875,
+      "avg_bk": 18.22222222222222,
+      "final_source_score": 26.799235438947875,
+      "n": 9
+    },
+    "vllm-phi-4-awq": {
+      "avg_c": 27.25327945010458,
+      "avg_bk": 22.22222222222222,
+      "final_source_score": 31.25327945010458,
+      "n": 9
+    },
+    "vllm-gemma3-27b-it-int4-awq": {
+      "avg_c": 19.095091659105467,
+      "avg_bk": 16.555555555555557,
+      "final_source_score": 23.095091659105467,
+      "n": 9
+    }
+  },
+  "consensus": {
+    "avg_c": 23.049202182719306,
+    "avg_bk": 19.0,
+    "avg_l": 4.0492021827193065,
+    "final_source_score": 27.049202182719306,
+    "n_windows": 9
+  }
+}
