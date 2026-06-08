@@ -1,0 +1,28 @@
+{
+  "from": 2181.0,
+  "to": 2181.0,
+  "summary": "one-on-one.",
+  "keywords": [
+    "one-on-one",
+    "audio",
+    "segment"
+  ],
+  "proc_time": 0.00026607513427734375,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 5
+  },
+  "B": 25,
+  "keyword_flags": [
+    true,
+    false,
+    false
+  ],
+  "K": -2,
+  "L": 9.99866971281966,
+  "C": 32.99866971281966,
+  "judge_model": "./models/phi-4-awq"
+}

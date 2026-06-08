@@ -15,5 +15,7 @@ rank,stamp,profile,run,avg_bk,avg_l,score
 14,20260531_114448,vllm-qwen3.5-9b-awq,run1,29.42,3.83,37.24
 15,20260531_114448,vllm-qwen3.5-9b,run2,28.89,3.62,36.51
 16,20260531_114448,vllm-qwen3.5-9b,run1,29.62,2.83,36.45
-17,20260607_172705,vllm-llama-3.1-8b-instruct,run1,24.17,3.84,32.01
-18,20260607_172705,vllm-llama-3.1-8b-instruct,run2,24.17,3.84,32.00
+17,20260608_020529,vllm-gemma-3-12b-it-awq,run2,27.11,3.79,34.90
+18,20260608_020529,vllm-gemma-3-12b-it-awq,run1,27.11,3.77,34.88
+19,20260607_172705,vllm-llama-3.1-8b-instruct,run1,24.17,3.84,32.01
+20,20260607_172705,vllm-llama-3.1-8b-instruct,run2,24.17,3.84,32.00

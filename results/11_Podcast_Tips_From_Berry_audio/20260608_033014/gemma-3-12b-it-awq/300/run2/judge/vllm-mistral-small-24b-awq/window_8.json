@@ -1,0 +1,31 @@
+{
+  "from": 2377.0,
+  "to": 2379.28,
+  "summary": "me know if it helped. Let me know if it didn't help at all.",
+  "keywords": [
+    "know",
+    "Let",
+    "didn't"
+  ],
+  "proc_time": 0.00025916099548339844,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 1,
+    "conciseness": 5
+  },
+  "B": 21,
+  "keyword_flags": [
+    true,
+    false,
+    true
+  ],
+  "K": 2,
+  "L": 9.998704278974484,
+  "C": 32.998704278974486,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.5,
+  "asr_transcript": "me know if it helped. Let me know if it didn't help at all.",
+  "reference_slice": "d. Let me know if it didn't help at all."
+}

@@ -17,3 +17,5 @@ rank,stamp,profile,run,avg_bk,avg_l,score
 16,20260607_202211,vllm-llama-3.1-8b-instruct,run1,30.00,4.04,38.04
 17,20260531_203015,vllm-qwen3.5-9b,run1,30.60,2.89,37.49
 18,20260531_203015,vllm-qwen3.5-9b,run2,30.60,2.88,37.48
+19,20260608_050115,vllm-gemma-3-12b-it-awq,run1,29.87,3.28,37.14
+20,20260608_050115,vllm-gemma-3-12b-it-awq,run2,29.73,3.37,37.11
