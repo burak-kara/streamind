@@ -1,0 +1,11 @@
+{
+  "from": 1800.0,
+  "to": 2100.0,
+  "summary": "The discussion explores Dynamic Ad Insertion (DAI), a technology that replaces static, pre-recorded ads with dynamically inserted ones based on listener data such as location, date, or download history. This approach allows advertisers to target specific demographics and enables creators to monetize older episodes or manage high-volume downloads by selling ad slots in smaller chunks. While DAI offers significant flexibility and revenue opportunities, the conversation highlights the risks of embedding ads directly into recordings, noting that such baked-in ads remain permanently visible even after the advertiser relationship ends.",
+  "keywords": [
+    "dynamic ad insertion",
+    "podcast monetization",
+    "targeted advertising"
+  ],
+  "proc_time": 0.9327569007873535
+}
