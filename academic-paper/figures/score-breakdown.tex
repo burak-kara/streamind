@@ -1,0 +1,62 @@
+% score-breakdown.tex — alternate stacked-bar figure (not currently referenced in main.tex).
+% Colors use the project palette from helpers/colors.tex.
+% Data: cross-audio mean over 3 Rev16 episodes, 300 s windows, RTX 4090.
+\begin{tikzpicture}
+\begin{axis}[
+    ybar stacked,
+    width=0.95\columnwidth,
+    height=5.5cm,
+    bar width=17pt,
+    ymin=0, ymax=44,
+    ylabel={Audio-level score $\bar{C} + \text{Janus}$},
+    ylabel style={font=\small, text=labelColor},
+    symbolic x coords={4B-AWQ, 4B-BF16, 9B-AWQ, 9B-BF16},
+    xtick=data,
+    x tick label style={font=\small, text=labelColor},
+    yticklabel style={font=\small, text=labelColor},
+    ytick={0, 10, 20, 30, 40},
+    ymajorgrids=true,
+    grid style={dashed, line4!30},
+    axis line style={color=labelColor},
+    legend style={
+        at={(0.5,-0.20)},
+        anchor=north,
+        legend columns=4,
+        font=\small,
+        draw=legendBorderColor,
+        fill=legendFillColor,
+        fill opacity=0.1,
+        text opacity=1,
+        column sep=8pt,
+        rounded corners=2pt,
+    },
+    legend image code/.code={\draw [#1] (0cm,-0.08cm) rectangle (0.22cm,0.08cm);},
+]
+% B_i (bottom) — colorBlue
+\addplot+[fill=line1!50, draw=line1!85] coordinates {
+    (4B-AWQ, 23.3) (4B-BF16, 23.2) (9B-AWQ, 23.0) (9B-BF16, 23.2)
+};
+% K_i — colorGreen
+\addplot+[fill=line3!50, draw=line3!80] coordinates {
+    (4B-AWQ, 6.0) (4B-BF16, 6.0) (9B-AWQ, 6.0) (9B-BF16, 6.0)
+};
+% L_i — colorOrange
+\addplot+[fill=line2!55, draw=line2!85] coordinates {
+    (4B-AWQ, 6.84) (4B-BF16, 5.77) (9B-AWQ, 4.15) (9B-BF16, 2.92)
+};
+% Janus +4 (top) — colorRed
+\addplot+[fill=colorRed!30, draw=colorRed!70] coordinates {
+    (4B-AWQ, 4.0) (4B-BF16, 4.0) (9B-AWQ, 4.0) (9B-BF16, 4.0)
+};
+% Score totals above each bar
+\node[font=\small\bfseries, anchor=south, yshift=3pt, text=labelColor]
+    at (axis cs:4B-AWQ,  40.14) {40.14};
+\node[font=\small\bfseries, anchor=south, yshift=3pt, text=labelColor]
+    at (axis cs:4B-BF16, 38.97) {38.97};
+\node[font=\small\bfseries, anchor=south, yshift=3pt, text=labelColor]
+    at (axis cs:9B-AWQ,  37.15) {37.15};
+\node[font=\small\bfseries, anchor=south, yshift=3pt, text=labelColor]
+    at (axis cs:9B-BF16, 36.12) {36.12};
+\legend{$B_i$, $K_i$, $L_i$, Janus $+4$}
+\end{axis}
+\end{tikzpicture}
