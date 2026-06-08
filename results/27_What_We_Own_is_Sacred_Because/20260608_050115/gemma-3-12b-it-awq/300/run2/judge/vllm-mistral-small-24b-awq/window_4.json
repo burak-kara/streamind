@@ -1,0 +1,31 @@
+{
+  "from": 1200.0,
+  "to": 1305.0,
+  "summary": "Father Andrew encourages listeners to prioritize generosity as an action to cultivate genuine compassion and spiritual liberation. He references Orthodox Christian teachings suggesting increased giving compared to Old Testament practices, suggesting 10% may not suffice. Ultimately, he emphasizes experiencing inner peace and freedom from selfishness as blessings resulting from selfless giving.",
+  "keywords": [
+    "generosity",
+    "faith",
+    "compassion"
+  ],
+  "proc_time": 1.697195053100586,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 5,
+    "coherence": 5,
+    "fluency": 5,
+    "conciseness": 4
+  },
+  "B": 24,
+  "keyword_flags": [
+    true,
+    false,
+    true
+  ],
+  "K": 2,
+  "L": 4.280147905873768,
+  "C": 30.28014790587377,
+  "judge_model": "./models/mistral-small-24b-awq",
+  "asr_wer": 0.23868312757201646,
+  "asr_transcript": "our needs. But we found that our hearts changed. Our hearts changed as a result of the action. wait to feel generous. before you begin to be generous. Be generous, and then watch what happens to your heart, right? The action comes first. then the heart will follow it. So take that step. of faith. Give as is really appropriate. an Orthodox Christian to give. You know, the Holy Fathers tell us, that because we're in the new covenant, we now should be doing more. than in the Old Covenant. And if the Old Covenant had a tithe, then that means we should even be doing more. should even be doing more. 10% is maybe too little. So may God give you courage and enable you to. take that step and watch, watch. Watch how he blesses you. I'm not talking materially. He might bless you materially. I don't know. But watch how your heart changes. Watch how you are unshackled, you're relieved. You're released from bondage to selfishness. It's really a beautiful thing and so worth doing. God bless you as you give because you first gave to you. This has been Rhodes from Emmaus, and I'm Father Andrew Stephen Damig. I'm a priest of the Antiochian Orthodox Christian Archdiocese of North America serving in Emmaus, Pennsylvania. I'm a husband and a dad and the author of multiple books. This has been a listener-supported presentation of Ancient. Faith Radio.",
+  "reference_slice": "needs, but we found that our hearts changed. Our hearts changed as result of the action. Right? Don't wait to feel generous\u2026 <laugh>\u2026 before you begin to be generous. Be generous, and then watch what happens to your heart. Right? The action comes first, and then the heart will follow it. So, take that step of faith. Give as is really appropriate for an Orthodox Christian to give. You know, the Holy Fathers tell us that, because we are in the New Covenant, we now should be doing more than in the Old Covenant, and, if the Old Covenant had a tithe, then that means we should even be doing more. <laugh>. We should even be doing more. 10% is maybe too little. So, may give your courage and enable you to take that step. And watch, watch how he blesses you, not\u2026 I'm st- I'm not talking materially. He might bless you materially. I don't know. But, watch how h- your heart changes. Watch how you are unshackled. You're released from bondage to selfishness. It's really a beautiful thing and so worth doing. God Bless you as you give because he first gave to you. This has been Roads From Emmaus, and I'm Father Andrew Stephen Damick. I'm a priest of The Antiochian Orthodox Christian Archdiocese of North America serving in Emmaus, Pennsylvania. I'm a husband, and a dad, and the author of multiple books. This has been a listener supported presentation"
+}
