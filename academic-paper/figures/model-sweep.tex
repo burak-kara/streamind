@@ -1,39 +1,76 @@
-% F5 — Final source score (avg C + 4 Janus bonus) for Qwen3.5 model variants.
-% Data: cross-audio mean ± std across 3 Rev16 episodes, 300 s windows, RTX 4090.
-% 4B-AWQ: 40.14±0.85 | 4B-BF16: 38.97±0.91 | 9B-AWQ: 37.15±1.53 | 9B-BF16: 36.12±1.42
+% F5 — Score decomposition for Qwen3.5 (4B/9B × bf16/AWQ) and cross-family
+%        (Gemma-3-12B-IT-AWQ, Llama-3.1-8B-Instruct), 6-model comparison.
+% Data: cross-audio mean over 3 Rev16 episodes, 300 s windows, RTX 4090.
+% Scores (mean): 4B-AWQ 40.14 | 4B-BF16 38.97 | 9B-AWQ 37.15 | 9B-BF16 36.12
+%                Gem-12B 35.63 | Llm-8B 32.31
 \begin{tikzpicture}
     \begin{axis}[
-        width=0.95\columnwidth,
-        height=5.2cm,
-        ybar=2pt,
-        bar width=14pt,
-        enlargelimits=0.3,
-        ylabel={Final source score},
-        symbolic x coords={4B, 9B},
-        xtick=data,
-        xlabel={Model size},
-        nodes near coords,
-        nodes near coords style={font=\tiny, /pgf/number format/.cd, fixed, precision=1, /tikz/.cd},
-        ymin=32, ymax=44,
-        legend style={
-            at={(0.5,1.05)}, anchor=south, legend columns=-1,
-            font=\scriptsize, inner sep=2pt,
-        },
-        error bars/y dir=both,
-        error bars/y explicit,
-    ]
-        \addplot[fill=line1!70, draw=line1] plot [error bars/.cd, y dir=both, y explicit]
-        coordinates {
-            (4B, 40.14) +- (0, 0.85)
-            (9B, 37.15) +- (0, 1.53)
-        };
-        \addlegendentry{int4-AWQ}
+            ybar stacked,
+            width=\columnwidth,
+            height=5.5cm,
+            bar width=12pt,
+            ymin=0, ymax=46,
+            ylabel={Audio-level score},
+            ylabel style={font=\small, text=labelColor},
+            symbolic x coords={4B-AWQ, 4B-BF16, 9B-AWQ, 9B-BF16, Gem-12B, Llm-8B},
+            xtick=data,
+            x tick label style={font=\scriptsize, text=labelColor},
+            ytick={0, 10, 20, 30, 40},
+            yticklabel style={font=\small, text=labelColor},
+            ymajorgrids=true,
+            grid style={dashed, line4!30},
+            enlarge x limits=0.10,
+            axis line style={color=labelColor},
+            legend style={
+                    at={(0.5,-0.19)},
+                    anchor=north,
+                    legend columns=4,
+                    font=\small,
+                    draw=legendBorderColor,
+                    fill=legendFillColor,
+                    fill opacity=0.1,
+                    text opacity=1,
+                    column sep=8pt,
+                    rounded corners=2pt,
+                },
+            legend image code/.code={%
+                    \draw [#1] (0cm,-0.08cm) rectangle (0.22cm,0.08cm);%
+                },
+        ]
+        % B_i (bottom) — colorBlue
+        \addplot+[fill=line1!50, draw=line1!85] coordinates {
+                (4B-AWQ, 23.3) (4B-BF16, 23.2) (9B-AWQ, 23.0) (9B-BF16, 23.2)
+                (Gem-12B, 22.1) (Llm-8B, 18.4)
+            };
+        % K_i — colorGreen
+        \addplot+[fill=line3!50, draw=line3!80] coordinates {
+                (4B-AWQ, 6.0) (4B-BF16, 6.0) (9B-AWQ, 6.0) (9B-BF16, 6.0)
+                (Gem-12B, 6.0) (Llm-8B, 6.0)
+            };
+        % L_i — colorOrange
+        \addplot+[fill=line2!55, draw=line2!85] coordinates {
+                (4B-AWQ, 6.84) (4B-BF16, 5.77) (9B-AWQ, 4.15) (9B-BF16, 2.92)
+                (Gem-12B, 3.55) (Llm-8B, 3.92)
+            };
+        % Janus +4 (top) — colorRed
+        \addplot+[fill=colorRed!30, draw=colorRed!70] coordinates {
+                (4B-AWQ, 4.0) (4B-BF16, 4.0) (9B-AWQ, 4.0) (9B-BF16, 4.0)
+                (Gem-12B, 4.0) (Llm-8B, 4.0)
+            };
+        \legend{$B_i$, $K_i$, $L_i$, Janus $+4$}
 
-        \addplot[fill=line2!50, draw=line2] plot [error bars/.cd, y dir=both, y explicit]
-        coordinates {
-            (4B, 38.97) +- (0, 0.91)
-            (9B, 36.12) +- (0, 1.42)
-        };
-        \addlegendentry{bfloat16}
+        % Score totals above each bar
+        \node[font=\scriptsize\bfseries, anchor=south, yshift=2pt, text=labelColor]
+        at (axis cs:4B-AWQ,  40.14) {40.14};
+        \node[font=\scriptsize\bfseries, anchor=south, yshift=2pt, text=labelColor]
+        at (axis cs:4B-BF16, 38.97) {38.97};
+        \node[font=\scriptsize\bfseries, anchor=south, yshift=2pt, text=labelColor]
+        at (axis cs:9B-AWQ,  37.15) {37.15};
+        \node[font=\scriptsize\bfseries, anchor=south, yshift=2pt, text=labelColor]
+        at (axis cs:9B-BF16, 36.12) {36.12};
+        \node[font=\scriptsize\bfseries, anchor=south, yshift=2pt, text=labelColor]
+        at (axis cs:Gem-12B, 35.63) {35.63};
+        \node[font=\scriptsize\bfseries, anchor=south, yshift=2pt, text=labelColor]
+        at (axis cs:Llm-8B,  32.31) {32.31};
     \end{axis}
 \end{tikzpicture}
