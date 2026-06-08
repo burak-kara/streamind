@@ -1,0 +1,31 @@
+{
+  "from": 2377.0,
+  "to": 2379.0,
+  "summary": "me know if it helped, let me know if it didn't help at all.",
+  "keywords": [
+    "know",
+    "didn't",
+    "help"
+  ],
+  "proc_time": 0.0005476474761962891,
+  "B_breakdown": {
+    "factual_consistency": 5,
+    "relevance": 1,
+    "coherence": 1,
+    "fluency": 1,
+    "conciseness": 1
+  },
+  "B": 9,
+  "keyword_flags": [
+    true,
+    true,
+    true
+  ],
+  "K": 6,
+  "L": 0.0,
+  "C": 15.0,
+  "judge_model": "./models/gemma3-27b-it-int4-awq",
+  "asr_wer": 0.75,
+  "asr_transcript": "me know if it helped, let me know if it didn't help at all.",
+  "reference_slice": "me know if it didn't help at all. "
+}
