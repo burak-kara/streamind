@@ -1,0 +1,54 @@
+==================================================
+  SUMMARIZER COMPARISON — 10_Creating_Your_Own_Lane_in_Pod  (20260608_020529)
+  audio=datasets/rev16/10_Creating_Your_Own_Lane_in_Podcasting/audio.opus
+  window=300s  judges=vllm-mistral-small-24b-awq vllm-phi-4-awq vllm-gemma3-27b-it-int4-awq
+==================================================
+
+## Leaderboard (final = avg B+K + avg L + Janus — higher is better)
+  profile                      run       avg_BK  avg_L   score
+  vllm-gemma-3-12b-it-awq      run2       27.11   3.79   34.90
+  vllm-gemma-3-12b-it-awq      run1       27.11   3.77   34.88
+
+## vllm-gemma-3-12b-it-awq  (gemma-3-12b-it-awq/300/run1)
+window                                   mistral-smal    phi-4-awq gemma3-27b-i    mean  stdev       L
+------------------------------------------------------------------------------------------------------
+emma-3-12b-it-awq/300/run1/window_0.json        25.00        28.00        31.00   28.00   2.45    2.88
+emma-3-12b-it-awq/300/run1/window_1.json        28.00        28.00        29.00   28.33   0.47    2.10
+emma-3-12b-it-awq/300/run1/window_2.json        30.00        24.00        31.00   28.33   3.09    2.02
+emma-3-12b-it-awq/300/run1/window_3.json        25.00        24.00        31.00   26.67   3.09    3.26
+emma-3-12b-it-awq/300/run1/window_4.json        19.00        21.00        31.00   23.67   5.25    3.32
+emma-3-12b-it-awq/300/run1/window_5.json        29.00        23.00        31.00   27.67   3.40    3.46
+emma-3-12b-it-awq/300/run1/window_6.json        30.00        24.00        30.00   28.00   2.83    2.98
+emma-3-12b-it-awq/300/run1/window_7.json        29.00        31.00        31.00   30.33   0.94    3.87
+emma-3-12b-it-awq/300/run1/window_8.json        23.00        23.00        23.00   23.00   0.00   10.00
+------------------------------------------------------------------------------------------------------
+avg B+K                                         26.44        25.11        29.78   27.11               
+avg L                                               -            -            -       -      -    3.77
+final source score (+Janus)                     34.21        32.88        37.54   34.88               
+
+Janus bonus: +4 flat (per CHALLENGE.md). Final source score = avg B+K + avg L + Janus.
+B+K from LLM judges (subjective); L = 10·exp(-0.5·proc_time) when B≥10 (objective). Low stdev = judges agree on B+K; high stdev = judge bias.
+Consensus = mean across judges per window, averaged over windows.
+
+## vllm-gemma-3-12b-it-awq  (gemma-3-12b-it-awq/300/run2)
+window                                   mistral-smal    phi-4-awq gemma3-27b-i    mean  stdev       L
+------------------------------------------------------------------------------------------------------
+emma-3-12b-it-awq/300/run2/window_0.json        25.00        28.00        31.00   28.00   2.45    2.93
+emma-3-12b-it-awq/300/run2/window_1.json        28.00        28.00        29.00   28.33   0.47    2.16
+emma-3-12b-it-awq/300/run2/window_2.json        30.00        24.00        31.00   28.33   3.09    2.06
+emma-3-12b-it-awq/300/run2/window_3.json        25.00        24.00        31.00   26.67   3.09    3.27
+emma-3-12b-it-awq/300/run2/window_4.json        19.00        21.00        31.00   23.67   5.25    3.36
+emma-3-12b-it-awq/300/run2/window_5.json        29.00        23.00        31.00   27.67   3.40    3.44
+emma-3-12b-it-awq/300/run2/window_6.json        30.00        24.00        30.00   28.00   2.83    2.95
+emma-3-12b-it-awq/300/run2/window_7.json        29.00        31.00        31.00   30.33   0.94    3.97
+emma-3-12b-it-awq/300/run2/window_8.json        23.00        23.00        23.00   23.00   0.00   10.00
+------------------------------------------------------------------------------------------------------
+avg B+K                                         26.44        25.11        29.78   27.11               
+avg L                                               -            -            -       -      -    3.79
+final source score (+Janus)                     34.24        32.90        37.57   34.90               
+
+Janus bonus: +4 flat (per CHALLENGE.md). Final source score = avg B+K + avg L + Janus.
+B+K from LLM judges (subjective); L = 10·exp(-0.5·proc_time) when B≥10 (objective). Low stdev = judges agree on B+K; high stdev = judge bias.
+Consensus = mean across judges per window, averaged over windows.
+
+Run log: results/10_Creating_Your_Own_Lane_in_Pod/20260608_020529/run.log
