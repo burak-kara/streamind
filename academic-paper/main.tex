@@ -37,13 +37,10 @@
 \glsunset{webrtc}
 
 \begin{abstract}
-    Real-time meeting intelligence requires streaming summarization systems that produce coherent outputs under strict latency constraints.
-    We address the \gls{streamind} Grand Challenge with an eight-node Juturna pipeline.
-    Live Opus/\gls{rtp} audio enters through the Janus \gls{webrtc} gateway, faster-whisper transcribes the stream incrementally, overlapping \gls{asr} chunks are deduplicated and a \SI{300}{\second} rolling window is summarized by \emph{Qwen3.5-4B-AWQ} running under vLLM.
-    Three contributions address the challenge's joint optimization of summary quality, keyword relevance, and processing latency. 
-    Streaming chunk deduplication preserves temporal coherence across overlapping \gls{asr} outputs. 
-    A keyword guarantee algorithm floors the worst-case keyword penalty at zero. 
-    Quality-gated latency optimization through prompt engineering and thinking-mode suppression achieves average processing times of \SI{0.79}{\second} while maintaining summary quality at ceiling.
+    Streaming summarization of live audio requires systems that maintain coherence across overlapping speech segments while satisfying strict per-window latency constraints.
+    We address the \gls{streamind} Grand Challenge with an eight-node Juturna pipeline: live Opus/\gls{rtp} audio is ingested via the Janus \gls{webrtc} gateway, transcribed incrementally by faster-whisper, and summarized by \emph{Qwen3.5-4B-AWQ} under vLLM with a \SI{300}{\second} rolling context window.
+    Three design contributions jointly optimize the challenge's composite score: streaming chunk deduplication removes overlap-induced redundancy to protect summary quality; a keyword guarantee algorithm eliminates the worst-case keyword penalty; and prompt engineering with thinking-mode suppression achieves \SI{0.79}{\second} average processing time while maintaining high summary quality.
+    On preliminary evaluation across Rev16 podcast episodes, the pipeline achieves a cross-episode mean source score of $40.14 \pm 0.85$ out of \num{45}, with cross-domain validation on \gls{ietf}~125 technical sessions confirming generalization beyond the training domain.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -205,8 +202,8 @@ Case-insensitive deduplication preserves first-seen casing.
 If fewer than three keywords remain, candidates are extracted from the transcript ranked by token frequency, with ties broken toward capitalized tokens (likely proper nouns).
 As a last resort, conservative fallback terms are appended.
 
-The range of $K_i$ is effectively tightened from $[-6, +6]$ to $[0, +6]$.
-A summarizer that produces no usable keywords on a given window now scores $K_i = 0$ instead of $K_i = -6$, removing the largest downside risk in the scoring formula.
+The guarantee enforces format compliance and converts the worst-case $K_i$ floor from $-6$ to $0$: transcript-derived fallbacks inherit the topic signal of the source audio and score higher than bare model-output failures.
+Empirically, $\bar{K}_i = 6.0$ on every Qwen window in \cref{tab:per-window}; Llama loses $K_i$ only on episodes where the fallback chain inherits judge-flagged irrelevance (\cref{sec:eval:sweep}).
 
 \begin{algorithm}[htb!]
     \caption{Keyword guarantee: \texttt{ensure\_three\_keywords}.}
@@ -270,16 +267,16 @@ vLLM's broader model coverage and zero compilation overhead best match the chall
     \small
     \begin{tabularx}{0.98\columnwidth}{@{}l l X l@{}}
         \toprule
-        \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}                         & \textbf{Target} \\
+        \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}                                  & \textbf{Target} \\
         \midrule
-        audio\_rtp       & source        & Opus/48k, port 8888                             & $+4$            \\
-        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap  & ---             \\
-        transcriber      & proc          & float16, \gls{gpu}, \gls{vad} on                   & $B_i$           \\
-        halluc.\ filter  & proc          & 22 exact patterns                               & $B_i$           \\
-        novel\_extractor & proc          & 10 words, sim $\ge 0.8$                         & $B_i$           \\
-        window\_agg.     & proc          & \SI{300}{\second} rolling                       & ---             \\
+        audio\_rtp       & source        & Opus/48k, port 8888                                      & $+4$            \\
+        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap           & ---             \\
+        transcriber      & proc          & float16, \gls{gpu}, \gls{vad} on                         & $B_i$           \\
+        halluc.\ filter  & proc          & 22 exact patterns                                        & $B_i$           \\
+        novel\_extractor & proc          & 10 words, sim $\ge 0.8$                                  & $B_i$           \\
+        window\_agg.     & proc          & \SI{300}{\second} rolling                                & ---             \\
         summarizer       & proc          & Qwen3.5-4B-\gls{awq}~\cite{qwen3-5-4b-awq}, $T\!=\!0.15$ & $B_i, L_i$      \\
-        transmitter      & sink          & JSON + HTTP POST                                & ---             \\
+        transmitter      & sink          & JSON + HTTP POST                                         & ---             \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -309,28 +306,30 @@ Because the ground-truth text lacks timestamps, we employ proportional character
 \subsection{ASR Model Comparison}
 \label{sec:eval:asr}
 
-\Cref{tab:asr-comparison} reports an exploratory comparison of two faster-whisper variants across \num{19}~\SI{30}{\second} windows from a single rev16 episode, collected during early pipeline development before the production switch to \texttt{large-v3-turbo} at \SI{300}{\second} window granularity (\cref{sec:eval:sweep}).
-Both models achieve identical average \gls{wer} (\num{0.69}), yet \texttt{small.en} produces a slightly higher final score (\num{40.00} vs.\ \num{39.73}).
-The \num{0.27}-point gap traces back to keyword stability rather than transcription accuracy.
-The smaller model reached $\bar{K} = 4.9$ against $4.5$ for the larger one, with the difference concentrated in windows where the larger model's transcriptions led the summarizer to keywords that the judge rated as less relevant.
-This suggested early on that transcription accuracy is not the pipeline bottleneck and motivated the \SI{300}{\second}-window evaluation in \cref{sec:eval:scoring}, where the larger model's broader vocabulary coverage on long-form podcast content justified the production choice.
+\Cref{tab:asr-comparison} compares two faster-whisper variants under the locked Qwen3.5-4B-AWQ summarizer across the three Rev16 episodes used in \cref{sec:eval:sweep}, with two pipeline runs per configuration scored by the cross-family judge panel.
+\Gls{wer} differs by \num{0.7}~percentage points (\num{0.252} vs.\ \num{0.259}) and $B_i + K_i$ by \num{0.12}~points (\num{29.30} vs.\ \num{29.42}), both well within cross-run judge variance (\cref{sec:eval:threats}).
+Despite \texttt{large-v3-turbo}'s marginally lower \gls{wer}, \texttt{small.en} achieves a slightly higher final score (\num{40.44} vs.\ \num{40.14}), confirming that transcription accuracy is not the scoring bottleneck at \SI{300}{\second} granularity.
+The production pipeline retains \texttt{large-v3-turbo} for its broader multilingual vocabulary on potentially non-English challenge audio.
 
 \begin{table}[htb!]
     \centering
-    \caption{Exploratory \gls{asr} comparison from early pipeline development (\num{19}~\SI{30}{\second} windows, single rev16 episode, Qwen3.5-4B-AWQ summarizer). Production pipeline uses \texttt{large-v3-turbo} at \SI{300}{\second} granularity; see \cref{tab:per-window}. Higher is better for $B$, $K$, $L$, $C$; lower for $t_{\text{proc}}$ and \gls{wer}.}
+    \caption{\gls{asr} model comparison at the locked Qwen3.5-4B-AWQ summarizer
+        (three Rev16 episodes, two pipeline runs per configuration for \texttt{small.en};
+        the \texttt{large-v3-turbo} numbers reuse the runs collected for
+        \cref{sec:eval:sweep}). Higher is better for $B + K$, $L$, and the final
+        score; lower for $t_{\text{proc}}$ and \gls{wer}.}
     \label{tab:asr-comparison}
     \small
-    \begin{tabularx}{0.8\columnwidth}{@{}X S S@{}}
+    \begin{tabularx}{0.85\columnwidth}{@{}X S S@{}}
         \toprule
         \textbf{Metric}             & \textbf{small.en}    & \textbf{large-v3-turbo} \\
         \midrule
-        Avg $B_i$                   & \num{23.6}           & \num{23.8}              \\
-        Avg $K_i$                   & \num{4.9}            & \num{4.5}               \\
-        Avg $L_i$                   & \num{7.42}           & \num{7.37}              \\
-        Avg $C_i$                   & \num{36.00}          & \num{35.73}             \\
-        Final score ($\bar{C} + 4$) & \textbf{\num{40.00}} & \num{39.73}             \\
-        Avg $t_{\text{proc}}$ (s)   & \num{0.60}           & \num{0.62}              \\
-        Avg \gls{wer}               & \num{0.69}           & \num{0.69}              \\
+        Avg $B_i + K_i$             & \num{29.42}          & \num{29.30}             \\
+        Avg $L_i$                   & \num{6.68}           & \num{6.84}              \\
+        Avg $t_{\text{proc}}$ (s)   & \num{0.81}           & \num{0.76}              \\
+        Avg \gls{wer}               & \num{0.259}          & \num{0.252}             \\
+        Final score (cross-ep mean) & \textbf{\num{40.44}} & \num{40.14}             \\
+        Std across runs             & \num{0.59}           & \num{0.82}              \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -355,13 +354,13 @@ Cross-domain validation on two \gls{ietf}~125 sessions (Computing-Aware Traffic 
         \toprule
         \textbf{Win.} & \textbf{From} & \textbf{To} & {$t$ (s)} & {$B_i$} & {$K_i$} & {$L_i$} & {$C_i$} \\
         \midrule
-        0 & 0    & 300  & 0.86 & 24.7 & 6.0 & 6.51 & 37.2 \\
-        1 & 300  & 600  & 0.72 & 24.7 & 6.0 & 6.99 & 37.7 \\
-        2 & 600  & 900  & 0.85 & 24.0 & 6.0 & 6.53 & 36.5 \\
-        3 & 900  & 1200 & 1.01 & 24.3 & 6.0 & 6.05 & 36.4 \\
-        4 & 1200 & 1305 & 0.66 & 24.5 & 6.0 & 7.18 & 37.7 \\
+        0             & 0             & 300         & 0.86      & 24.7    & 6.0     & 6.51    & 37.2    \\
+        1             & 300           & 600         & 0.72      & 24.7    & 6.0     & 6.99    & 37.7    \\
+        2             & 600           & 900         & 0.85      & 24.0    & 6.0     & 6.53    & 36.5    \\
+        3             & 900           & 1200        & 1.01      & 24.3    & 6.0     & 6.05    & 36.4    \\
+        4             & 1200          & 1305        & 0.66      & 24.5    & 6.0     & 7.18    & 37.7    \\
         \midrule
-        avg & & & 0.82 & 24.4 & 6.0 & 6.65 & 37.1 \\
+        avg           &               &             & 0.82      & 24.4    & 6.0     & 6.65    & 37.1    \\
         \bottomrule
     \end{tabularx}
 \end{table}
@@ -380,7 +379,9 @@ At \SI{30}{\second} granularity, topic transitions produce $B_i$ drops of \num{3
 Each upstream node defends a specific scoring term.
 Without the \texttt{hallucination\_filter}, \num{22} matched ASR artifact phrases (e.g., \quotes{thank you for watching}) reach the summarizer and reduce the judge's factual consistency score.
 Without the \texttt{novel\_extractor}, the window contains $\approx$\SI{20}{\percent} repeated text from chunk overlap, biasing summaries toward repeated phrases.
-Without \cref{alg:keywords}, the $K_i$ range reverts to $[-6, +6]$; the cross-family sweep (\cref{sec:eval:sweep}) shows this is non-hypothetical: Llama-3.1-8B requires the guarantee to hold $\bar{K}_i = 6$ on every window.
+Without \cref{alg:keywords}, the $K_i$ range reverts to $[-6, +6]$ on windows where the \gls{llm} emits fewer than three usable keywords.
+The guarantee replaces missing slots with transcript-derived terms, eliminating the all-empty failure mode but not guaranteeing $K_i = +6$\td the judge still rates relevance independently.
+For Qwen3.5-4B-AWQ this yields $\bar{K}_i = 6$ on every evaluated window; for Llama-3.1-8B, two Ep~11 windows still received $K_i = -6$ from the Gemma judge, reflecting low-relevance keyword choices the fallback chain cannot rescue.
 
 \subsection{Model-Size and Cross-Family Sweep}
 \label{sec:eval:sweep}
@@ -388,7 +389,7 @@ Without \cref{alg:keywords}, the $K_i$ range reverts to $[-6, +6]$; the cross-fa
 \Cref{fig:model-sweep} decomposes scores for six configurations across three Rev16 episodes (\num{6}--\num{15} runs, \SI{300}{\second} windows).
 Within the Qwen3.5 family, $B_i + K_i$ is nearly flat across all four variants; score differences are driven entirely by latency, with $t_{\text{proc}}$ ranging from \SI{0.79}{\second} (4B-AWQ) to \SI{2.51}{\second} (9B-BF16).
 \Gls{awq} reduces $t_{\text{proc}}$ by \SI{35}{\percent} at 4B and \SI{30}{\percent} at 9B, yielding source scores of $40.14 \pm 0.85$, $38.97 \pm 0.91$, $37.15 \pm 1.53$, and $36.12 \pm 1.42$ respectively.
-Gemma-3-12B-IT-AWQ~\cite{gemma3-12b-awq} scores $35.63 \pm 1.06$ despite $3\times$ more parameters ($\overline{B_i} \approx 22.1$ vs.\ the Qwen mean of $29.1$), confirming that instruction-tuning alignment matters more than scale.
+Gemma-3-12B-IT-AWQ~\cite{gemma3-12b-awq} scores $35.63 \pm 1.06$ despite $3\times$ more parameters: $B_i + K_i = 28.1$ is only marginally below the Qwen mean of $29.2$, but $t_{\text{proc}} \approx \SI{1.9}{\second}$ ($L_i = 3.77$) erases $\approx\num{3}$ score points relative to 4B-AWQ, confirming that beyond the quality gate, latency is the binding lever.
 Llama-3.1-8B-Instruct~\cite{llama3-8b} scores $32.31 \pm 4.59$; episode-to-episode $\overline{B_i}$ swings from $\approx 13$ to $\approx 24$ trace to content-driven instability the keyword guarantee cannot resolve.
 Qwen3.5-4B-AWQ is selected as the production summarizer.
 

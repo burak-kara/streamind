@@ -3,175 +3,174 @@
 % ----- Frameworks and infrastructure -----
 
 @inproceedings{awq,
+    title     = {{AWQ}: Activation-aware Weight Quantization for {LLM} Compression and Acceleration},
     author    = {Lin, Ji and Tang, Jiaming and others},
     booktitle = {Proc. MLSys},
-    title     = {{AWQ}: Activation-aware Weight Quantization for {LLM} Compression and Acceleration},
     year      = {2024}
 }
 
 @misc{faster-whisper,
-    author       = {Klein, Guillaume},
-    howpublished = {[Online] Available: \url{https://github.com/SYSTRAN/faster-whisper}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {{faster-whisper}: Faster Whisper Transcription with {CTranslate2}},
-    year         = {2023}
+    author       = {Klein, Guillaume},
+    year         = {2023},
+    howpublished = {[Online] Available: \url{https://github.com/SYSTRAN/faster-whisper}},
+    note         = {{Accessed on June 1, 2026}}
 }
-
 
 % ----- ASR -----
 
+@misc{gemma3-12b-awq,
+    title        = {{Gemma-3-12B-IT-AWQ}: int4-{AWQ} Quantisation of {Gemma-3-12B-IT}},
+    author       = {Ernst, Gunther},
+    year         = {2025},
+    howpublished = {[Online] Available: \url{https://huggingface.co/gaunernst/gemma-3-12b-it-int4-awq}},
+    note         = {{Accessed on June 8, 2026}}
+}
+
 @inproceedings{geval,
-    author    = {Liu, Yang and Iter, Dan and Xu, Yichong and Wang, Shuohang and Xu, Ruochen and Zhu, Chenguang},
-    booktitle = {Proc. EMNLP},
     title     = {{G-Eval}: {NLG} Evaluation Using {GPT}-4 with Better Human Alignment},
+    author    = {Liu, Yang and Iter, Dan and others},
+    booktitle = {Proc. EMNLP},
     year      = {2023}
 }
 
 @inproceedings{gptq,
+    title     = {{GPTQ}: Accurate Post-Training Quantization for Generative Pre-trained Transformers},
     author    = {Frantar, Elias and Ashkboos, Saleh and Hoefler, Torsten and Alistarh, Dan},
     booktitle = {Proc. ICLR},
-    title     = {{GPTQ}: Accurate Post-Training Quantization for Generative Pre-trained Transformers},
     year      = {2023}
-}
-
-@misc{janus,
-    author       = {Meetecho},
-    howpublished = {[Online] Available: \url{https://github.com/meetecho/janus-gateway}},
-    note         = {{Accessed on June 1, 2026}},
-    title        = {{Janus}: An Open Source, General Purpose, {WebRTC} Server},
-    year         = {2014}
 }
 
 % ----- LLMs and inference -----
 
-@misc{juturna,
+@misc{janus,
+    title        = {{Janus}: An Open Source, General Purpose, {WebRTC} Server},
     author       = {Meetecho},
-    howpublished = {[Online] Available: \url{https://github.com/meetecho/juturna}},
-    note         = {{Accessed on June 1, 2026}},
-    title        = {{Juturna}: A python library for fast data pipeline prototyping},
-    year         = {2024}
+    year         = {2014},
+    howpublished = {[Online] Available: \url{https://github.com/meetecho/janus-gateway}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
-@techreport{opus,
-    author      = {Valin, Jean-Marc and Vos, Koen and Terriberry, Timothy B.},
-    institution = {IETF},
-    number      = {RFC 6716},
-    title       = {Definition of the {O}pus Audio Codec},
-    year        = {2012}
+@misc{juturna,
+    title        = {{Juturna}: A python library for fast data pipeline prototyping},
+    author       = {Meetecho},
+    year         = {2024},
+    howpublished = {[Online] Available: \url{https://github.com/meetecho/juturna}},
+    note         = {{Accessed on June 1, 2026}}
+}
+
+@misc{llama3-8b,
+    title        = {{Llama-3.1-8B-Instruct}},
+    author       = {{Meta AI}},
+    year         = {2024},
+    howpublished = {[Online] Available: \url{https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct}},
+    note         = {{Accessed on June 8, 2026}}
+}
+
+@misc{opus,
+    title        = {Definition of the {O}pus Audio Codec},
+    author       = {Valin, Jean-Marc and Vos, Koen and Terriberry, Timothy B.},
+    year         = {2012},
+    howpublished = {[Online] Available: \url{https://datatracker.ietf.org/doc/rfc6716}},
+    note         = {Accessed on June 1, 2026}
 }
 
 @article{qwen3,
+    title   = {Qwen3 technical report},
     author  = {Yang, An and Li, Anfeng and others},
     journal = {arXiv preprint arXiv:2505.09388},
-    title   = {Qwen3 technical report},
     year    = {2025}
 }
 
 @misc{qwen3-5-4b,
-    author       = {{Qwen Team}},
-    howpublished = {[Online] Available: \url{https://huggingface.co/Qwen/Qwen3.5-4B}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {{Qwen3.5-4B}},
-    year         = {2026}
+    author       = {{Qwen Team}},
+    year         = {2026},
+    howpublished = {[Online] Available: \url{https://huggingface.co/Qwen/Qwen3.5-4B}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
 @misc{qwen3-5-4b-awq,
-    author       = {cyankiwi},
-    howpublished = {[Online] Available: \url{https://huggingface.co/cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {{Qwen3.5-4B-AWQ-BF16-INT4}: int4-{AWQ} Quantisation of {Qwen3.5-4B}},
-    year         = {2025}
+    author       = {cyankiwi},
+    year         = {2025},
+    howpublished = {[Online] Available: \url{https://huggingface.co/cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
 @misc{qwen3-5-9b,
-    author       = {{Qwen Team}},
-    howpublished = {[Online] Available: \url{https://huggingface.co/Qwen/Qwen3.5-9B}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {{Qwen3.5-9B}},
-    year         = {2025}
+    author       = {{Qwen Team}},
+    year         = {2025},
+    howpublished = {[Online] Available: \url{https://huggingface.co/Qwen/Qwen3.5-9B}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
 @misc{qwen3-5-9b-awq,
-    author       = {cyankiwi},
-    howpublished = {[Online] Available: \url{https://huggingface.co/cyankiwi/Qwen3.5-9B-AWQ-BF16-INT4}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {{Qwen3.5-9B-AWQ-BF16-INT4}: int4-{AWQ} Quantisation of {Qwen3.5-9B}},
-    year         = {2025}
-}
-
-@misc{gemma3-12b-awq,
-    author       = {Ernst, Gunther},
-    howpublished = {[Online] Available: \url{https://huggingface.co/gaunernst/gemma-3-12b-it-awq}},
-    note         = {{Accessed on June 8, 2026}},
-    title        = {{Gemma-3-12B-IT-AWQ}: int4-{AWQ} Quantisation of {Gemma-3-12B-IT}},
-    year         = {2025}
-}
-
-@misc{llama3-8b,
-    author       = {{Meta AI}},
-    howpublished = {[Online] Available: \url{https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct}},
-    note         = {{Accessed on June 8, 2026}},
-    title        = {{Llama-3.1-8B-Instruct}},
-    year         = {2024}
+    author       = {cyankiwi},
+    year         = {2025},
+    howpublished = {[Online] Available: \url{https://huggingface.co/cyankiwi/Qwen3.5-9B-AWQ-BF16-INT4}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
 % ----- Quantisation and efficient inference -----
 
 @misc{rev16,
-    author       = {{Rev}},
-    howpublished = {[Online] Available: \url{https://huggingface.co/datasets/distil-whisper/rev16}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {{Rev16}: Long-Form Podcast Transcription Evaluation Set},
-    year         = {2024}
+    author       = {{distil-whisper}},
+    year         = {2024},
+    howpublished = {[Online] Available: \url{https://huggingface.co/datasets/distil-whisper/rev16}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
-@techreport{rtp,
-    author      = {Schulzrinne, Henning and Casner, Stephen L. and Frederick, Ron and Jacobson, Van},
-    institution = {IETF},
-    number      = {RFC 3550},
-    title       = {{RTP}: A Transport Protocol for Real-Time Applications},
-    year        = {2003}
+@misc{rtp,
+    title        = {{RTP}: A Transport Protocol for Real-Time Applications},
+    author       = {Schulzrinne, Henning and Casner, Stephen L. and Frederick, Ron and Jacobson, Van},
+    year         = {2003},
+    howpublished = {[Online] Available: \url{https://datatracker.ietf.org/doc/rfc3550}},
+    note         = {Accessed on June 1, 2026}
 }
 
 % ----- Summarisation evaluation -----
 
 @inproceedings{sglang,
+    title     = {{SGLang}: Efficient Execution of Structured Language Model Programs},
     author    = {Zheng, Lianmin and Yin, Liangsheng and others},
     booktitle = {Proc. NeurIPS},
-    title     = {{SGLang}: Efficient Execution of Structured Language Model Programs},
     year      = {2024}
 }
 
 @misc{silero-vad,
-    author       = {{Silero Team}},
-    howpublished = {[Online] Available: \url{https://github.com/snakers4/silero-vad}},
-    note         = {{Accessed on June 1, 2026}},
     title        = {Silero {VAD}: pre-trained enterprise-grade Voice Activity Detector ({VAD}), Number Detector and Language Classifier},
-    year         = {2024}
+    author       = {{Silero Team}},
+    year         = {2024},
+    howpublished = {[Online] Available: \url{https://github.com/snakers4/silero-vad}},
+    note         = {{Accessed on June 1, 2026}}
 }
 
 % ----- Streaming and real-time speech systems -----
 
 @inproceedings{summac,
+    title   = {{SummaC}: Re-Visiting {NLI}-based Models for Inconsistency Detection in Summarization},
     author  = {Laban, Philippe and Schnabel, Tobias and Bennett, Paul N. and Hearst, Marti A.},
     journal = {Trans. ACL},
-    title   = {{SummaC}: Re-Visiting {NLI}-based Models for Inconsistency Detection in Summarization},
     year    = {2022}
 }
 
 % ----- Codecs and transport -----
 
 @inproceedings{vllm,
+    title     = {Efficient memory management for large language model serving with pagedattention},
     author    = {Kwon, Woosuk and Li, Zhuohan and others},
     booktitle = {Proc. SOSP},
-    title     = {Efficient memory management for large language model serving with pagedattention},
     year      = {2023}
 }
 
 @inproceedings{whisper,
+    title        = {Robust speech recognition via large-scale weak supervision},
     author       = {Radford, Alec and Kim, Jong Wook and Xu, Tao and Brockman, Greg and McLeavey, Christine and Sutskever, Ilya},
     booktitle    = {International conference on machine learning},
     organization = {PMLR},
-    title        = {Robust speech recognition via large-scale weak supervision},
     year         = {2023}
 }
