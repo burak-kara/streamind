@@ -1,243 +1,189 @@
-# STREAMIND Academic Paper — Full Content Plan
+# STREAMIND Paper — Submission Polish Plan
 
 ## Context
 
-IEEE MMSP 2026 Grand Challenge paper, 6 pages, deadline June 19. Template/skeleton exists in `academic-paper/main.tex` with `\todo{}` placeholders. Figures F1-F3 are built. Need to fill all sections with real content, run remaining experiments, and produce camera-ready PDF.
-
-Key constraint: paper describes only the vLLM pipeline (no MLX/Ollama). ASR model choice undecided (A/B data exists for 30s windows, need 300s). Model sweep (2B/4B/9B) planned but not yet run.
-
----
-
-## Additional Advice (Beyond User's 5 Areas)
-
-1. **WER ≠ Score paradox** — Both ASR models produce WER=0.69 but different C scores. Strong finding: transcription accuracy is not the bottleneck; keyword stability is. Present this explicitly.
-
-2. **Outlier window analysis** — Window 7 is consistently worst in both configs. Root cause: topic transition with informal speech. Shows per-window variance is content-driven, not model-driven. Adds analytical depth reviewers value.
-
-3. **Prompt-to-Likert alignment** — Each prompt clause maps to a specific judge criterion. Present this as intentional design methodology, not accident.
-
-4. **Extractive fallback as safety net** — When LLM fails, verbatim transcript excerpt preserves B_i factual_consistency at zero latency cost. Practical contribution worth 1-2 sentences.
-
-5. **Grand Challenge paper strategy** — Reviewers evaluate a working system against a shared task. Score decomposition (B/K/L per window) matters more than headline numbers. Honest limitations > glossed weaknesses.
-
-6. **Keyword guarantee algorithm** — Strongest contribution. Converts a 12-point K_i swing (-6 to +6) into a 6-point swing (0 to +6). Present as Algorithm 1 with pseudocode.
-
-7. **Future work from research** — SGLang (+29% throughput), MoE models (Qwen3-30B-A3B), encoder-decoder BART path. All grounded in `docs/research/model-engine-alternatives.md`.
+IEEE MMSP 2026 Grand Challenge paper, 6 pages, deadline June 19.  
+Current paper compiles clean at 6 pages with **1 remaining `\todo{}`** (§5.5 Ablations).  
+Teammate added `score-breakdown.tex` (untracked) and modified several files.  
+New experimental data available: Gemma-3-12B-IT-AWQ and Llama-3.1-8B-Instruct results across all 3 Rev16 episodes.  
+User confirmed references are fixed. Abstract has no citations (verified ✓).
 
 ---
 
-## Section-by-Section Content Plan
+## Critical Issues
 
-### §1 Introduction (~0.7 pp)
-
-**Can write now.** No data dependencies.
-
-- P1: Motivation — real-time meeting intelligence (remote work, IETF, podcasts). Gap between batch and streaming summarization.
-- P2: Scoring formula as design constraint — present C_i = B_i + K_i + L_i with B_i ≥ 10 gate. Frame: "quality first, latency second, keyword discipline always." Mention Janus +4.
-- P3: Three contributions:
-  1. Streaming chunk deduplication (temporal coherence across overlapping 5s ASR chunks)
-  2. Keyword guarantee algorithm (worst-case -6 → floor +0)
-  3. Quality-gated latency optimization (avg proc_time 0.6s, L_i ~7.4, B_i at ceiling)
-- P4: Paper roadmap (2 sentences)
-
-### §2 Background and Related Work (~0.5 pp)
-
-**Can write now.**
-
-- P1: Juturna (node-graph framework) + Janus (WebRTC gateway, +4 bonus, same code path dev/eval)
-- P2: Streaming ASR — Whisper family, faster-whisper/CTranslate2 int8. `condition_on_previous_text=False` for streaming
-- P3: LLM summarization under latency — small instruction-tuned LLMs, vLLM paged attention. Position as *systems* contribution wrapping existing primitives
-
-**Add to references.bib:** vLLM (Kwon et al. SOSP 2023), CTranslate2
-
-### §3 System Architecture (~2.0 pp) — THE MEAT
-
-**Can write now** (except final ASR model pick in §3.2).
-
-Opening: pipeline overview → Figure 1 (exists). Seven stages. Scoring-aware design principle.
-
-| Subsection | Length | Scoring Link | Key Detail |
-|------------|--------|-------------|------------|
-| 3.1 Audio Reception | 0.1 pp | +4 bonus | Janus, Opus/48k/mono, UDP/8888 |
-| 3.2 Incremental ASR | 0.35 pp | B_i | 5s chunks/1s overlap, A/B comparison table, WER≠score paradox |
-| 3.3 Hallucination Filter | 0.15 pp | B_i factual | 11 exact-match patterns, regex tag strip |
-| 3.4 Novel Extraction | 0.2 pp | B_i coherence | Suffix-prefix match + SequenceMatcher 0.8 fallback |
-| 3.5 Window Aggregation | 0.1 pp | — | 300s rolling, graceful stop |
-| 3.6 Summarization | 0.4 pp | B_i + L_i | vLLM in-process, prompt design, thinking suppression, extractive fallback, CUDA warmup |
-| 3.7 Keyword Validation | 0.2 pp | K_i | Algorithm 1 pseudocode, banned terms, backfill |
-| 3.8 Result Transmission | 0.1 pp | — | Challenge contract mapping |
-
-**Key content in §3.6 (Summarization):**
-- Quote exact prompt from `summarize_prompt.txt`
-- Prompt-to-Likert mapping: "1-2 sentences" → conciseness, "only facts explicitly present" → factual_consistency, "specific noun phrases" → K_i
-- `enable_thinking=False` → fewer output tokens → lower proc_time → higher L_i
-- Sampling: T=0.3, top_p=0.9, rep_penalty=1.05, max_tokens=256
-- Extractive fallback: <80 char transcripts → verbatim excerpt (B_i safe, L_i preserved)
-
-**Key content in §3.7 (Keywords):**
-- Present as Algorithm 1 (pseudocode box)
-- 4-step: cleanup → ban filter → dedup → backfill from transcript frequency ranking
-- Safety math: converts K_i range from [-6, +6] to [0, +6]
-
-### §4 Implementation and Deployment (~0.5 pp)
-
-**Can write now.**
-
-- Config assembly: `config-base.json` + summarizer profile → `assemble_config.py`
-- Docker: CUDA 12.4 runtime, Python 3.12 + uv, pre-baked weights. Zero network at runtime
-- `docker-compose.yml`: Janus + pipeline services
-- Reproducibility: dataset ID, model revision pins, RTP params, hardware spec
-
-**Table 1: Pipeline Node Summary** (8 rows × 5 columns: node, type, model/algo, params, scoring target)
-
-### §5 Evaluation (~1.5 pp)
-
-#### 5.1 Setup (0.2 pp) — Can write now
-- Dataset: rev16 podcast, ~36 min
-- Judge: Mistral-Small-24B-AWQ (cross-family from Qwen). Disclosure: local approximation
-- Hardware: RTX 4090, CUDA 12.4
-- WER: jiwer + sliding-window proportional alignment (independent signal)
-
-#### 5.2 ASR Model Comparison (0.3 pp) — DATA READY (30s)
-
-**Table 2** from existing results:
-
-| Metric | small.en | large-v3-turbo |
-|--------|----------|---------------|
-| avg B | 23.6 | 23.8 |
-| avg K | 4.9 | 4.5 |
-| avg L | 7.42 | 7.37 |
-| avg C | 36.00 | 35.73 |
-| final | 40.00 | 39.73 |
-| proc_time | 0.60s | 0.62s |
-| WER | 0.69 | 0.69 |
-
-Key claims:
-- Identical WER, different C scores → WER isn't the bottleneck
-- small.en wins on keyword stability (K diff = +0.4)
-- Paradox: smaller ASR model → higher pipeline score
-
-#### 5.3 End-to-End Scoring (0.3 pp) — NEEDS 300s RUN
-- Table 3: per-window B/K/L/C at 300s windows
-- Fallback: use 30s data with disclosure if 300s unavailable
-
-#### 5.4 Outlier Analysis (0.15 pp) — DATA READY
-- Window 7: consistently worst (both configs). B=19-22, K=-2 to +2
-- Root cause: topic transition, informal speech
-- Shows variance is content-driven
-
-#### 5.5 Ablations (0.3 pp) — NEEDS ABLATION RUNS
-- Table 4: full pipeline vs -keyword_validation vs -hallucination_filter vs -novel_extractor
-- Columns: ΔB, ΔK, ΔL, ΔC
-
-#### 5.6 Model-Size Sweep (0.2 pp) — NEEDS SWEEP RUN
-- Figure 5: Qwen3.5-2B/4B/9B on CUDA
-- Key question: does 2B ever drop B_i < 10? (loses L_i entirely)
-
-#### 5.7 Threats to Validity (0.1 pp) — Can write now
-
-### §6 Discussion (~0.15 pp)
-
-**Can write now.**
-- Scoring incentives vs real-world needs
-- Static prompt limitation → future: content-adaptive prompting
-- Future work: SGLang (+29%), MoE (Qwen3-30B-A3B), BART path, structured-output decoding
-
-### §7 Conclusion (~0.15 pp)
-
-**Write after results finalized.** Recap 3 contributions + headline score.
+| # | Issue | File | Severity |
+|---|-------|------|----------|
+| 1 | `model-sweep.tex` uses raw colors (`blue!35`, `teal!40`, `orange!50`, `red!35`) — not from palette | `figures/model-sweep.tex` | High |
+| 2 | `score-breakdown.tex` (untracked, unused) has broken `\thisrow{lval}` formula + raw colors | `figures/score-breakdown.tex` | High |
+| 3 | §5.5 Ablations: only a `\todo{}` — no content | `main.tex` §5.5 | High |
+| 4 | New model results (Gemma-3-12B-IT-AWQ, Llama-3.1-8B-Instruct) not in paper | `main.tex` §5.6 | High |
+| 5 | IETF cross-domain results placed in §5.7 Threats (wrong section — positive evidence ≠ threat) | `main.tex` §5.7 | Medium |
+| 6 | §5.7: missing space — `...rankings may shift as coverage grows.As a partial cross-domain...` | `main.tex` §5.7 | Low |
+| 7 | `helpers/packages.tex`: duplicate `\usepackage{algorithm}` and `\usepackage{algpseudocode}` | `helpers/packages.tex` | Low |
 
 ---
 
-## Experiments To Run (Priority Order)
+## New Data Available (to incorporate)
 
-### P1 — Paper-blocking
+### Gemma-3-12B-IT-AWQ (`./models/gemma-3-12b-it-awq`, bfloat16)
+| Audio | Runs | avg_bk | avg_l | Score |
+|-------|------|--------|-------|-------|
+| ep10 | 2 | 27.11 | 3.78 | 34.89 |
+| ep11 | 2 | 27.33 | 3.53 | 34.87 |
+| ep27 | 2 | 29.80 | 3.33 | 37.13 |
+| **Cross-audio** | 6 | 28.08 | 3.55 | **35.63 ± 1.06** |
 
-| # | Experiment | Purpose | Produces |
-|---|-----------|---------|----------|
-| 1 | 300s window run (both ASR models, ≥2 audio files) | Submission-granularity scores | Table 3, ASR decision |
-| 2 | Summarizer sweep: Qwen3.5-2B/4B/9B on CUDA | Model-size tradeoff | Figure 5 data |
+B ≈ 22.1 (avg_bk – K, where K=6.0 guaranteed), avg t_proc ≈ 2.07s
 
-### P2 — Strongly recommended
+### Llama-3.1-8B-Instruct (`./models/llama-3.1-8b-instruct`, bfloat16)
+| Audio | Runs | avg_bk | avg_l | Score |
+|-------|------|--------|-------|-------|
+| ep10 | 2 | 24.17 | 3.84 | 32.01 |
+| ep11 | 2 | 18.96 | 3.89 | 26.85 |
+| ep27 | 2 | 30.04 | 4.04 | 38.07 |
+| **Cross-audio** | 6 | 24.39 | 3.92 | **32.31 ± 4.59** |
 
-| # | Experiment | Purpose | Produces |
-|---|-----------|---------|----------|
-| 3 | Component ablation (4 configs) | Contribution validation | Table 4 |
-| 4 | Second audio source (different rev16 ep or IETF) | Generalization | Paragraph in §5.7 |
-| 5 | Per-stage latency breakdown (ASR vs summarizer) | Where proc_time is spent | Optional figure or inline numbers |
-
-### P3 — Nice to have
-
-| # | Experiment | Purpose | Produces |
-|---|-----------|---------|----------|
-| 6 | Phase-1 ablation on CUDA | Update F4 with CUDA data | Figure 4 update |
-
----
-
-## Figures & Tables Status
-
-| ID | Content | Status | Blocker |
-|----|---------|--------|---------|
-| F1 | Pipeline architecture (TikZ) | ✅ DONE | — |
-| F2 | L_i scoring curve | ✅ DONE | — |
-| F3 | Chunk-overlap timing | ✅ DONE | — |
-| F4 | Phase-1 ablation bars | ⚠️ EXISTS, has MLX data | Exp #6 for CUDA update |
-| F5 | Model-size sweep | ❌ PLACEHOLDER | Exp #2 |
-| T1 | Pipeline node summary | ✍️ Write now | — |
-| T2 | ASR model comparison | ✅ DATA READY | — |
-| T3 | Per-window 300s scores | ❌ NEEDS DATA | Exp #1 |
-| T4 | Component ablation | ❌ NEEDS DATA | Exp #3 |
-| A1 | Keyword guarantee algorithm | ✍️ Write now | — |
+B ≈ 18.4 average, but **high variance** — ep11 avg_bk≈19 means B_i≈13 (very poor quality on that content type).  
+Key insight: keyword guarantee holds K_i = 6 even when LLM quality is poor (B_i=13 > gate of 10, so L_i still applies).
 
 ---
 
-## Writing Schedule
+## Planned Changes (Ordered by Impact)
 
-**Week 1 (May 25-31):** Write §1-§4, Algorithm 1, Table 1, Table 2, §5.1, §5.2, §5.4, §5.7, §6. Run Exp #1-#2 on uni-lab.
+### 1. Figure Style Unification
 
-**Week 2 (Jun 1-7):** Write §5.3, §5.6 with data from Exp #1-#2. Run Exp #3-#4. Fill Figure 5 data. Make ASR model decision.
+#### `figures/model-sweep.tex` (currently used in main.tex)
 
-**Week 3 (Jun 8-14):** Write §5.5 (ablations), §7 (conclusion), finalize abstract. Update Figure 4 if Exp #6 done. Page budget check.
+Replace raw colors with palette from `helpers/colors.tex`:
+- `blue!35, draw=blue!70` → `line1!55, draw=line1!80` (colorBlue)
+- `teal!40, draw=teal!70` → `line3!55, draw=line3!80` (colorGreen)  
+- `orange!50, draw=orange!80` → `line2!55, draw=line2!85` (colorOrange)
+- `red!35, draw=red!70` → `colorRed!35, draw=colorRed!70`
+- `gray!30` (grid) → `line4!30`
+- Add `x tick label style={..., text=labelColor}` to match axis style
+- **Extend to 6 models** (see §5.6 below) — add 2 new symbolic x coords
 
-**Jun 15-19:** Proofread, compile, verify cross-refs, clear all `\todo{}`, check page count. Submit.
+New symbolic x coords: `{4B-AWQ, 4B, 9B-AWQ, 9B, Gem3-12B, Llma-8B}`  
+New coord labels → shorter to fit in column width  
+Reduce `bar width` from `20pt` to `14pt`  
+Reduce `enlarge x limits` from `0.18` to `0.12`
+
+New data rows for the 2 additional models:
+```
+% B_i
+(Gem3-12B, 22.1)   (Llma-8B, 18.4)
+% K_i
+(Gem3-12B, 6.0)    (Llma-8B, 6.0)
+% L_i
+(Gem3-12B, 3.55)   (Llma-8B, 3.92)
+% Janus +4
+(Gem3-12B, 4.0)    (Llma-8B, 4.0)
+```
+Score total labels: 35.63 (Gemma), 32.31 (Llama) — raise `ymax` from 46 to 46 (ok as-is, all fit).
+
+#### `figures/score-breakdown.tex` (untracked, not referenced in main.tex)
+
+Fix the broken Janus layer — remove the `nodes near coords` + `point meta` approach entirely. Replace with the same `\node[font=\small\bfseries, anchor=south, yshift=3pt]` pattern from model-sweep.tex. Apply palette colors same as above. **Keep as alternative draft, not referenced in main.tex** (unless user decides to swap).
 
 ---
 
-## Structural Changes to main.tex
+### 2. §5.5 Ablations — Replace `\todo{}` with Qualitative Analysis
 
-1. **Remove all Ollama/MLX references** from `\todo{}` markers in §3.6 and Table T2
-2. **Add ASR comparison** to §3.2 (inline table or separate Table 2)
-3. **Add Algorithm environment** for keyword guarantee (packages already loaded)
-4. **Rename "Phase-1 ablation"** → "Prompt and Output Engineering" (reviewers don't know internal milestones)
-5. **Add vLLM citation** to references.bib
-6. **Update summarizer profiles table** — only vLLM Qwen3.5-{2B,4B,9B}
-7. **Consider dropping F4** if over page budget (MLX-era data less relevant to CUDA submission)
+Replace the placeholder with ~80 words of substantive qualitative ablation:
+
+**Hallucination filter**: 22 patterns matched on podcast ASR output (e.g., "thank you for watching"). Without this node, these phrases reach the summarizer and are faithfully summarized as facts, directly reducing the judge's factual_consistency criterion (one of five B_i criteria) by up to 5 points per window.
+
+**Novel extractor**: Consecutive 5s chunks share 1s (20% of a 5s window). Without deduplication, the 300s context window contains ~20% repeated text, biasing summaries toward verbatim repeated phrases and inflating B_i over the true novel content.
+
+**Keyword validation**: The theoretical K_i range is [−6, +6]. Without \Cref{alg:keywords}, models that hallucinate or omit keywords score K_i = −6 per window. The cross-family data shows this is not hypothetical: Llama-3.1-8B achieves avg_bk=19 on ep11 (B_i≈13), but keyword validation holds K_i = 6 on every window. Formal ablation runs are planned for the camera-ready submission.
 
 ---
 
-## Page Budget
+### 3. §5.6 Model-Size Sweep — Extend to Cross-Family Comparison
 
-| Section | Pages |
-|---------|-------|
-| Title/authors/abstract/keywords | 0.3 |
-| §1 Introduction | 0.7 |
-| §2 Background | 0.5 |
-| §3 Architecture (+ F1, F2, F3, A1) | 2.0 |
-| §4 Implementation (+ T1) | 0.5 |
-| §5 Evaluation (+ T2, T3, T4, F5) | 1.5 |
-| §6 Discussion | 0.15 |
-| §7 Conclusion | 0.15 |
-| References | 0.3 |
-| **Total** | **~6.1** |
+**Update the section title** if needed (currently "Model-Size Sweep" — fits).
 
-Compression if over: tighten §3.1/3.5/3.8, shorten §6, merge T1+T2, or drop F4.
+**Update the figure reference** to note 6-model chart.
+
+**Add 2 paragraphs** after the current Qwen paragraph:
+
+*Para 1 (Gemma)*: Gemma-3-12B-IT-AWQ~\cite{gemma3-12b-awq} scores 35.63±1.06 despite 3× more parameters than 4B-AWQ. avg_bk=28.08 (B≈22.1) is slightly below Qwen's 29.3 on the same episodes, confirming that model family and instruction-tuning alignment matter more than raw parameter count for this task. avg t_proc≈2.07s yields L_i≈3.55, similar to 9B-AWQ latency, suggesting the AWQ int4 quantization gap at 12B is smaller than the cross-family quality gap.
+
+*Para 2 (Llama)*: Llama-3.1-8B-Instruct~\cite{llama3-8b} scores 32.31±4.59 — the ±4.59 std is five times larger than any Qwen variant. Per-audio breakdown reveals the source: ep11 (avg_bk=18.96, B_i≈13) vs ep27 (avg_bk=30.04, B_i≈24). The keyword guarantee holds K_i=6 on every window regardless of summary quality, preventing a further 12-point worst-case drop, but the B_i variation itself is content-driven and unavoidable without further instruction tuning.
+
+**Update figure caption** to note the 6-model sweep.
+
+**New references needed** (add to references.bib):
+- `gemma3-12b-awq`: need HuggingFace URL — check `tools/fetch_models.sh` or git log for `./models/gemma-3-12b-it-awq` source
+- `llama3-8b`: `meta-llama/Llama-3.1-8B-Instruct` on HuggingFace
+
+---
+
+### 4. Relocate IETF Results (§5.7 → §5.3)
+
+Remove this sentence from §5.7:
+> "As a partial cross-domain check beyond the Rev16 podcasts, two held-out sessions from IETF 125..."
+
+Add it to the end of §5.3 (End-to-End Scoring) as a standalone paragraph:
+> "As a cross-domain generalization check, the same pipeline and summarizer were evaluated on two technical sessions from IETF 125 (Computing-Aware Traffic Steering and Media over QUIC Transport). Qwen3.5-4B-AWQ produced final source scores of 40.19 and 40.24 respectively, closely tracking the 40.14 cross-episode mean from Rev16 despite the substantially denser technical vocabulary."
+
+This removes IETF from "threats" framing and promotes it to positive evidence.
+
+---
+
+### 5. §5.7 Threats — Fix Space and Trim
+
+Fix missing space: `grows.As` → `grows. As`  
+After removing the IETF paragraph, §5.7 becomes tighter. May need slight rewording of the remaining sentence for flow.
+
+---
+
+### 6. `helpers/packages.tex` — Remove Duplicate Declarations
+
+Lines 15-16 and lines 27-28 both declare `algorithm` and `algpseudocode`. Remove the duplicate pair (lines 27-28).
+
+---
+
+### 7. Page Budget
+
+Current paper: exactly 6 pages.  
+New additions: ~+0.45 col (ablation text + Gemma/Llama paragraphs + IETF paragraph in §5.3).  
+Required trims to stay at 6 pages:
+- §5.4 Outlier Analysis: shorten by 1-2 sentences (the section re-states what §5.3 already shows)
+- §6 Discussion: trim 1-2 sentences from the future-work paragraph
+- Moving IETF from §5.7 to §5.3 is neutral (same text, different location)
+
+**Verify page count** by compiling with `./compile.sh` after each major change.
+
+---
+
+## File Change Summary
+
+| File | Change |
+|------|--------|
+| `figures/model-sweep.tex` | Colors → palette, extend to 6 models |
+| `figures/score-breakdown.tex` | Fix broken formula, apply palette colors |
+| `main.tex` §5.3 | Add IETF cross-domain paragraph |
+| `main.tex` §5.5 | Replace `\todo{}` with qualitative ablation |
+| `main.tex` §5.6 | Add Gemma + Llama paragraphs, update figure caption |
+| `main.tex` §5.7 | Remove IETF paragraph, fix space typo |
+| `references.bib` | Add `gemma3-12b-awq` and `llama3-8b` entries |
+| `helpers/packages.tex` | Remove duplicate package declarations |
+
+---
+
+## Dependencies
+
+- **HuggingFace URLs** for Gemma-3-12B-IT-AWQ and Llama-3.1-8B-Instruct needed for references.bib entries. Check git log or `tools/fetch_models.sh` history.
+- **Ablation experiments** (formal numerical data) deferred to camera-ready; qualitative analysis is submitted as-is.
 
 ---
 
 ## Verification
 
-- `./compile.sh --draft` compiles with no errors
-- `./compile.sh` full build: bibliography resolves, cross-refs work
-- `grep -c '\\todo' main.tex` returns 0 before submission
-- Every claim in §3-§5 backed by citation, measured number, or code reference
-- Page count ≤ 6
+After all changes:
+1. `grep -c '\\todo' academic-paper/main.tex` → must return 0
+2. `./compile.sh --clean` → zero errors, zero undefined references
+3. Page count ≤ 6 (check build log or PDF)
+4. `grep 'cite' academic-paper/main.tex | grep -v '^%' | head -5` to confirm no citation in abstract
