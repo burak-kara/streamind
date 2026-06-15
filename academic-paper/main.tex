@@ -1,4 +1,4 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[conference,letterpaper]{IEEEtran}
 
 \input{helpers/packages}
 \input{helpers/colors}
@@ -38,9 +38,11 @@
 
 \begin{abstract}
     Streaming summarization of live audio requires systems that maintain coherence across overlapping speech segments while satisfying strict per-window latency constraints.
-    We address the \gls{streamind} Grand Challenge with an eight-node Juturna pipeline: live Opus/\gls{rtp} audio is ingested via the Janus \gls{webrtc} gateway, transcribed incrementally by faster-whisper, and summarized by \emph{Qwen3.5-4B-AWQ} under vLLM with a \SI{300}{\second} rolling context window.
-    Three design contributions jointly optimize the challenge's composite score: streaming chunk deduplication removes overlap-induced redundancy to protect summary quality; a keyword guarantee algorithm eliminates the worst-case keyword penalty; and prompt engineering with thinking-mode suppression achieves \SI{0.79}{\second} average processing time while maintaining high summary quality.
-    On preliminary evaluation across Rev16 podcast episodes, the pipeline achieves a cross-episode mean source score of $40.14 \pm 0.85$ out of \num{45}, with cross-domain validation on \gls{ietf}~125 technical sessions confirming generalization beyond the training domain.
+    We address the \gls{streamind} Grand Challenge with an eight-node Juturna pipeline in which live Opus/RTP audio is ingested via the Janus WebRTC gateway, transcribed incrementally by faster-whisper, and summarized by Qwen3.5-4B-AWQ under vLLM with a \SI{300}{\second} rolling context window.
+    Three design contributions optimize the challenge composite scoring.
+    Streaming chunk deduplication removes overlap-induced redundancy to protect summary quality; a keyword guarantee algorithm enforces the three-keyword format and back-fills relevant terms from the transcript; and prompt engineering %with thinking-mode suppression
+    achieves \SI{0.79}{\second} average processing time while maintaining high summary quality.
+    On preliminary evaluation across podcast episodes, the pipeline achieves a cross-episode mean source score of $40.14 \pm 0.85$ out of \num{45}, with cross-domain validation on technical meeting sessions confirming generalization beyond the training domain.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -53,211 +55,212 @@
 
 \glsresetall
 
-Streaming summarization of live audio\td meetings, conference sessions, podcasts\td has become a practical target as the volume of recorded speech outpaces the capacity to consume it post hoc.
-Unlike batch summarization, which operates on complete transcripts after the fact, streaming summarization must produce incremental outputs under strict latency constraints while maintaining coherence across overlapping audio segments.
-In the STREAMIND Grand Challenge~\cite{streamind-challenge}, a participating system receives a live Opus-encoded mono audio stream over \gls{rtp} and must emit a structured summary with keywords every \SI{300}{\second}, with the scoring weighted across three axes\td summary quality, keyword relevance and processing latency.
+Live-audio summarization of meetings, conference sessions, and podcasts requires incremental outputs under strict latency constraints while maintaining coherence across overlapping speech segments.
+The \gls{streamind} Grand Challenge\footnote{\url{https://attend.ieee.org/mmsp-2026/grand-challenges/}} formalizes this setting, requiring a system to process a live RTP audio stream and emit a structured summary with three keywords every \SI{300}{\second} window, scored jointly on summary quality, keyword relevance, and processing latency.
 
-The challenge defines a per-chunk composite score $C_i = B_i + K_i + L_i$ that creates a non-trivial optimization landscape.
-$B_i$ sums five Likert-scale quality criteria (factual consistency, relevance, coherence, fluency and conciseness), ranging from \num{5} to~\num{25}.
-$K_i = 2 \cdot (N_{\text{rel}} - N_{\text{irr}})$ evaluates each of exactly three keywords, ranging from $-6$ to~$+6$.
-Although the latency bonus $L_i = 10 \cdot e^{-0.5 \cdot t_{\text{proc}}}$ rewards fast processing, it is \emph{gated} on $B_i \ge 10$.
-A pipeline that fails to clear the quality floor receives no latency credit at all, regardless of how fast it runs (\cref{fig:scoring}).
-This creates a hard cliff\td a pipeline optimized for raw speed that produces $B_i = 9$ scores strictly worse than a slower pipeline achieving $B_i = 15$.
-A flat bonus of $+4$ is awarded for using the Janus \gls{webrtc} gateway~\cite{janus} as the audio source.
-In practice the pipeline drives $B_i$ comfortably above the quality gate and then optimizes $L_i$ at fixed $B_i$, rather than chasing additional summary quality through larger models.
-Beyond the gate, the marginal $B_i$ a larger model can deliver fails to compensate for the $L_i$ it gives up (\cref{fig:model-sweep}).
-A regression in $K_i$ is treated as independently unacceptable, since the asymmetric per-keyword penalty erases multiple points of latency improvement.
+The challenge scores the output of each window $i$ as $C_i = B_i + K_i + L_i$, where $B_i \in [5, 25]$ measures summary quality across five Likert criteria, $K_i \in [-6, +6]$ rewards relevant keywords and penalizes irrelevant ones, and the latency bonus $L_i = 10 \cdot e^{-0.5 \cdot \text{proc}_i}$ rewards faster processing.
+When $B_i < \num{10}$, this bonus is withheld regardless of processing speed.
+\cref{fig:scoring} illustrates the $L_i$ score under changing processing times.
+Moreover, per challenge description, using the Janus WebRTC gateway~\cite{janus} as the audio source adds a flat $+4$ bonus to the overall final score.
+This scoring structure dictates a clear design priority, namely to drive $B_i$ above the gate first, minimize $\text{proc}_i$ at fixed quality, and treat any $K_i$ regression as unacceptable since one irrelevant keyword erases multiple points of latency gain.
 
+\begin{figure}[htb!]
+    \centering
+    \input{figures/scoring-curve}
+    \caption{Latency bonus $L_i = 10 \, e^{-0.5 \cdot \text{proc}_i}$, gated by $B_i \ge 10$. Below the gate, latency contributes zero; above it, returns diminish as processing time increases.}
+    \label{fig:scoring}
+\end{figure}
 
-We make three contributions, each targeting a specific scoring term:
+To address the \gls{streamind} Grand Challenge, we build a real-time multimedia pipeline and present three contributions, each targeting a specific scoring term:
 \begin{enumerate}[leftmargin=*, nosep]
-    \item A streaming chunk deduplication strategy that preserves temporal coherence across overlapping \SI{5}{\second} \gls{asr} chunks while keeping the aggregated \SI{300}{\second} window non-redundant.
-    \item A keyword guarantee algorithm that strips banned generic terms and back-fills missing slots from transcript proper nouns, converting the worst-case $K_i = -6$ into a floor of $K_i = 0$.
-    \item Quality-gated latency optimization through prompt engineering and thinking-mode suppression, achieving average processing times of \SI{0.79}{\second} ($L_i \approx 6.8$) while maintaining $B_i$ at \num{24}--\num{25} of \num{25}.
+    \item A streaming chunk deduplication strategy that preserves temporal coherence across overlapping \SI{5}{\second} \gls{asr} chunks while keeping the aggregated \SI{300}{\second} window non-redundant~($B_i$).
+    \item A keyword guarantee algorithm that strips banned generic terms and back-fills missing slots from transcript-derived terms, enforcing the challenge's exactly-three-keyword format so that format failures never forfeit $K_i$~($K_i$).
+    \item Quality-gated latency optimization through prompt engineering and thinking-mode suppression, maintaining $B_i$ above \num{23} of \num{25} while achieving \SI{0.79}{\second} average processing time ($L_i \approx 6.8$).
 \end{enumerate}
-\Cref{sec:related} surveys related work and background.
-\Cref{sec:architecture} details the pipeline architecture.
-\Cref{sec:implementation} covers deployment.
-\Cref{sec:evaluation} presents evaluation results.
-\Cref{sec:discussion} discusses limitations and future directions.
+
+The remainder of this paper is organized as follows.
+\Cref{sec:related} surveys \gls{asr} and \gls{llm} inference options and situates the work among prior streaming meeting summarization pipelines.
+\Cref{sec:architecture} details the eight pipeline nodes and their role.
+\Cref{sec:implementation} covers inference-engine selection and submission configuration.
+\Cref{sec:evaluation} reports \gls{asr} model comparison, per-window scoring, component ablations, and the model-size and cross-family sweep.
+\Cref{sec:conclusion} discusses scoring trade-offs, summarizes contributions, and outlines future directions.
 
 % =====================================================================
 \section{Background and Related Work}
 \label{sec:related}
 
-Juturna~\cite{juturna} is an open-source Python library for real-time multimedia \gls{ai} pipelines.
-Pipelines are declared in JSON as directed node graphs; Juturna compiles each declaration into a running dataflow and manages every node through a four-stage lifecycle (\texttt{configure()} $\to$ \texttt{warmup()} $\to$ \texttt{start()} $\to$ \texttt{stop()}).
-Nodes exchange typed messages along directed edges; roles are \emph{source} (data ingestion), \emph{processing} (transform), and \emph{sink} (delivery).
-Janus~\cite{janus} is a general-purpose \gls{webrtc} server; Juturna's built-in \texttt{audio\_rtp} source subscribes to its \gls{rtp} endpoint, receiving mono Opus/\SI{48}{\kilo\hertz} audio~\cite{rtp,opus} with identical code paths in development and evaluation, earning the flat $+4$ bonus.
+Building a live audio summarization system for the \gls{streamind} Grand Challenge draws on three components: the Juturna~\cite{juturna} pipeline framework, the optional Janus~\cite{janus} WebRTC gateway, and \gls{llm} inference for summarization and keyword extraction.
+Juturna~\cite{juturna} is an open-source Python library for composing real-time multimedia pipelines from typed, message-passing nodes arranged as a directed acyclic graph in JSON.
+Each node is driven through a four-stage lifecycle (\texttt{configure} $\to$ \texttt{warmup} $\to$ \texttt{start} $\to$ \texttt{stop}), and internally separates reception, buffering, and processing into independent threads, which enables stages to absorb backpressure without stalling upstream data flow.
+Nodes take one of three roles, \emph{source} (data ingestion), \emph{processing} (transform), or \emph{sink} (delivery), and exchange strongly-typed payloads along directed edges.
 
-For \gls{asr}, the Whisper model family~\cite{whisper} has demonstrated strong transcription performance across languages and acoustic conditions.
-We use faster-whisper~\cite{faster-whisper}, which reimplements Whisper inference via CTranslate2 with int8 quantization for reduced memory footprint and latency.
-In streaming mode, audio is chunked into short overlapping segments and transcribed independently with previous-text conditioning disabled to prevent context drift across chunks.
+Janus~\cite{janus} is an open-source, general-purpose WebRTC server that handles session negotiation and forwards decoded media as plain RTP to downstream consumers.
+Built-in \texttt{audio\_rtp} source in Juturna integrates with the JanusRTP endpoint, receiving mono Opus/\SI{48}{\kilo\hertz} audio~\cite{rtp,opus}.
 
-Small instruction-tuned \glspl{llm} can produce structured JSON outputs (summaries and keywords) in a single inference call~\cite{qwen3}.
-vLLM~\cite{vllm} provides efficient \gls{gpu} inference through paged attention and continuous batching, enabling in-process model loading without daemon overhead.
-Quality is evaluated by \gls{llm}-as-judge methods~\cite{geval}, which score generated summaries against the source transcript on multiple criteria. Single-model bias is mitigated by drawing the judge panel from several model families.
-We position STREAMIND as a \emph{systems} contribution that composes these building blocks into a scoring-formula-aware pipeline, rather than proposing new models or training procedures.
+To transcribe the incoming audio, the pipeline builds on the Whisper model family~\cite{whisper}, which achieves broad multilingual coverage through weak supervision on large-scale web audio.
+CTranslate2-based~\cite{ctranslate} reimplementations such as \texttt{faster-whisper}~\cite{faster-whisper} reduce inference latency relative to the reference implementation while preserving accuracy at \texttt{float16} precision on the GPU.
+
+The resulting transcripts are summarized by instruction-tuned \glspl{llm}, which can produce structured summaries and keyword lists in a single inference call~\cite{qwen3}.
+Several \gls{llm} inference backends target different serving trade-offs.
+vLLM~\cite{vllm} uses paged attention and continuous batching for efficient GPU throughput, exposing an in-process \texttt{LLM} class that eliminates the need for a separate inference daemon.
+SGLang~\cite{sglang} achieves around \SI{29}{\percent} higher throughput than vLLM via RadixAttention prefix caching and serves as a near drop-in replacement.
+TensorRT-LLM~\cite{tensor-rt-llm} maximizes raw throughput through per-model ahead-of-time compilation, though the compilation step limits flexibility during iterative model selection.
+llama.cpp~\cite{llamacpp} provides portable, CPU-friendly inference via GGUF quantization.
+Offline evaluation of \gls{llm}-generated summaries follows the \gls{llm}-as-judge paradigm~\cite{geval}, scoring outputs against source transcripts on multiple quality criteria.
+The judges drawn from distinct model families to reduce single-model bias.
+
+The components above situate within a body of prior work on real-time \gls{asr} and meeting summarization that informs three aspects of our design.
+Streaming transcription approaches include Whisper adapted via a local agreement policy~\cite{machacek2023} and dialect-specific pipelines that couple \gls{asr} with direct summarization~\cite{saranya2025}.
+Our pipeline instead uses fixed overlapping chunks with greedy suffix--prefix deduplication rather than adaptive windowing.
+On pipeline structure, cascade \gls{asr}+\gls{llm} systems have been validated sentence-wise at Interspeech~\cite{matsuura2024} and integrated with extractive NLP as unified audio-to-summary applications~\cite{whispersum2024}.
+Liu and Chen~\cite{liu2021sliding} apply a dynamic sliding window to long meeting transcripts.
+The challenge specification mandates the same \SI{300}{\second} window granularity, and we extend it with in-process \gls{llm} inference in place of extractive NLP.
+Asthana \etal~\cite{asthana2024} validate structured \gls{llm} output for post-meeting recap, informing our prompt design.
+Schneider \etal~\cite{schneider2025} formalize quality-latency trade-offs for online summarization.
+Our system embeds these trade-offs as the $B_i$-gated $L_i$ scoring term per challenge rather than an abstract policy objective.
+Collectively, these designs establish the building blocks our pipeline assembles into a scoring-formula-aware, end-to-end live challenge system.
 
 % =====================================================================
 \section{System Architecture}
 \label{sec:architecture}
 
-\Cref{fig:pipeline} shows the eight-node pipeline: each node maps to one or more terms of the scoring formula $C_i = B_i + K_i + L_i$.
-The audio source secures the $+4$ Janus bonus; hallucination filtering and novel extraction raise the transcript quality seen by the summarizer, improving $B_i$; the summarizer trades $B_i$ against $L_i$; keyword validation alone acts on $K_i$.
+\Cref{fig:pipeline} shows the eight-node pipeline; each node targets one or more terms of $C_i = B_i + K_i + L_i$.
+Janus provides WebRTC audio ingestion; the hallucination filter and novel extractor deliver a clean, non-redundant transcript that protects $B_i$; keyword validation enforces the three-keyword format to avoid penalty in $K_i$; and the summarizer balances output quality against processing time at the $B_i$/$L_i$ interface.
 
-\begin{figure*}[htb!]
+\begin{figure*}[hbt!]
     \centering
     \input{figures/pipeline}
-    \caption{End-to-end STREAMIND pipeline. Janus forwards Opus/\gls{rtp} media into Juturna's built-in \texttt{audio\_rtp} source node; chunks slide every \SI{4}{\second} through \gls{asr}; deduplication and hallucination filtering precede a \SI{300}{\second} aggregation buffer; the summarizer emits \texttt{\{summary, keywords[3]\}} per window; the sink stores locally and POSTs to the challenge endpoint.}
+    \caption{End-to-end STREAMIND pipeline.
+        Janus forwards Opus/RTP media into Juturna's \texttt{audio\_rtp} source node; \SI{5}{\second} chunks with a \SI{4}{\second} advance are transcribed by \gls{asr}; hallucination filtering and novel extraction precede a \SI{300}{\second} aggregation buffer; the summarizer emits output per window; the result sink stores locally and posts to the challenge endpoint.}
     \label{fig:pipeline}
 \end{figure*}
-
-\begin{figure}[htb!]
-    \centering
-    \input{figures/scoring-curve}
-    \caption{Latency bonus $L_i = 10 \, e^{-0.5 \cdot t_{\text{proc}}}$, gated by $B_i \ge 10$. Below the gate, latency contributes zero; above it, returns diminish rapidly past \SI{2}{\second}.}
-    \label{fig:scoring}
-\end{figure}
 
 \subsection{Audio Reception}
 \label{sec:arch:audio}
 
-Janus~\cite{janus} accepts the challenge \gls{webrtc} session and forwards mono Opus/\SI{48}{\kilo\hertz} \gls{rtp} media to Juturna's built-in \texttt{audio\_rtp} source node on \gls{udp} port~\num{8888}.
-The pipeline declares \texttt{payload\_type:~97} and \texttt{encoding\_clock\_chan: "opus/48000/1"} matching the challenge specification.
-Using Janus in both development and evaluation ensures identical code paths and earns the flat $+4$ bonus at zero architectural cost.
+Janus~\cite{janus} handles the challenge WebRTC session and forwards mono Opus/\SI{48}{\kilo\hertz} RTP packets to Juturna's \texttt{audio\_rtp} source node on UDP port~\num{8888}, matching the challenge's stream specification.
+Use of Janus, per the challenge rules, earns the flat $+4$ bonus.
 
 \subsection{Incremental ASR}
 \label{sec:arch:asr}
 
-The \texttt{audio\_chunker} node buffers the continuous audio stream into \SI{5}{\second} chunks with \SI{1}{\second} overlap, yielding a \SI{4}{\second} advance per step (\cref{fig:chunk-overlap}).
-Each chunk is transcribed by the \texttt{transcriber\_whisper} node running faster-whisper~\cite{faster-whisper} at float16 precision on the \gls{gpu}, co-resident with the summarizer.
-The distilled \texttt{large-v3-turbo} model adds approximately \SI{2}{\giga\byte} of \gls{vram} alongside the int4-\gls{awq} summarizer, fitting comfortably within the \SI{24}{\giga\byte} development card with headroom for the KV cache.
+The \texttt{audio\_chunker} node buffers the continuous audio stream into \SI{5}{\second} chunks with \SI{1}{\second} overlap, yielding a \SI{4}{\second} advance per step.
+Each chunk is transcribed by the \texttt{transcriber\_whisper} node running the \gls{asr} model faster-whisper-large-v3-turbo~\cite{faster-whisper-large-v3-turbo-ct2} at \texttt{float16} precision on the GPU, occupying around \SI{2}{\giga\byte} of VRAM.
+The distilled model along with the summarizer model fit within the \SI{24}{\giga\byte} development card with headroom for the \gls{kv} cache.
 Previous-text conditioning is disabled to prevent hallucination propagation across chunks, and \gls{vad} filtering via Silero~\cite{silero-vad} skips silence segments.
 
-\begin{figure}[htb!]
-    \centering
-    \input{figures/chunk-overlap}
-    \caption{Audio chunking and novel extraction. Five-second chunks slide by \SI{4}{\second}; the novel extractor isolates newly-spoken content each step, discarding the \SI{1}{\second} overlap with the previous chunk.}
-    \label{fig:chunk-overlap}
-\end{figure}
+% \begin{figure}[htb!]
+%     \centering
+%     \input{figures/chunk-overlap}
+%     \caption{Audio chunking and novel extraction. Five-second chunks slide by \SI{4}{\second}; the novel extractor isolates newly-spoken content each step, discarding the \SI{1}{\second} overlap with the previous chunk.}
+%     \label{fig:chunk-overlap}
+% \end{figure}
 
-An exploratory comparison of two model variants on \num{19}~\SI{30}{\second} windows of a \num{36}-minute podcast episode (\cref{tab:asr-comparison}) measured \texttt{small.en} (\SI{244}{\M} parameters, English-only) against \texttt{large-v3-turbo} (\SI{809}{\M}, multilingual distillation of large-v3).
-Both achieved identical average \gls{wer} (\num{0.69}), with negligible composite-score differences at \SI{30}{\second} granularity.
-We adopted \texttt{large-v3-turbo} for production because of its broader vocabulary coverage on long-form podcast content, with per-window quality at \SI{300}{\second} granularity reported in \cref{sec:eval:scoring}.
+% A comparison of \texttt{small.en}~\cite{small-en} (\SI{244}{\M} parameters, English-only) against \texttt{large-v3-turbo}~\cite{faster-whisper-large-v3-turbo-ct2} (\SI{809}{\M}, multilingual) is detailed in \cref{sec:evaluation}.
+% Both models yield comparable final scores within the variance of the cross-run \gls{llm}-as-a-judge panel.
+% We adopt \texttt{large-v3-turbo} for its broader multilingual vocabulary, providing coverage for non-English challenge audio.
 
 \subsection{Hallucination Filter}
 \label{sec:arch:halluc}
 
-The \texttt{hallucination\_filter} node applies two post-\gls{asr} guards.
-First, inline noise tags (\texttt{[Music]}, \texttt{(applause)}) are stripped via regex patterns.
-Second, the cleaned text is checked against \num{22} known hallucination patterns (\eg \quotes{thank you for watching}, \quotes{please subscribe}, common filter tokens) and silently dropped if matched.
-Without this filter, hallucinated sentences reach the summarizer and are faithfully summarized as facts, directly harming~$B_i$ factual consistency.
+The \texttt{hallucination\_filter} node applies two post-\gls{asr} guards on the transcription.
+First, inline noise tags (\eg \texttt{[Music]}, \texttt{(applause)}) are stripped via regex patterns.
+Second, the text is checked against \num{22} known Whisper hallucination patterns (\eg \quotes{please subscribe}, \quotes{like and subscribe}) and discarded if it matches one.
+Without this filter, hallucinated sentences reach the summarizer and are reproduced as facts in the generated summary, inflating context token usage, increasing processing latency, and penalizing the factual consistency component of~$B_i$.
 
 \subsection{Novel Chunk Extraction}
 \label{sec:arch:novel}
 
-The \SI{1}{\second} overlap between consecutive chunks means that roughly one second of speech appears in both the previous and current transcription.
-The \texttt{novel\_extractor} node performs word-level overlap detection: for overlap lengths from \num{10} words down to~\num{1}, it compares the suffix of the previous chunk with the prefix of the current chunk.
-An exact match returns the overlap length immediately; a \texttt{SequenceMatcher} fallback with similarity threshold \num{0.8} handles minor \gls{asr} variations in the overlap region (\eg \quotes{the quick brown} vs.\ \quotes{the quicker brown}).
+The \SI{1}{\second} overlap between consecutive chunks means that this interval of speech appears in both the current and previous transcription.
+The \texttt{novel\_extractor} node performs word-level overlap detection by greedily testing suffix–prefix matches from length \num{10} words down to~\num{1} and accepting the first exact match found.
+An exact match returns the overlap length; a \texttt{SequenceMatcher} fallback with similarity threshold \num{0.8} handles minor \gls{asr} variations in the overlap region (\eg \quotes{the quick brown} vs.\ \quotes{the quicker brown}).
 Only the novel words beyond the detected overlap are emitted.
-Without this deduplication, the \SI{300}{\second} window would contain approximately \SI{20}{\percent} redundant text, wasting context budget and biasing summaries toward repeated phrases.
+Without this deduplication, the \SI{300}{\second} window would contain around \SI{20}{\percent} redundant text, wasting context budget and biasing summaries toward repeated phrases.
 
 \subsection{Window Aggregation}
 \label{sec:arch:window}
 
-The \texttt{window\_aggregator} node concatenates novel transcript segments into a rolling \SI{300}{\second} context window.
-A window is flushed when $t_{\text{chunk\_end}} \ge t_{\text{window\_start}} + 300$.
-On pipeline shutdown, partial windows are emitted to avoid data loss at stream end.
+The \texttt{window\_aggregator} node concatenates incoming novel segments into a rolling \SI{300}{\second} context buffer, matching the challenge's scoring granularity.
+A window is flushed and forwarded to the summarizer when $t_{\text{chunk\_end}} \ge t_{\text{window\_start}} + 300$.
+On pipeline shutdown, any partial window accumulated since the last flush is emitted as well, ensuring the final audio segment contributes a scored output rather than being dropped.
 
 \subsection{Summarization}
 \label{sec:arch:summ}
 
-At warmup, the \texttt{summarizer\_vllm} node loads model weights from a local filesystem path through vLLM's in-process \texttt{LLM} class~\cite{vllm}.
-Loading the model in-process removes the need for an inference daemon, intermediate middleware, or any network dependency at runtime.
-The inference engine selection rationale is detailed in \cref{sec:impl:engine}.
+At warmup, the \texttt{summarizer\_vllm} node loads model weights from a local filesystem path through vLLM's in-process \texttt{LLM} class~\cite{vllm}, eliminating the need for an inference daemon or network dependency at runtime.
+vLLM's paged attention keeps $\text{proc}_i$ low across variable transcript lengths, which is a direct lever on $L_i$.
+vLLM's explicit \texttt{gpu\_memory\_utilization} parameter allows the summarizer to co-reside with the \gls{asr} model within the development GPU.
+A dummy generation call at startup triggers CUDA kernel compilation before the first live window, eliminating the cold-start latency spike that would otherwise inflate $\text{proc}_i$ on the first window.
 
-We use Qwen3.5-4B~\cite{qwen3,qwen3-5-4b-awq} quantized to int4 via \gls{awq}~\cite{awq} at \num{4096} context length.
-\Gls{awq} quantization roughly quarters the weight footprint relative to bfloat16, reducing inference latency and preserving KV-cache headroom for \SI{300}{\second} windows within the \SI{24}{\giga\byte} development \gls{gpu}.
+We utilize Qwen3.5-4B~\cite{qwen3,qwen3-5-4b-awq} quantized to \texttt{int4} via \gls{awq}~\cite{awq} at \num{4096} context length.
+\Gls{awq} quantization roughly quarters the weight footprint relative to \texttt{bfloat16}, reducing inference latency and preserving \gls{kv} cache headroom for \SI{300}{\second} windows.
 
-The summarization prompt is designed with explicit alignment to the five Likert evaluation criteria.
-\quotes{2--3 sentences capturing the main topics and conclusions} targets \emph{conciseness} and \emph{coherence}.
-\quotes{Only state facts explicitly present in the transcript.\ Do not infer} targets \emph{factual consistency}.
-\quotes{Exactly 3 keywords [\ldots] Never use generic terms like \textquotesingle discussion\textquotesingle, \textquotesingle meeting\textquotesingle, or \textquotesingle topic\textquotesingle} targets keyword relevance~($K_i$).
-Chain-of-thought generation is suppressed (\texttt{enable\_thinking\allowbreak=False}), directly reducing output token count and thus $t_{\text{proc}}$.
-Sampling parameters are set to temperature~$0.15$, top-$p = 0.9$, repetition penalty~$1.05$, and \texttt{max\_tokens}~$= 384$.
+The summarization prompt targets the five Likert evaluation criteria.
+\emph{2--3 sentences capturing the main topics and conclusions} targets conciseness and coherence.
+\emph{Only state facts explicitly present in the transcript.\ Do not infer} targets factual consistency.
+\emph{Exactly 3 keywords [\ldots] Never use generic terms like \textquotesingle discussion\textquotesingle, \textquotesingle meeting\textquotesingle, or \textquotesingle topic\textquotesingle} targets keyword relevance~($K_i$).
+Chain-of-thought generation is suppressed via \texttt{enable\_thinking\allowbreak=False}, reducing output token count and thus $\text{proc}_i$.
+Sampling parameters are set conservatively, with temperature~$0.15$ and top-$p = 0.9$ promoting deterministic, on-topic outputs, repetition penalty~$1.05$ discouraging verbatim transcript echoing, and \texttt{max\_tokens}~$= 384$ capping the generation length.
 
-Two failure modes are handled without emitting an empty summary.
-When the transcript is shorter than \num{80} characters (end-of-stream fragments), the \gls{llm} is skipped.
-When the call raises an exception, returns unparseable JSON, or produces an empty summary, the pipeline falls back to an \emph{extractive summary}: the first sentence(s) of the transcript, capped at \num{300} characters.
-This verbatim excerpt guarantees high factual consistency ($B_i$ cannot be penalized for a direct quote) and costs approximately \SI{0}{\milli\second}, preserving~$L_i$.
-A warmup generation call during startup triggers CUDA kernel compilation before the first real window, preventing a cold-start latency spike.
+Two failure modes are handled to ensure the pipeline never emits an empty summary.
+When the transcript is shorter than \num{80} characters (\eg silence), the \gls{llm} is skipped.
+When the call raises an exception, returns unparseable JSON, or produces an empty summary, the pipeline falls back to an \emph{extractive summary} consisting of the first sentence(s) of the transcript, capped at \num{300} characters.
+This verbatim excerpt guarantees high factual consistency ($B_i$ cannot be penalized for a direct quote) and costs around \SI{0}{\milli\second}, preserving~$L_i$.
 
 \subsection{Keyword Validation}
 \label{sec:arch:keywords}
 
-Regardless of \gls{llm} output quality, the \texttt{ensure\_three\_keywords} function (\cref{alg:keywords}) guarantees exactly three keywords per window.
-The algorithm first removes empty entries and filters against a set of banned generic terms (\quotes{meeting}, \quotes{discussion}, \quotes{topic}, \etc).
+Regardless of \gls{llm} output quality, the \texttt{ensure\_three\_keywords} function guarantees three keywords per window.
+The algorithm first removes empty entries and filters out banned generic terms (\quotes{meeting}, \quotes{discussion}, \quotes{topic}, \etc).
 Case-insensitive deduplication preserves first-seen casing.
-If fewer than three keywords remain, candidates are extracted from the transcript ranked by token frequency, with ties broken toward capitalized tokens (likely proper nouns).
+If fewer than three keywords remain, candidates are extracted from the transcript ranked by token frequency, with ties broken toward capitalized tokens (\eg proper nouns).
 As a last resort, conservative fallback terms are appended.
 
-The guarantee enforces format compliance and converts the worst-case $K_i$ floor from $-6$ to $0$: transcript-derived fallbacks inherit the topic signal of the source audio and score higher than bare model-output failures.
-Empirically, $\bar{K}_i = 6.0$ on every Qwen window in \cref{tab:per-window}; Llama loses $K_i$ only on episodes where the fallback chain inherits judge-flagged irrelevance (\cref{sec:eval:sweep}).
+The guarantee enforces format compliance where emitting three transcript-grounded keywords removes the empty-output and wrong-count failure modes.
+It does not floor the keyword score, however, which the challenge defines as $K_i = 2\,(N_\text{rel} - N_\text{irrel})$ over the three keywords; a summary whose fallback terms are all judged irrelevant can still reach $K_i = -6$.
+Since transcript-derived terms inherit the source topic, they score as relevant and keep $K_i$ high in practice, an effect analyzed across model families in \cref{sec:evaluation}.
 
-\begin{algorithm}[htb!]
-    \caption{Keyword guarantee: \texttt{ensure\_three\_keywords}.}
-    \label{alg:keywords}
-    \begin{algorithmic}[1]
-        \Require $\mathit{kw}$: keyword list from \gls{llm}, $T$: transcript text
-        \Ensure exactly 3 keyword strings
-        \State $\mathit{kw} \gets$ strip whitespace, remove empty entries
-        \State $\mathit{kw} \gets \{w \in \mathit{kw} \mid w_{\downarrow} \notin \textsc{Banned}\}$
-        \State $\mathit{kw} \gets \text{deduplicate}(\mathit{kw}, \text{case-insensitive})$
-        \If{$|\mathit{kw}| < 3$}
-        \State $\mathit{cand} \gets$ rank tokens in $T$ by freq$\!\downarrow$, capitalization$\!\downarrow$
-        \State filter $\mathit{cand}$: remove stopwords $\cup$ \textsc{Banned}
-        \State append $\mathit{cand}$ to $\mathit{kw}$ until $|\mathit{kw}| = 3$
-        \EndIf
-        \If{$|\mathit{kw}| < 3$}
-        \State pad $\mathit{kw}$ with fallback terms to length 3
-        \EndIf
-        \State \Return $\mathit{kw}[{:}3]$
-    \end{algorithmic}
-\end{algorithm}
+% \begin{algorithm}[htb!]
+%     \caption{\texttt{ensure\_three\_keywords}.}
+%     \label{alg:keywords}
+%     \begin{algorithmic}[1]
+%         \Require $\mathit{kw}$: keyword list from \gls{llm}, $T$: transcript text
+%         \Ensure exactly 3 keyword strings
+%         \State $\mathit{kw} \gets$ strip whitespace, remove empty entries
+%         \State $\mathit{kw} \gets \{w \in \mathit{kw} \mid w_{\downarrow} \notin \textsc{Banned}\}$
+%         \State $\mathit{kw} \gets \text{deduplicate}(\mathit{kw}, \text{case-insensitive})$
+%         \If{$|\mathit{kw}| < 3$}
+%         \State $\mathit{cand} \gets$ rank tokens in $T$ by freq$\!\downarrow$, capitalization$\!\downarrow$
+%         \State filter $\mathit{cand}$: remove stopwords $\cup$ \textsc{Banned}
+%         \State append $\mathit{cand}$ to $\mathit{kw}$ until $|\mathit{kw}| = 3$
+%         \EndIf
+%         \If{$|\mathit{kw}| < 3$}
+%         \State pad $\mathit{kw}$ with fallback terms to length 3
+%         \EndIf
+%         \State \Return $\mathit{kw}[{:}3]$
+%     \end{algorithmic}
+% \end{algorithm}
 
 \subsection{Result Transmission}
 \label{sec:arch:sink}
 
-The \texttt{result\_transmitter} sink node maps internal keys to the challenge contract (\texttt{window\_start}~$\to$~\texttt{from}, \texttt{window\_end}~$\to$~\texttt{to}, \texttt{latency}~$\to$~\texttt{proc\_time}) and writes each window as \texttt{window\_N.json}.
-When \texttt{destination\_endpoint} is configured, results are also POSTed via HTTP.
-A debug mode persists the full transcript and raw \gls{llm} output alongside each window for post-hoc analysis.
+% TODO: complete on the code. Mongo?
+
+The \texttt{result\_transmitter} sink node maps internal keys to the challenge contract (\texttt{from}, \texttt{to}, \texttt{summary}, \texttt{keywords}, \texttt{proc\_time}) and saves each window as \texttt{window\_i.json}.
+When \texttt{destination\_endpoint} is configured, results are also posted via HTTP.
+A debug mode persists the full transcript and raw \gls{llm} output alongside each window for post-hoc analysis during development.
 
 % =====================================================================
 \section{Implementation and Deployment}
 \label{sec:implementation}
 
-Two JSON files together define a pipeline configuration.
-All nodes except the summarizer are declared in \texttt{config-base.json} and a profile drawn from \texttt{pipelines/summarizer/} supplies the model-specific parameters such as the model path, sampling configuration and \gls{vram} budget.
-A merge tool combines these at launch time and a single shell script serves as the entry point for both development and submission.
+Pipeline configuration is split across two JSON files to decouple node topology from model-specific parameters.
+\texttt{config-base.json} declares all nodes except the summarizer; a profile from \texttt{pipelines/summarizer/} supplies the model path, sampling configuration, and VRAM budget for the chosen summarizer.
+A merge tool assembles these at launch time, and a single shell script serves as the unified entry point for development, evaluation, and submission.
 
-The submission Docker image is based on NVIDIA CUDA 12.4 runtime with Python~3.12 and \texttt{uv} for dependency management.
-Model weights for both the \gls{asr} model and the summarizer are baked into the image at build time, ensuring zero network dependency at runtime.
-The \texttt{docker-compose.yml} file orchestrates Janus and the pipeline container as two services, with Janus forwarding \gls{rtp} audio to the pipeline container on \gls{udp} port~\num{8888}.
+The submission Docker image builds on the NVIDIA CUDA 12.4 runtime with Python~3.12; model weights for both the \gls{asr} model and the summarizer are embedded at build time, eliminating any network dependency at inference.
+A \texttt{docker-compose.yml} file orchestrates Janus and the pipeline container as two services.
 \Cref{tab:nodes} summarizes all pipeline nodes and their key parameters.
-
-\subsection{Inference Engine}
-\label{sec:impl:engine}
-
-We select vLLM~\cite{vllm} over alternative serving frameworks for three reasons aligned with the scoring formula and submission constraints.
-First, the in-process library \gls{api} eliminates the need for a separate inference server daemon, so the submission container runs as a single process with no independent health-check or fail mode.
-Second, paged attention holds $t_{\text{proc}}$ low across varying transcript lengths, which is the direct lever on $L_i = 10\,e^{-0.5 \cdot t_{\text{proc}}}$.
-Third, the explicit \texttt{gpu\_memory\_utilization} parameter caps \gls{vram} usage, enabling the int4-\gls{awq} summarizer to co-reside with the \gls{asr} model within the \SI{24}{\giga\byte} development card.
-
-Two alternatives were considered.
-SGLang~\cite{sglang} (RadixAttention prefix caching) offers roughly \SI{29}{\percent} higher throughput than vLLM as a near drop-in replacement and remains a future upgrade path if $L_i$ becomes the binding constraint (\cref{sec:discussion}).
-TensorRT-LLM achieves the highest raw throughput but requires per-model ahead-of-time compilation, which conflicts with iterative model selection during development and imposes significant overhead on the single-\gls{gpu} submission environment.
-vLLM's broader model coverage and zero compilation overhead best match the challenge's single-\gls{gpu}, rapid-iteration context.
 
 \begin{table}[htb!]
     \centering
@@ -267,49 +270,58 @@ vLLM's broader model coverage and zero compilation overhead best match the chall
     \small
     \begin{tabularx}{0.98\columnwidth}{@{}l l X l@{}}
         \toprule
-        \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}                                  & \textbf{Target} \\
+        \textbf{Node}    & \textbf{Type} & \textbf{Key parameters}                        & \textbf{Target} \\
         \midrule
-        audio\_rtp       & source        & Opus/48k, port 8888                                      & $+4$            \\
-        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap           & ---             \\
-        transcriber      & proc          & float16, \gls{gpu}, \gls{vad} on                         & $B_i$           \\
-        halluc.\ filter  & proc          & 22 exact patterns                                        & $B_i$           \\
-        novel\_extractor & proc          & 10 words, sim $\ge 0.8$                                  & $B_i$           \\
-        window\_agg.     & proc          & \SI{300}{\second} rolling                                & ---             \\
-        summarizer       & proc          & Qwen3.5-4B-\gls{awq}~\cite{qwen3-5-4b-awq}, $T\!=\!0.15$ & $B_i, L_i$      \\
-        transmitter      & sink          & JSON + HTTP POST                                         & ---             \\
+        audio\_rtp       & source        & Opus/48k, port 8888                            & $+4$            \\
+        audio\_chunker   & proc          & \SI{5}{\second} chunk, \SI{1}{\second} overlap & ---             \\
+        transcriber      & proc          & \texttt{float16}, GPU, \gls{vad} on            & $B_i$           \\
+        halluc.\ filter  & proc          & 22 exact patterns                              & $B_i$           \\
+        novel\_extractor & proc          & 10 words, sim $\ge 0.8$                        & $B_i$           \\
+        window\_agg.     & proc          & \SI{300}{\second}                              & ---             \\
+        summarizer       & proc          & Qwen3.5-4B-\gls{awq}, $T\!=\!0.15$             & $B_i, L_i$      \\
+        transmitter      & sink          & JSON + HTTP POST                               & ---             \\
         \bottomrule
     \end{tabularx}
 \end{table}
+
+%  TODO: duplicated with sec:arch:summ. either move there or reduce repeated parts
+The summarizer uses vLLM~\cite{vllm} as its inference engine, chosen over three alternatives (\ie SGLang~\cite{sglang}, TensorRT-LLM~\cite{tensor-rt-llm}, and llama.cpp~\cite{llamacpp}) for three reasons due to the submission constraints.
+First, its in-process \texttt{LLM} class eliminates any daemon dependency, keeping the submission container self-contained.
+Second, paged attention holds $\text{proc}_i$ low under variable transcript lengths, the direct lever on $L_i$.
+Third, explicit VRAM budgeting via \texttt{gpu\_memory\_utilization} enables the int4-\gls{awq} summarizer to co-reside with the \gls{asr} model on the GPU.
 
 % =====================================================================
 \section{Evaluation}
 \label{sec:evaluation}
 
+We evaluate the pipeline against the composite challenge score $C_i = B_i + K_i + L_i$, isolating the contribution of each design decision rather than reporting a single aggregate.
+On the Rev16 podcast corpus, the production configuration (Qwen3.5-4B-AWQ summarizer with \texttt{large-v3-turbo} \gls{asr}) attains a final source score of $40.14 \pm 0.85$ out of \num{45}, holding $K_i$ at its ceiling on every evaluated window while keeping average processing time under \SI{1}{\second}.
+In this section, we detail the measurement methodology, compare \gls{asr} models, report per-window scoring, ablate individual components, and sweep summarizer families, before stating threats to validity.
+
 \subsection{Setup}
 \label{sec:eval:setup}
 
-The current results cover three podcast episodes from the Rev16 dataset~\cite{rev16}; full evaluation on the challenge audio set is ongoing and will expand this coverage.
-A \SI{300}{\second} window pipeline run produces roughly five scored windows per episode.
+Experiments cover three podcast episodes from the Rev16 dataset~\cite{rev16}; full evaluation on the held-out challenge audio is ongoing.
+A \SI{300}{\second} window pipeline run produces five scored windows per episode.
 To absorb \gls{llm}-judge non-determinism, every model comparison repeats the pipeline at least twice per configuration.
 The numbers reported throughout are means across these runs, accompanied by standard deviations where more than one run is available.
-The offline judge harness uses a cross-family panel of three int4-\gls{awq} judges (Mistral-Small-24B-Instruct, Phi-4, and Gemma-3-27B-it) chosen from outside the Qwen family to avoid self-evaluation bias.
-Each judge runs in a separate subprocess that exits before the next one starts, allowing \gls{vram} to be reclaimed between runs since the \SI{24}{\giga\byte} development \gls{gpu} cannot host the full panel at once.
+The offline judge harness uses a cross-family panel of three int4-\gls{awq} judges (Mistral-Small-24B-Instruct, Phi-4, and Gemma-3-27B-IT) chosen from outside the Qwen family to avoid self-evaluation bias.
+Judges run sequentially in isolated subprocesses; each process exits to reclaim VRAM before the next loads, since the \SI{24}{\giga\byte} development GPU cannot host the full panel simultaneously.
 Following the G-Eval paradigm~\cite{geval}, each judge scores every summary against the five Likert criteria defined by the challenge and evaluates keyword relevance as a per-keyword boolean flag.
 Panel consensus is reported as the mean and standard deviation across the three judges.
 Low dispersion lends confidence to a score, while high dispersion flags judge-specific bias and is treated with caution.
-All experiments ran on an NVIDIA RTX 4090 with \SI{24}{\giga\byte} of \gls{vram} under CUDA 12.4, while the submission target is the larger RTX Pro 4500 with \SI{32}{\giga\byte}.
+All experiments ran on an NVIDIA RTX 4090 with \SI{24}{\giga\byte} of VRAM under CUDA 12.4, while the submission target is the larger RTX Pro 4500 with \SI{32}{\giga\byte}.
 
-\gls{wer} is measured independently using jiwer against ground-truth transcripts.
-Because the ground-truth text lacks timestamps, we employ proportional character-based alignment with a sliding-window search ($\pm\SI{30}{\percent}$ offsets) to find the best-matching reference segment for each window.
-\gls{wer} is an independent signal of \gls{asr} quality and is not part of the $B_i / K_i / L_i$ scoring.
+\Gls{wer}, which is not part of the $B_i / K_i / L_i$ scoring formula, serves as an independent diagnostic and is measured via jiwer against ground-truth transcripts.
+Because the ground-truth text lacks timestamps, proportional character-based alignment with a sliding-window search ($\pm\SI{30}{\percent}$ offsets) locates the best-matching reference segment for each window.
 
 \subsection{ASR Model Comparison}
 \label{sec:eval:asr}
 
-\Cref{tab:asr-comparison} compares two faster-whisper variants under the locked Qwen3.5-4B-AWQ summarizer across the three Rev16 episodes used in \cref{sec:eval:sweep}, with two pipeline runs per configuration scored by the cross-family judge panel.
-\Gls{wer} differs by \num{0.7}~percentage points (\num{0.252} vs.\ \num{0.259}) and $B_i + K_i$ by \num{0.12}~points (\num{29.30} vs.\ \num{29.42}), both well within cross-run judge variance (\cref{sec:eval:threats}).
+\Cref{tab:asr-comparison} compares two faster-whisper variants under the locked Qwen3.5-4B-AWQ summarizer, with two pipeline runs per configuration scored by the cross-family panel (same three episodes as \cref{sec:eval:sweep}).
+The two models differ by \num{0.7}~\gls{wer} percentage points (\num{0.252} vs.\ \num{0.259}) and \num{0.46}~points in $B_i + K_i$ (\num{29.30} vs.\ \num{29.76}), differences within cross-run judge noise.
 Despite \texttt{large-v3-turbo}'s marginally lower \gls{wer}, \texttt{small.en} achieves a slightly higher final score (\num{40.44} vs.\ \num{40.14}), confirming that transcription accuracy is not the scoring bottleneck at \SI{300}{\second} granularity.
-The production pipeline retains \texttt{large-v3-turbo} for its broader multilingual vocabulary on potentially non-English challenge audio.
+The production pipeline retains \texttt{large-v3-turbo} for robustness to non-English challenge audio.
 
 \begin{table}[htb!]
     \centering
@@ -317,16 +329,16 @@ The production pipeline retains \texttt{large-v3-turbo} for its broader multilin
         (three Rev16 episodes, two pipeline runs per configuration for \texttt{small.en};
         the \texttt{large-v3-turbo} numbers reuse the runs collected for
         \cref{sec:eval:sweep}). Higher is better for $B + K$, $L$, and the final
-        score; lower for $t_{\text{proc}}$ and \gls{wer}.}
+        score; lower for $\text{proc}_i$ and \gls{wer}.}
     \label{tab:asr-comparison}
     \small
     \begin{tabularx}{0.85\columnwidth}{@{}X S S@{}}
         \toprule
         \textbf{Metric}             & \textbf{small.en}    & \textbf{large-v3-turbo} \\
         \midrule
-        Avg $B_i + K_i$             & \num{29.42}          & \num{29.30}             \\
+        Avg $B_i + K_i$             & \num{29.76}          & \num{29.30}             \\
         Avg $L_i$                   & \num{6.68}           & \num{6.84}              \\
-        Avg $t_{\text{proc}}$ (s)   & \num{0.81}           & \num{0.76}              \\
+        Avg $\text{proc}_i$ (s)     & \num{0.81}           & \num{0.76}              \\
         Avg \gls{wer}               & \num{0.259}          & \num{0.252}             \\
         Final score (cross-ep mean) & \textbf{\num{40.44}} & \num{40.14}             \\
         Std across runs             & \num{0.59}           & \num{0.82}              \\
@@ -338,11 +350,12 @@ The production pipeline retains \texttt{large-v3-turbo} for its broader multilin
 \label{sec:eval:scoring}
 
 \Cref{tab:per-window} reports per-window scores for Qwen3.5-4B-AWQ on a \num{25}-minute podcast episode (\num{5}~windows of \SI{300}{\second} each), averaged across two independent runs to reduce \gls{llm}-judge variance.
-All five windows achieve $K_i = 6.0$ (the maximum), confirming that the keyword guarantee reliably fills all three slots with relevant terms on every window.
-$B_i$ remains narrowly bracketed between \num{24.0} and \num{24.7} out of \num{25}, close to the Likert ceiling, and run-to-run variation in $C_i$ never exceeds \num{0.9}~points on any single window, which we attribute to judge non-determinism rather than to instability in the pipeline.
+All five windows achieve $K_i = 6.0$ (the maximum), confirming that the keyword guarantee reliably fills all three slots with relevant terms.
+$B_i$ remains narrowly bracketed between \num{24.0} and \num{24.7} out of \num{25}, close to the Likert ceiling.
+Run-to-run variation in $C_i$ never exceeds \num{0.9}~points on any window, attributable to judge non-determinism rather than pipeline instability.
 The latency component shows the widest spread in the table and ranges from $L_i = 6.05$ on window~3 to $L_i = 7.18$ on window~4. Window~3 spans a dense \SI{300}{\second} segment that took \SI{1.01}{\second} on average to summarize, while window~4 covers only the trailing \SI{105}{\second} of audio and was therefore compressed in \SI{0.66}{\second}.
-Averaging $C_i$ across the five windows yields $\bar{C} = 37.1$, which combined with the Janus bonus produces a final source score of $\mathbf{41.09}$ for this episode.
-Cross-domain validation on two \gls{ietf}~125 sessions (Computing-Aware Traffic Steering; Media over \gls{quic}) produced scores of \num{40.19} and \num{40.24}, closely tracking the Rev16 mean (\cref{sec:eval:sweep}) despite denser technical vocabulary.
+Averaging $C_i$ across the five windows yields $\bar{C} = 37.1$, which, combined with the Janus bonus, produces a final source score of $\mathbf{41.09}$ for this episode.
+Cross-domain validation on two \gls{ietf}~125 sessions (Computing-Aware Traffic Steering, Media over \gls{quic}) produced scores of \num{40.19} and \num{40.24}, closely tracking the Rev16 mean (\cref{sec:eval:sweep}) despite denser technical vocabulary.
 
 \begin{table}[htb!]
     \centering
@@ -368,35 +381,33 @@ Cross-domain validation on two \gls{ietf}~125 sessions (Computing-Aware Traffic 
 \subsection{Outlier Analysis}
 \label{sec:eval:outlier}
 
-At \SI{300}{\second} granularity, topic transitions and informal speech are averaged across a full five-minute window.
-Within \cref{tab:per-window}, $B_i$ stays narrowly between \num{24.0} and \num{25.0} and $K_i$ is uniformly \num{6.0}, so $C_i$ differences between windows are driven entirely by latency.
-The primary outlier risk is a dense-speech window that inflates $t_{\text{proc}}$ (window~3: \SI{1.01}{\second}, $L_i = 6.05$), not a content-quality failure.
-At \SI{30}{\second} granularity, topic transitions produce $B_i$ drops of \num{3}--\num{6}~points and $K_i$ swings as large as $-4$, confirming that \SI{300}{\second} aggregation materially reduces per-window variance.
+Since $B_i$ and $K_i$ stay flat across the windows of \cref{tab:per-window}, the residual $C_i$ variation is latency-driven rather than a content-quality failure; the sole outlier risk is a dense-speech window that inflates $\text{proc}_i$.
+This stability is a direct consequence of the \SI{300}{\second} granularity.
+In exploratory shorter-window runs, topic transitions produced $B_i$ drops of \num{3}--\num{6}~points and $K_i$ swings as large as $-4$, variance that five-minute aggregation averages out.
 
 \subsection{Ablations}
 \label{sec:eval:ablation}
 
-Each upstream node defends a specific scoring term.
-Without the \texttt{hallucination\_filter}, \num{22} matched ASR artifact phrases (e.g., \quotes{thank you for watching}) reach the summarizer and reduce the judge's factual consistency score.
-Without the \texttt{novel\_extractor}, the window contains $\approx$\SI{20}{\percent} repeated text from chunk overlap, biasing summaries toward repeated phrases.
-Without \cref{alg:keywords}, the $K_i$ range reverts to $[-6, +6]$ on windows where the \gls{llm} emits fewer than three usable keywords.
-The guarantee replaces missing slots with transcript-derived terms, eliminating the all-empty failure mode but not guaranteeing $K_i = +6$\td the judge still rates relevance independently.
-For Qwen3.5-4B-AWQ this yields $\bar{K}_i = 6$ on every evaluated window; for Llama-3.1-8B, two Ep~11 windows still received $K_i = -6$ from the Gemma judge, reflecting low-relevance keyword choices the fallback chain cannot rescue.
+The hallucination filter, novel extractor, and keyword guarantee (\cref{sec:arch:halluc,sec:arch:novel,sec:arch:keywords}) each defend a specific scoring term; we assess their effect qualitatively here and defer formal component-removal runs to the camera-ready.
+The keyword guarantee is the most consequential.
+For Qwen3.5-4B-AWQ it holds $K_i$ at the maximum of \num{6.0} on every evaluated window, and the format compliance it enforces removes the empty-output failure mode outright.
+It sets no hard floor, however: under the weaker Llama-3.1-8B summarizer, two Ep~11 windows still scored $K_i = -6$ from the Gemma judge, where transcript-derived fallbacks inherited the low-relevance signal of poorly summarized content.
+Upstream, the hallucination filter and novel extractor protect $B_i$ by suppressing the \num{22} known artifact phrases and the $\approx\SI{20}{\percent}$ overlap redundancy before either can distort the summary.
 
 \subsection{Model-Size and Cross-Family Sweep}
 \label{sec:eval:sweep}
 
-\Cref{fig:model-sweep} decomposes scores for six configurations across three Rev16 episodes (\num{6}--\num{15} runs, \SI{300}{\second} windows).
-Within the Qwen3.5 family, $B_i + K_i$ is nearly flat across all four variants; score differences are driven entirely by latency, with $t_{\text{proc}}$ ranging from \SI{0.79}{\second} (4B-AWQ) to \SI{2.51}{\second} (9B-BF16).
-\Gls{awq} reduces $t_{\text{proc}}$ by \SI{35}{\percent} at 4B and \SI{30}{\percent} at 9B, yielding source scores of $40.14 \pm 0.85$, $38.97 \pm 0.91$, $37.15 \pm 1.53$, and $36.12 \pm 1.42$ respectively.
-Gemma-3-12B-IT-AWQ~\cite{gemma3-12b-awq} scores $35.63 \pm 1.06$ despite $3\times$ more parameters: $B_i + K_i = 28.1$ is only marginally below the Qwen mean of $29.2$, but $t_{\text{proc}} \approx \SI{1.9}{\second}$ ($L_i = 3.77$) erases $\approx\num{3}$ score points relative to 4B-AWQ, confirming that beyond the quality gate, latency is the binding lever.
-Llama-3.1-8B-Instruct~\cite{llama3-8b} scores $32.31 \pm 4.59$; episode-to-episode $\overline{B_i}$ swings from $\approx 13$ to $\approx 24$ trace to content-driven instability the keyword guarantee cannot resolve.
+\Cref{fig:model-sweep} decomposes scores for six configurations across Rev16 episodes (\SI{300}{\second} windows, at least two runs per configuration).
+Within the Qwen3.5 family, $B_i + K_i$ is nearly flat across all four variants; score differences are driven primarily by latency, with $\text{proc}_i$ ranging from \SI{0.79}{\second} (4B-AWQ) to \SI{2.51}{\second} (9B-BF16).
+\Gls{awq} reduces $\text{proc}_i$ by \SI{35}{\percent} at 4B and \SI{30}{\percent} at 9B, yielding source scores of $40.14 \pm 0.85$ (4B-AWQ), $38.97 \pm 0.91$ (4B-BF16), $37.15 \pm 1.53$ (9B-AWQ), and $36.12 \pm 1.42$ (9B-BF16).
+Gemma-3-12B-IT-AWQ~\cite{gemma3-12b-awq} scores $35.63 \pm 1.06$ despite having $3\times$ more parameters than 4B-AWQ; its $B_i + K_i = 28.1$ is only marginally below the Qwen mean of $29.2$, but $\text{proc}_i \approx \SI{2.07}{\second}$ ($L_i = 3.55$) erases $\approx\num{3}$ score points relative to 4B-AWQ, confirming that beyond the quality gate, latency is the binding lever.
+Llama-3.1-8B-Instruct~\cite{llama3-8b} scores $32.31 \pm 4.59$; episode-to-episode $\overline{B_i}$ swings from $\approx 13$ to $\approx 24$, reflecting content-driven instability that the keyword guarantee cannot resolve.
 Qwen3.5-4B-AWQ is selected as the production summarizer.
 
 \begin{figure}[htb!]
     \centering
     \input{figures/model-sweep}
-    \caption{Score decomposition across six configurations (cross-audio mean, three Rev16 episodes, \SI{300}{\second} windows, RTX 4090). \emph{Gem-12B} = Gemma-3-12B-IT-AWQ; \emph{Llm-8B} = Llama-3.1-8B-Instruct. $B_i + K_i$ is flat within the Qwen family; score differences come entirely from $L_i$.}
+    \caption{Cross-audio mean score decomposition across six models (Qwen3.5-4B-AWQ, Qwen3.5-4B-BF16, Qwen3.5-9B-AWQ, Qwen3.5-9B-BF16, Gemma-3-12B-IT-AWQ, Llama-3.1-8B-Instruct). $B_i + K_i$ is flat within the Qwen family; score differences come from $L_i$.}
     \label{fig:model-sweep}
 \end{figure}
 
@@ -404,39 +415,28 @@ Qwen3.5-4B-AWQ is selected as the production summarizer.
 \label{sec:eval:threats}
 
 Several limitations affect the reported numbers.
-Our offline judge panel of Mistral-Small-24B, Phi-4, and Gemma-3-27B (all int4-\gls{awq}) is only a local approximation of the hidden challenge judge.
+Our offline judge panel of Mistral-Small-24B, Phi-4, and Gemma-3-27B (all int4-\gls{awq}) serves as a proxy for the hidden challenge judge, not an exact replica.
 Even where the three judges agree, the reported scores should be read as directional rather than absolute.
-\Gls{llm} judges are also non-deterministic.
-Repeated runs on identical inputs produce $C_i$ values that differ by \num{0.1}--\num{0.9} points, and content variation across audio contributes a further \num{0.9}--\num{1.5} points of standard deviation.
-Averaging across runs reduces this noise but does not eliminate it.
+Furthermore, \gls{llm} judges are inherently non-deterministic.
+Repeated runs on identical inputs produce $C_i$ values that differ by \num{0.1}--\num{0.9} points, and content variation across audio episodes contributes a further \num{0.9}--\num{1.5} points of score variance.
+Averaging across runs reduces judge noise but not content-driven variance.
 Evaluation so far covers three podcast episodes from the Rev16 dataset and two \gls{ietf}~125 technical sessions (\cref{sec:eval:scoring}); the held-out challenge audio may differ in speaker count, topic complexity, and acoustic conditions, so rankings may shift as coverage grows.
 \gls{wer} measurement relies on proportional character alignment against untimestamped ground truth, which introduces alignment noise on top of the underlying transcription errors.
-The development hardware (RTX 4090, \SI{24}{\giga\byte}) is more \gls{vram}-constrained than the submission target (RTX Pro 4500, \SI{32}{\giga\byte}), so models sized to fit the development card fit the submission card with headroom.
+Since the development GPU is more VRAM-constrained than the \SI{32}{\giga\byte} submission target, every model sized for development fits the submission card with headroom.
 
 % =====================================================================
-\section{Discussion}
-\label{sec:discussion}
-
-The latency gate on $L_i$ matches a real user preference, since a slow but accurate summary is more useful than a fast but wrong one and the scoring formula refuses to reward the latter case.
-Keyword scoring has the opposite shape.
-Each irrelevant keyword carries a $-2$ point cost out of a six-point range, so one bad keyword in three has roughly the same impact as the run-to-run judge variance reported in \cref{sec:eval:threats}.
-\Cref{alg:keywords} responds to that asymmetry by falling back to conservative, transcript-derived keywords whenever the \gls{llm} fails to provide three usable terms.
-
-The current summarization prompt is static across all windows.
-Two directions extend this work.
-First, latency reduction at fixed quality: migrating to SGLang~\cite{sglang} (reported at \SI{29}{\percent} higher throughput than vLLM as a near drop-in replacement) would lift $L_i$ without affecting $B_i$, and mixture-of-experts models could approach large-model quality at small-model decode speed.
-Second, robustness: structured-output decoding removes the JSON parsing failure mode entirely, and content-adaptive prompting that detects topic transitions could reduce the $B_i$ variance observed on dense windows and in cross-family comparisons.
-
-% =====================================================================
-\section{Conclusion}
+\section{Discussion and Conclusion}
 \label{sec:conclusion}
 
-We presented an eight-node Juturna pipeline for the STREAMIND Grand Challenge that processes live Opus/\gls{rtp} audio into structured summaries and keywords in real time.
-Three design choices drove the reported numbers.
-Deduplicating overlapping \gls{asr} chunks before aggregation preserved transcript coherence and protected $B_i$.
-The keyword guarantee algorithm held $K_i$ at its maximum of \num{6} on every evaluated window and eliminated the worst-case keyword penalty entirely.
-Prompt engineering, thinking-mode suppression, and int4-\gls{awq} quantization brought average processing time down to \SI{0.79}{\second} ($L_i \approx 6.8$), while the cross-family judge panel scored $B_i = 24$--$25$ on every window.
-On current preliminary data (\num{3}~Rev16 episodes), the final source score for Qwen3.5-4B-AWQ at \SI{300}{\second} windows averages $40.14 \pm 0.85$ across episodes and runs, including the Janus bonus.
+The scoring formula couples quality and speed asymmetrically in which the latency gate withholds any $L_i$ reward until $B_i \ge 10$, and each irrelevant keyword costs $-2$, the value of a \SI{0.5}{\second} latency gain.
+Our pipeline answers this ordering, securing $B_i$ above the gate and protecting $K_i$ before reducing $\text{proc}_i$.
+
+The resulting eight-node Juturna pipeline summarizes live Opus/RTP audio in real time, averaging $40.14 \pm 0.85$ out of \num{45} across Rev16 episodes.
+Three mechanisms drive this result: ($i$) streaming chunk deduplication protects $B_i$, ($ii$) the keyword guarantee secures the format underlying $K_i$, and ($iii$) thinking-mode suppression with int4-\gls{awq} quantization holds $\text{proc}_i$ low for $L_i$.
+Our pipeline holds $B_i$ at $24$--$25$ and $K_i$ at its ceiling while keeping processing time near \SI{0.79}{\second}, leaving latency as its main remaining lever.
+
+Future work targets that latency margin with an SGLang backend, which would raise $L_i$ without affecting $B_i$.
+A second direction hardens robustness, replacing JSON parsing with structured-output decoding and adapting the prompt to topic transitions to curb the $B_i$ variance seen on dense windows.
 
 % =====================================================================
 
