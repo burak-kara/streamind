@@ -101,13 +101,13 @@ To transcribe the incoming audio, the pipeline builds on the Whisper model famil
 CTranslate2-based~\cite{ctranslate} reimplementations such as \texttt{faster-whisper}~\cite{faster-whisper} reduce inference latency relative to the reference implementation while preserving accuracy at \texttt{float16} precision on the GPU.
 
 The resulting transcripts are summarized by instruction-tuned \glspl{llm}, which can produce structured summaries and keyword lists in a single inference call~\cite{qwen3}.
-Several \gls{llm} inference backends target different serving trade-offs.
-vLLM~\cite{vllm} uses paged attention and continuous batching for efficient GPU throughput, exposing an in-process \texttt{LLM} class that eliminates the need for a separate inference daemon.
-SGLang~\cite{sglang} achieves around \SI{29}{\percent} higher throughput than vLLM via RadixAttention prefix caching and serves as a near drop-in replacement.
-TensorRT-LLM~\cite{tensor-rt-llm} maximizes raw throughput through per-model ahead-of-time compilation, though the compilation step limits flexibility during iterative model selection.
-llama.cpp~\cite{llamacpp} provides portable, CPU-friendly inference via GGUF quantization.
-Offline evaluation of \gls{llm}-generated summaries follows the \gls{llm}-as-judge paradigm~\cite{geval}, scoring outputs against source transcripts on multiple quality criteria.
-The judges drawn from distinct model families to reduce single-model bias.
+Several inference backends serve such models with different trade-offs.
+vLLM~\cite{vllm} pairs paged attention and continuous batching with an in-process \texttt{LLM} class that needs no separate inference daemon and installs from mature prebuilt wheels.
+SGLang~\cite{sglang} reports around \SI{29}{\percent} higher throughput through RadixAttention prefix caching, but that advantage targets high-concurrency, shared-prefix serving rather than a single live stream, and its serving stack carries heavier build dependencies.
+TensorRT-LLM~\cite{tensor-rt-llm} maximizes raw throughput through per-model ahead-of-time compilation, which impedes rapid model iteration, whereas llama.cpp~\cite{llamacpp} targets portable CPU inference via GGUF quantization rather than the GPU.
+For a single-stream, rapidly-iterated, offline-packaged challenge entry, vLLM's zero-compilation install and self-contained execution outweigh SGLang's throughput edge: on the diminishing-returns latency curve (\cref{fig:scoring}), even a full \SI{29}{\percent} latency translation lifts $L_i$ by under one point at sub-second processing.
+
+Offline evaluation of \gls{llm}-generated summaries follows the \gls{llm}-as-judge paradigm~\cite{geval}, scoring outputs against source transcripts on multiple quality criteria, with judges drawn from distinct model families to reduce single-model bias.
 
 The components above situate within a body of prior work on real-time \gls{asr} and meeting summarization that informs three aspects of our design.
 Streaming transcription approaches include Whisper adapted via a local agreement policy~\cite{machacek2023} and dialect-specific pipelines that couple \gls{asr} with direct summarization~\cite{saranya2025}.
@@ -149,17 +149,6 @@ Each chunk is transcribed by the \texttt{transcriber\_whisper} node running the 
 The distilled model along with the summarizer model fit within the \SI{24}{\giga\byte} development card with headroom for the \gls{kv} cache.
 Previous-text conditioning is disabled to prevent hallucination propagation across chunks, and \gls{vad} filtering via Silero~\cite{silero-vad} skips silence segments.
 
-% \begin{figure}[htb!]
-%     \centering
-%     \input{figures/chunk-overlap}
-%     \caption{Audio chunking and novel extraction. Five-second chunks slide by \SI{4}{\second}; the novel extractor isolates newly-spoken content each step, discarding the \SI{1}{\second} overlap with the previous chunk.}
-%     \label{fig:chunk-overlap}
-% \end{figure}
-
-% A comparison of \texttt{small.en}~\cite{small-en} (\SI{244}{\M} parameters, English-only) against \texttt{large-v3-turbo}~\cite{faster-whisper-large-v3-turbo-ct2} (\SI{809}{\M}, multilingual) is detailed in \cref{sec:evaluation}.
-% Both models yield comparable final scores within the variance of the cross-run \gls{llm}-as-a-judge panel.
-% We adopt \texttt{large-v3-turbo} for its broader multilingual vocabulary, providing coverage for non-English challenge audio.
-
 \subsection{Hallucination Filter}
 \label{sec:arch:halluc}
 
@@ -187,10 +176,9 @@ On pipeline shutdown, any partial window accumulated since the last flush is emi
 \subsection{Summarization}
 \label{sec:arch:summ}
 
-At warmup, the \texttt{summarizer\_vllm} node loads model weights from a local filesystem path through vLLM's in-process \texttt{LLM} class~\cite{vllm}, eliminating the need for an inference daemon or network dependency at runtime.
-vLLM's paged attention keeps $\text{proc}_i$ low across variable transcript lengths, which is a direct lever on $L_i$.
-vLLM's explicit \texttt{gpu\_memory\_utilization} parameter allows the summarizer to co-reside with the \gls{asr} model within the development GPU.
-A dummy generation call at startup triggers CUDA kernel compilation before the first live window, eliminating the cold-start latency spike that would otherwise inflate $\text{proc}_i$ on the first window.
+At warmup, the \texttt{summarizer\_vllm} node loads model weights from a local filesystem path through vLLM's in-process \texttt{LLM} class~\cite{vllm}, eliminating any inference daemon or runtime network dependency.
+Paged attention keeps $\text{proc}_i$ low across variable transcript lengths, a direct lever on $L_i$, and the explicit \texttt{gpu\_memory\_utilization} budget lets the summarizer co-reside with the \gls{asr} model on the development GPU.
+A dummy generation call at startup triggers CUDA kernel compilation before the first live window, removing the cold-start spike that would otherwise inflate $\text{proc}_i$.
 
 We utilize Qwen3.5-4B~\cite{qwen3,qwen3-5-4b-awq} quantized to \texttt{int4} via \gls{awq}~\cite{awq} at \num{4096} context length.
 \Gls{awq} quantization roughly quarters the weight footprint relative to \texttt{bfloat16}, reducing inference latency and preserving \gls{kv} cache headroom for \SI{300}{\second} windows.
@@ -219,27 +207,6 @@ As a last resort, conservative fallback terms are appended.
 The guarantee enforces format compliance where emitting three transcript-grounded keywords removes the empty-output and wrong-count failure modes.
 It does not floor the keyword score, however, which the challenge defines as $K_i = 2\,(N_\text{rel} - N_\text{irrel})$ over the three keywords; a summary whose fallback terms are all judged irrelevant can still reach $K_i = -6$.
 Since transcript-derived terms inherit the source topic, they score as relevant and keep $K_i$ high in practice, an effect analyzed across model families in \cref{sec:evaluation}.
-
-% \begin{algorithm}[htb!]
-%     \caption{\texttt{ensure\_three\_keywords}.}
-%     \label{alg:keywords}
-%     \begin{algorithmic}[1]
-%         \Require $\mathit{kw}$: keyword list from \gls{llm}, $T$: transcript text
-%         \Ensure exactly 3 keyword strings
-%         \State $\mathit{kw} \gets$ strip whitespace, remove empty entries
-%         \State $\mathit{kw} \gets \{w \in \mathit{kw} \mid w_{\downarrow} \notin \textsc{Banned}\}$
-%         \State $\mathit{kw} \gets \text{deduplicate}(\mathit{kw}, \text{case-insensitive})$
-%         \If{$|\mathit{kw}| < 3$}
-%         \State $\mathit{cand} \gets$ rank tokens in $T$ by freq$\!\downarrow$, capitalization$\!\downarrow$
-%         \State filter $\mathit{cand}$: remove stopwords $\cup$ \textsc{Banned}
-%         \State append $\mathit{cand}$ to $\mathit{kw}$ until $|\mathit{kw}| = 3$
-%         \EndIf
-%         \If{$|\mathit{kw}| < 3$}
-%         \State pad $\mathit{kw}$ with fallback terms to length 3
-%         \EndIf
-%         \State \Return $\mathit{kw}[{:}3]$
-%     \end{algorithmic}
-% \end{algorithm}
 
 \subsection{Result Transmission}
 \label{sec:arch:sink}
@@ -284,24 +251,20 @@ A \texttt{docker-compose.yml} file orchestrates Janus and the pipeline container
     \end{tabularx}
 \end{table}
 
-%  TODO: duplicated with sec:arch:summ. either move there or reduce repeated parts
-The summarizer uses vLLM~\cite{vllm} as its inference engine, chosen over three alternatives (\ie SGLang~\cite{sglang}, TensorRT-LLM~\cite{tensor-rt-llm}, and llama.cpp~\cite{llamacpp}) for three reasons due to the submission constraints.
-First, its in-process \texttt{LLM} class eliminates any daemon dependency, keeping the submission container self-contained.
-Second, paged attention holds $\text{proc}_i$ low under variable transcript lengths, the direct lever on $L_i$.
-Third, explicit VRAM budgeting via \texttt{gpu\_memory\_utilization} enables the int4-\gls{awq} summarizer to co-reside with the \gls{asr} model on the GPU.
+Because the summarizer runs vLLM in-process (\cref{sec:related,sec:arch:summ}) rather than as a separate service, the submission ships as a single self-contained container with no inference daemon to orchestrate.
 
 % =====================================================================
 \section{Evaluation}
 \label{sec:evaluation}
 
 We evaluate the pipeline against the composite challenge score $C_i = B_i + K_i + L_i$, isolating the contribution of each design decision rather than reporting a single aggregate.
-On the Rev16 podcast corpus, the production configuration (Qwen3.5-4B-AWQ summarizer with \texttt{large-v3-turbo} \gls{asr}) attains a final source score of $40.14 \pm 0.85$ out of \num{45}, holding $K_i$ at its ceiling on every evaluated window while keeping average processing time under \SI{1}{\second}.
+On the Rev16 podcast evaluation, the submission configuration (Qwen3.5-4B-AWQ summarizer with \texttt{large-v3-turbo} \gls{asr}) attains a final source score of $40.14 \pm 0.85$ out of \num{45}, holding $K_i$ at its ceiling on every evaluated window while keeping average processing time under \SI{1}{\second}.
 In this section, we detail the measurement methodology, compare \gls{asr} models, report per-window scoring, ablate individual components, and sweep summarizer families, before stating threats to validity.
 
 \subsection{Setup}
 \label{sec:eval:setup}
 
-Experiments cover three podcast episodes from the Rev16 dataset~\cite{rev16}; full evaluation on the held-out challenge audio is ongoing.
+Experiments cover the podcast episodes from the Rev16 dataset~\cite{rev16}.
 A \SI{300}{\second} window pipeline run produces five scored windows per episode.
 To absorb \gls{llm}-judge non-determinism, every model comparison repeats the pipeline at least twice per configuration.
 The numbers reported throughout are means across these runs, accompanied by standard deviations where more than one run is available.
@@ -321,7 +284,7 @@ Because the ground-truth text lacks timestamps, proportional character-based ali
 \Cref{tab:asr-comparison} compares two faster-whisper variants under the locked Qwen3.5-4B-AWQ summarizer, with two pipeline runs per configuration scored by the cross-family panel (same three episodes as \cref{sec:eval:sweep}).
 The two models differ by \num{0.7}~\gls{wer} percentage points (\num{0.252} vs.\ \num{0.259}) and \num{0.46}~points in $B_i + K_i$ (\num{29.30} vs.\ \num{29.76}), differences within cross-run judge noise.
 Despite \texttt{large-v3-turbo}'s marginally lower \gls{wer}, \texttt{small.en} achieves a slightly higher final score (\num{40.44} vs.\ \num{40.14}), confirming that transcription accuracy is not the scoring bottleneck at \SI{300}{\second} granularity.
-The production pipeline retains \texttt{large-v3-turbo} for robustness to non-English challenge audio.
+The submission pipeline retains \texttt{large-v3-turbo} for robustness to non-English challenge audio.
 
 \begin{table}[htb!]
     \centering
@@ -362,8 +325,8 @@ Cross-domain validation on two \gls{ietf}~125 sessions (Computing-Aware Traffic 
     \caption{Per-window scores, Qwen3.5-4B-AWQ~\cite{qwen3-5-4b-awq}, \SI{300}{\second} windows (ep.\ 27, 2-run mean, cross-family panel consensus). $t$ = avg processing time (s). Preliminary.}
     \label{tab:per-window}
     \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabularx}{0.98\columnwidth}{@{}r S[table-format=4.0] S[table-format=4.0] S[table-format=1.2] S[table-format=2.1] S[table-format=1.1] S[table-format=1.2] S[table-format=2.1]@{}}
+    \setlength{\tabcolsep}{6pt}
+    \begin{tabularx}{0.9\columnwidth}{@{}R S[table-format=4.0] S[table-format=4.0] S[table-format=1.2] S[table-format=2.1] S[table-format=1.1] S[table-format=1.2] S[table-format=2.1]@{}}
         \toprule
         \textbf{Win.} & \textbf{From} & \textbf{To} & {$t$ (s)} & {$B_i$} & {$K_i$} & {$L_i$} & {$C_i$} \\
         \midrule
@@ -402,7 +365,7 @@ Within the Qwen3.5 family, $B_i + K_i$ is nearly flat across all four variants; 
 \Gls{awq} reduces $\text{proc}_i$ by \SI{35}{\percent} at 4B and \SI{30}{\percent} at 9B, yielding source scores of $40.14 \pm 0.85$ (4B-AWQ), $38.97 \pm 0.91$ (4B-BF16), $37.15 \pm 1.53$ (9B-AWQ), and $36.12 \pm 1.42$ (9B-BF16).
 Gemma-3-12B-IT-AWQ~\cite{gemma3-12b-awq} scores $35.63 \pm 1.06$ despite having $3\times$ more parameters than 4B-AWQ; its $B_i + K_i = 28.1$ is only marginally below the Qwen mean of $29.2$, but $\text{proc}_i \approx \SI{2.07}{\second}$ ($L_i = 3.55$) erases $\approx\num{3}$ score points relative to 4B-AWQ, confirming that beyond the quality gate, latency is the binding lever.
 Llama-3.1-8B-Instruct~\cite{llama3-8b} scores $32.31 \pm 4.59$; episode-to-episode $\overline{B_i}$ swings from $\approx 13$ to $\approx 24$, reflecting content-driven instability that the keyword guarantee cannot resolve.
-Qwen3.5-4B-AWQ is selected as the production summarizer.
+Qwen3.5-4B-AWQ is selected as the submission summarizer.
 
 \begin{figure}[htb!]
     \centering
@@ -435,7 +398,7 @@ The resulting eight-node Juturna pipeline summarizes live Opus/RTP audio in real
 Three mechanisms drive this result: ($i$) streaming chunk deduplication protects $B_i$, ($ii$) the keyword guarantee secures the format underlying $K_i$, and ($iii$) thinking-mode suppression with int4-\gls{awq} quantization holds $\text{proc}_i$ low for $L_i$.
 Our pipeline holds $B_i$ at $24$--$25$ and $K_i$ at its ceiling while keeping processing time near \SI{0.79}{\second}, leaving latency as its main remaining lever.
 
-Future work targets that latency margin with an SGLang backend, which would raise $L_i$ without affecting $B_i$.
+If concurrency grows or the latency budget tightens, an SGLang backend could reclaim part of that margin without affecting $B_i$.
 A second direction hardens robustness, replacing JSON parsing with structured-output decoding and adapting the prompt to topic transitions to curb the $B_i$ variance seen on dense windows.
 
 % =====================================================================
