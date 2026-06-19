@@ -10,8 +10,8 @@
     \begin{axis}[
             width=0.8\columnwidth,
             height=4.6cm,
-            xlabel={\texttt{proc\_time} (s)},
-            ylabel={$L$},
+            xlabel={$\text{proc}_i$ (s)},
+            ylabel={$L_i$},
             xlabel style={font=\footnotesize, text=labelColor},
             ylabel style={font=\footnotesize, text=labelColor},
             xticklabel style={font=\scriptsize, text=labelColor},
@@ -76,6 +76,6 @@
             inner sep=3pt,
             align=center
         ] at (rel axis cs:0.98, 0.65)
-        {Gate: \\$B_i < 10$ $\Rightarrow L_i = 0$};
+        {$L_i = 10 \, e^{-0.5 \cdot \text{proc}_i}$};
     \end{axis}
 \end{tikzpicture}

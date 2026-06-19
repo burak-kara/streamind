@@ -6,7 +6,7 @@
 \def\nodeW{18mm}
 \def\nodeH{8mm}
 \def\nodeGap{16mm}
-\def\rowSep{10mm}
+\def\rowSep{6mm}
 
 \begin{tikzpicture}[
     node distance=\nodeGap,
@@ -32,7 +32,7 @@
         box, draw=colorDarkGray, dashed, fill=colorGray,
         font=\scriptsize\itshape, text=colorDarkGray
     },
-    arrow/.style={-{Latex[length=1.6mm]}, line1, semithick},
+    arrow/.style={-{Latex[length=1.6mm]}, colorDarkGray!80, semithick},
     edgelbl/.style={
         font=\tiny\itshape, text=labelColor,
         midway, above=0.4mm, inner sep=1pt
@@ -88,7 +88,7 @@
         {1\,s overlap, 4\,s advance};
 
     % --- Legend below endpoint, chained relatively, tiles match node styles.
-    \node[legend-source, below=4mm of endpoint.south west, anchor=north west]
+    \node[legend-source, below=3mm of endpoint.south west, anchor=north west]
         (lgSrc) {};
     \node[anchor=west, right=1mm of lgSrc, font=\tiny, text=labelColor]
         (lgSrcL) {source};

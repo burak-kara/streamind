@@ -130,7 +130,7 @@ Switch to reviewer mode: evaluate as a senior IEEE MMSP reviewer. Provide Major 
 ```latex
 @misc{label,
  title        = {TTitle of the resource},
-year         = {year},
+ year         = {year},
  author       = {Author Name(s)},
  note         = {Accessed on <date>},
  howpublished = {[Online] Available: \url{<URL>}}
