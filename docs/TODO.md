@@ -7,7 +7,7 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
 - [x] **M0 — Cleanup.** Removed MLX/Ollama nodes, configs, prompts, tests; dropped `ollama`/`mlx-lm` deps; added `cuda` extra; rewrote CLAUDE.md + skills + docs to CUDA-only path.
 - [x] **M1 — Base CUDA pipeline.** vLLM in-process summarizer, `tools/fetch_models.sh`, profiles, `run_pipeline.sh`, `eval_quality.py`, unit tests (mocked vLLM). Smoke-tested on uni-lab. Output keys `{from, to, summary, keywords[3], proc_time}` verified. Aggregator inactivity watchdog fixed end-of-audio flush. Vision-encoder VRAM waste fixed via `limit_mm_per_prompt`.
 - [x] **M2 — Prompt + sampling tune.** ASR on GPU float16; beam_size/no_speech_threshold exposed. Prompt locked at 2–3 sentences + mixed topic/entity keywords (v2). Hallucination filter expanded. Best multi-judge score: `qwen3.5-4b` 38.02–38.33.
-- [ ] **M3 — Submission packaging (DEFERRED).** Rewrite `Dockerfile` (CUDA base, weights baked via `tools/fetch_models.sh`), populate `destination_endpoint` (currently `""`), end-to-end container smoke, finalize `docs/APPROACH.md`, build submission bundle. **Model locked: `qwen3.5-4b-awq` (profile `vllm-qwen3.5-4b-awq.json`).** M3 unblocked.
+- [x] **M3 — Submission packaging (DONE 2026-06-20).** Dockerfile (CUDA base, weights baked via `tools/fetch_models.sh`), `destination_endpoint` portable via `DESTINATION_ENDPOINT` env, end-to-end container smoke passed, `docs/APPROACH.md` finalized, submission bundle assembled. **Model locked: `qwen3.5-4b-awq` (profile `vllm-qwen3.5-4b-awq.json`).**
   - [x] faster-whisper large-v3-turbo baked into Docker image; transcriber auto-resolves `./models/faster-whisper-large-v3-turbo`.
 - [~] **M4 — Finetune (abandoned for submission).** QLoRA retargeted to vLLM; three distillation passes all scored below base on multi-judge panel. Decision: dropped. FT profiles/results kept for record only.
 
@@ -21,8 +21,8 @@ Model locked: **`qwen3.5-4b-awq`** (profile `vllm-qwen3.5-4b-awq.json`, dir `./m
 - [x] **M3: Dockerfile** — bakes `cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4` → `./models/qwen3.5-4b-awq` + faster-whisper; `huggingface-hub` moved to base deps so the lean build venv can fetch; `--auto` launch for detached containers; `.dockerignore`.
 - [x] **`destination_endpoint` portable.** `result_transmitter` falls back to `DESTINATION_ENDPOINT` env var (default `""`, local results always written); compose passes it through.
 - [x] **Container build verified on uni-lab.** Image dated 2026-06-02; `--network none` run confirms AWQ (5.2 G) + whisper (1.6 G) weights baked, zero runtime download.
-- [ ] **Runtime smoke (user-run on uni-lab):** `WINDOW_SECONDS=30 docker compose --env-file /dev/null up` + `send_audio.py` via Janus → ≥1 `window_*.json` with exactly `{from,to,summary,keywords[3],proc_time}`. Watch Janus→pipeline RTP routing + VRAM < 24 GB.
-- [ ] **Submission bundle** — assemble after runtime smoke passes.
+- [x] **Runtime smoke passed (uni-lab, 2026-06-20):** real Docker image, `WINDOW_SECONDS=30` + `send_audio.py` via Janus → 4 `window_*.json` with exact `{from,to,summary,keywords[3],proc_time}` schema. Janus→`audio_rtp` RTP flow confirmed, fit in 24 GB (no OOM). Live POST verified: `DESTINATION_ENDPOINT=http://host.docker.internal:9099/submit` → container logged `POST -> 200` ×4, echo server received all 4.
+- [x] **Submission bundle** — `pipelines/config-submission.json` (assembled 8-node config) + `submission/sample_outputs/` (300s windows) + Dockerfile + `docs/APPROACH.md` + plugin code. 5/5 deliverables present.
 
 ### Future work (post-submission)
 
