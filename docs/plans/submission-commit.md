@@ -23,6 +23,10 @@ short approach markdown. All five are covered below.
 
 ## Manifest — INCLUDE
 
+> **Superseded for the final commit** — see [Update (2026-06-25)](#update-2026-06-25--single-config-submission)
+> at the bottom. This list reflects `d0c23bd` (51 files); the shipped submission
+> is `4733d02` (45 files, single config, approach folded into README).
+
 Build / runtime infra:
 - `Dockerfile`, `docker-compose.yml`, `.dockerignore`
 - `docker/entrypoint-pipeline.sh`
@@ -186,3 +190,40 @@ and pushed it to private `origin` as a conduit. **User** relocked on uni-lab
   to the user.
 - `main` keeps the full dev/`finetune` extras; the trim lives only on the
   submission branch.
+
+## Update (2026-06-25) — single-config submission
+
+After `d0c23bd`, the submission was simplified so the container launches **one
+pre-assembled config directly**. The multi-model assembly step (base + profile
+→ `./tmp/config.json`) exists only to A/B summarizers during dev; a locked
+single-model submission does not need it. Deltas since `d0c23bd`:
+
+- **Entry point** `docker/entrypoint-pipeline.sh` rewritten self-contained: sets
+  the two CUDA-startup envs (`VLLM_WORKER_MULTIPROC_METHOD=spawn` + cuBLAS
+  `LD_LIBRARY_PATH`) inline, then `exec`s
+  `juturna launch --config pipelines/config-submission.json --auto`. No runtime
+  assembly.
+- **Dropped 5 now-dev-only files:** `tools/{assemble_config.py, run_pipeline.sh,
+  lib/pipeline_prep.sh}`, `pipelines/config-base.json`,
+  `pipelines/summarizer/vllm-qwen3.5-4b-awq.json`. `pipelines/config-submission.json`
+  is the sole config (deliverable §2).
+- **Approach folded into `README.md`** (`## Approach` section); `docs/` removed
+  entirely. Deliverable §5 satisfied by README.
+- **README run section** reframed from "feed a local audio file" to "feed a
+  remote audio source" — documents the Janus VideoRoom (room 1234) →
+  `rtp_forward` (`audio_pt 97`) → `audio_rtp` `udp/8888` ingress contract.
+- **Dockerfile/compose** dropped the dead `SUMMARIZER_PROFILE` / `WINDOW_SECONDS`
+  env (window is fixed in the config); compose keeps `DESTINATION_ENDPOINT`.
+- `pyproject.toml` / `uv.lock` unchanged from `d0c23bd` → **no relock**.
+
+Manifest is now **45 files** (was 51). SHA chain (all rootless, amended in a Mac
+worktree off `d0c23bd`): `d67caa8` (entrypoint + drop 5) → `d59727c`
+(approach→README, drop `docs/`) → `0dd007e` (remote-audio README) →
+**`4733d02`** (pyproject comment). Scope: **submission branch only** — `main` is
+untouched and keeps `run_pipeline.sh` + `assemble_config.py` for host dev
+bakeoffs.
+
+Re-verified on `4733d02`: rootless, 45 files, all 5 deliverables, output schema
+exact, zero dev leakage; the lean entrypoint started cleanly on uni-lab (image
+build is unchanged by the doc edits). Remaining: `git push -f origin submission`,
+then publish to the public repo.
