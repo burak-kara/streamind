@@ -8,7 +8,12 @@ build, run, and be graded. No results, eval/finetune scripts, alternate models,
 datasets, or dev docs.
 
 Decisions (this session): **runnable demo** (ship `send_audio.py` so a friend
-can feed audio) + **fresh README only** (no CHALLENGE/RUNBOOK).
+can feed audio) + **fresh README only** (no CHALLENGE/RUNBOOK) + **trim deps**
+(submission-only `client` extra, relock on uni-lab).
+
+> **Status: executed.** See the [Outcome](#outcome) section at the bottom for
+> the actual commit (`d0c23bd`, rootless, 51 files, verified). The mechanism and
+> deps sections below describe what was actually done.
 
 ## Challenge deliverable contract (`docs/CHALLENGE.md` §"Submission output")
 
@@ -22,7 +27,8 @@ Build / runtime infra:
 - `Dockerfile`, `docker-compose.yml`, `.dockerignore`
 - `docker/entrypoint-pipeline.sh`
 - `docker/janus/Dockerfile` + `docker/janus/conf/*.jcfg` (3 files) — Janus = +4 bonus
-- `pyproject.toml`, `uv.lock` — **unchanged** (proven; editing forces a uni-lab relock)
+- `pyproject.toml` (extras **trimmed** to a single `client = [aiortc]` group) + `uv.lock`
+  (**relocked on uni-lab** to match — see Outcome)
 
 Custom components (only nodes the locked pipeline loads):
 - `plugins/nodes/proc/_audio_chunker/`
@@ -48,7 +54,7 @@ Deliverables / docs:
 - `docs/APPROACH.md` (required §5; ships near-as-is)
 - `submission/sample_outputs/window_0..4.json` (required §3 — progressive summary objects)
 - **NEW** `README.md` (build/run/output quickstart, written fresh)
-- **NEW** `.gitignore` (minimal: `models/ results/ tmp/ __pycache__/ .venv/ .DS_Store`)
+- **NEW** `.gitignore` (minimal: `models/ results/ tmp/ __pycache__/ *.py[cod] .venv/ .DS_Store`)
 
 ## Manifest — EXCLUDE (development work)
 
@@ -68,74 +74,115 @@ Deliverables / docs:
   gitignored). The `Dockerfile` fetches + bakes them at build (`fetch_models.sh`
   → Qwen3.5-4B-AWQ; `snapshot_download` → faster-whisper). Build needs network
   **once**; runtime is offline (`HF_HUB_OFFLINE=1`). README states this plainly.
-- `send_audio.py` host deps (`aiortc`, `httpx`) already live in the `dev` extra.
-  README documents `uv sync --extra dev` for the host that injects audio. No
-  pyproject/lock edits → no relock.
+- `send_audio.py` host deps: `httpx` is already a **base** dependency; `aiortc`
+  is the only extra needed. `pyproject` extras were trimmed from `dev` +
+  `finetune` (pytest/torch/transformers/ollama/peft/…) down to a single
+  `client = [aiortc]` group — the dev/finetune names were the last "development
+  work" leaking into the public tree. README documents `uv sync --extra client`
+  for the host that injects audio. Trimming pyproject made `uv.lock` stale, so it
+  was **relocked on uni-lab** (`uv lock` can't resolve vLLM on Apple Silicon).
+  The trim is **submission-only** — `main` keeps the full `dev`/`finetune` extras.
 
-## Commit mechanism — staging dir + fresh `git init` (primary)
+## Commit mechanism — rootless orphan branch (as executed)
 
-Cleanest "single commit, no shared history" — physically isolated, fully
-auditable before push.
+A staging-dir + `git init` was the original plan; once history was collapsed to
+a single `main`, a **rootless orphan branch** was used instead — git-native,
+in-repo, auditable via `git ls-files`, and it pushes to the new public repo's
+`main` sending only that one parent-less commit's objects (no dev history).
 
 ```bash
-SRC=$(pwd)
-OUT=./tmp/streamind-submission
-rm -rf "$OUT" && mkdir -p "$OUT"
+# 1. orphan branch off the clean working tree
+git checkout --orphan submission
+git rm -r --cached -q .            # empty index; working tree intact on disk
 
-# copy manifest preserving structure (rsync -R anchors at SRC root)
-cd "$SRC"
-rsync -R \
-  Dockerfile docker-compose.yml .dockerignore \
-  docker/entrypoint-pipeline.sh docker/janus/Dockerfile docker/janus/conf/*.jcfg \
-  pyproject.toml uv.lock \
-  pipelines/config-base.json pipelines/config-submission.json \
-  pipelines/summarizer/vllm-qwen3.5-4b-awq.json \
-  plugins/nodes/proc/_audio_chunker plugins/nodes/proc/_transcriber_whisper \
-  plugins/nodes/proc/_hallucination_filter plugins/nodes/proc/_novel_extractor \
-  plugins/nodes/proc/_window_aggregator plugins/nodes/proc/_summarizer_vllm \
-  plugins/nodes/proc/_summarizer_common plugins/nodes/sink/_result_transmitter \
-  tools/fetch_models.sh tools/assemble_config.py tools/run_pipeline.sh \
-  tools/lib/pipeline_prep.sh tools/send_audio.py \
-  docs/APPROACH.md submission/sample_outputs \
-  "$OUT/"
+# 2. write the two new files
+#    - .gitignore  (minimal, overwrites the dev one in this branch only)
+#    - README.md   (fresh build/run/output quickstart)
 
-# drop the stale prompt + any __pycache__
-rm -f "$OUT/plugins/nodes/proc/_summarizer_vllm/summarize_prompt-v1.txt"
-find "$OUT" -name __pycache__ -type d -prune -exec rm -rf {} +
+# 3. stage exactly the manifest, then drop the stale prompt
+git add Dockerfile docker-compose.yml .dockerignore README.md .gitignore \
+        docker/entrypoint-pipeline.sh docker/janus \
+        pyproject.toml uv.lock \
+        pipelines/config-base.json pipelines/config-submission.json \
+        pipelines/summarizer/vllm-qwen3.5-4b-awq.json \
+        plugins/nodes/proc/_audio_chunker plugins/nodes/proc/_transcriber_whisper \
+        plugins/nodes/proc/_hallucination_filter plugins/nodes/proc/_novel_extractor \
+        plugins/nodes/proc/_window_aggregator plugins/nodes/proc/_summarizer_vllm \
+        plugins/nodes/proc/_summarizer_common plugins/nodes/sink/_result_transmitter \
+        tools/fetch_models.sh tools/assemble_config.py tools/run_pipeline.sh \
+        tools/lib/pipeline_prep.sh tools/send_audio.py \
+        docs/APPROACH.md submission/sample_outputs
+git rm --cached -q plugins/nodes/proc/_summarizer_vllm/summarize_prompt-v1.txt
 
-# add fresh README.md + .gitignore (generated, see below)
-# ... write files ...
-
-cd "$OUT"
-git init -q && git add -A
+# 4. single rootless commit
 git commit -m "STREAMIND: real-time meeting-intelligence pipeline (challenge submission)"
-git branch -M main
-# user supplies the new public remote and pushes:
-git remote add origin <NEW_PUBLIC_REPO_URL>
-git push -u origin main
+
+# 5. restore the dev tree (untracked dev files block a plain switch; -f is safe —
+#    they're byte-identical to main and get restored from main)
+git checkout -f main
 ```
 
-Acceptance gate before push:
-- `git -C ./tmp/streamind-submission ls-files` == manifest exactly (no
+The trimmed `.gitignore` (`__pycache__/`, `models/`, etc.) must exist **before**
+`git add` so it auto-excludes caches/weights from the staged dirs.
+
+### Conduit + relock + public push (on uni-lab)
+
+The trimmed `pyproject` needs a matching `uv.lock`, and `uv lock` can't resolve
+vLLM on Apple Silicon → relock on uni-lab. The branch reaches uni-lab via the
+private origin (never rsync):
+
+```bash
+# from the Mac: push the orphan branch as a conduit
+git push -u origin submission
+
+# on uni-lab:
+git fetch origin
+git checkout -B submission origin/submission
+uv lock                              # regenerate uv.lock for the trimmed pyproject
+git add uv.lock
+git commit --amend --no-edit         # keep ONE rootless commit (new SHA)
+uv sync --no-install-project         # sanity: lean build resolves
+git remote add public <NEW_PUBLIC_REPO_URL>
+git push public submission:main
+```
+
+Acceptance gate (run, all passed):
+
+- `git ls-tree -r --name-only <commit>` == manifest exactly (51 files; no
   results/datasets/tests/eval/finetune/judge/alt-profiles/dev-docs).
-- `rg -i 'ollama|mlx|uni-lab|rsync|judge|finetune' ./tmp/streamind-submission`
-  → only intended mentions (none in code paths).
-- Single commit, `main` branch, no parents.
-- **(Optional, on uni-lab)** clean-room build from the staging dir:
-  `docker compose build` succeeds; `docker compose up` + `send_audio.py` →
-  ≥1 valid `window_*.json` with exact `{from,to,summary,keywords[3],proc_time}`.
+- Rootless (no parent), single commit.
+- All 5 `submission/sample_outputs/window_*.json` have exact
+  `{from,to,summary,keywords[3],proc_time}`.
+- `uv.lock` relock proof: `ollama/peft/trl/bitsandbytes/accelerate/jiwer/pytest`
+  = 0; `aiortc`/`vllm` present.
+- uni-lab `docker compose build` + run → valid windows.
 
 ## Division of labor
 
-I prepare the staging dir + fresh README/.gitignore + the local single commit.
-**User** runs the clean-room build verification on uni-lab (per workflow) and
-performs `git remote add` + `git push` to the new public repo (their creds).
+I built the orphan branch + fresh README/.gitignore + the local rootless commit,
+and pushed it to private `origin` as a conduit. **User** relocked on uni-lab
+(`uv lock` + `--amend`), confirmed the build, and performs the final
+`git remote add public` + `git push public submission:main` (their creds, new repo).
 
 ## Risk
 
 - **Dropping a needed file** → build/run breaks. Mitigation: manifest derived
-  from the actual `COPY`/`source`/`importlib` chain; acceptance gate runs a
-  clean-room build before the repo goes public.
-- **`pyproject` extras leak dev intent** (`dev`, `finetune` list pytest/ollama/etc.).
-  Kept to avoid a relock; they install nothing in the image. Optional follow-up:
-  trim to base + a `client` extra and relock on uni-lab.
+  from the actual `COPY`/`source`/`importlib` chain; acceptance gate + the
+  uni-lab clean-room build ran before the repo goes public. (Resolved — verified.)
+- **Orphan-branch working-tree clutter:** main's tracked files become untracked
+  on the orphan branch; `git checkout -f main` restores them safely (identical
+  content). Handled.
+
+## Outcome
+
+- **Commit:** `36435d1` (Mac, rootless, 51 files, trimmed pyproject + stale lock)
+  → relocked + `--amend` on uni-lab → **`d0c23bd`** (rootless, 51 files,
+  consistent `uv.lock`). Build passed on uni-lab.
+- **Verified** (`d0c23bd`): all 5 challenge deliverables present; output schema
+  exact (3 keywords; windows 0→300→…→1305 s); zero excluded dev artifacts; relock
+  confirmed clean.
+- **Pushed to private `origin/submission`** (conduit). The two remaining steps —
+  add the new public remote and `git push public submission:main` — are deferred
+  to the user.
+- `main` keeps the full dev/`finetune` extras; the trim lives only on the
+  submission branch.
