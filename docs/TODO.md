@@ -11,7 +11,11 @@ Active plan: [`docs/plans/cuda-native-pipeline-base-first.md`](plans/cuda-native
   - [x] faster-whisper large-v3-turbo baked into Docker image; transcriber auto-resolves `./models/faster-whisper-large-v3-turbo`.
 - [~] **M4 — Finetune (abandoned for submission).** QLoRA retargeted to vLLM; three distillation passes all scored below base on multi-judge panel. Decision: dropped. FT profiles/results kept for record only.
 
-## Next Steps (active — M3 packaging)
+## M3 Packaging — Completed Details
+
+All items below verified against the tree on 2026-06-25. Pre-submission code
+cleanup ([`plans/pre-submission-cleanup.md`](plans/pre-submission-cleanup.md))
+is also fully landed.
 
 Model locked: **`qwen3.5-4b-awq`** (profile `vllm-qwen3.5-4b-awq.json`, dir `./models/qwen3.5-4b-awq/`).
 
