@@ -143,7 +143,6 @@ Janus~\cite{janus} handles the challenge WebRTC session and forwards mono Opus/\
 \subsection{Incremental ASR}
 \label{sec:arch:asr}
 
-%TOOD: wait then our latency is 5 seconds + LLM latency????
 The \texttt{audio\_chunker} node buffers the continuous audio stream into \SI{5}{\second} chunks with \SI{1}{\second} overlap, yielding a \SI{4}{\second} advance per step.
 Each chunk is transcribed by the \texttt{transcriber\_whisper} node running the \gls{asr} model faster-whisper-large-v3-turbo~\cite{faster-whisper-large-v3-turbo-ct2} at \texttt{float16} precision on the GPU, occupying around \SI{2}{\giga\byte} of VRAM.
 The distilled model and the summarizer model together fit within the \SI{24}{\giga\byte} development card with headroom for the \gls{kv} cache.
@@ -210,8 +209,6 @@ Since transcript-derived terms inherit the source topic, they score as relevant 
 
 \subsection{Result Transmission}
 \label{sec:arch:sink}
-
-% TODO: complete on the code. Mongo?
 
 The \texttt{result\_transmitter} sink node maps internal keys to the challenge contract (\texttt{from}, \texttt{to}, \texttt{summary}, \texttt{keywords}, \texttt{proc\_time}) and saves each window as \texttt{window\_i.json}.
 When \texttt{destination\_endpoint} is configured, results are also posted via HTTP.
@@ -354,12 +351,12 @@ In exploratory shorter-window runs, topic transitions produced $B_i$ drops of \n
 \subsection{Ablations}
 \label{sec:eval:ablation}
 
-The hallucination filter, novel extractor, and keyword guarantee (\cref{sec:arch:halluc,sec:arch:novel,sec:arch:keywords}) each defend a specific scoring term; we assess their effect qualitatively here.
+The hallucination filter, novel extractor, and keyword guarantee (\cref{sec:arch:halluc,sec:arch:novel,sec:arch:keywords}) are always-on guards, so we characterize each by the failure mode it prevents rather than by controlled toggle-off runs, which we leave to future work.
 The keyword guarantee is the most consequential.
-For Qwen3.5-4B-AWQ, it holds $K_i$ at the maximum of \num{6.0} on every evaluated window, and the enforced format compliance removes the empty-output failure mode outright.
+For Qwen3.5-4B-AWQ it holds $K_i$ at its maximum of \num{6.0} on all \num{5} windows of \cref{tab:per-window}, so no window forfeits keyword credit to a format error.
 It sets no hard floor, however.
 Under the weaker Llama-3.1-8B summarizer, two windows of episode~\num{11} still scored $K_i = -6$ under the Gemma judge, where transcript-derived fallbacks inherited the low-relevance signal of poorly summarized content.
-Upstream, the hallucination filter and novel extractor protect $B_i$ by suppressing the \num{22} known artifact phrases and the $\approx\SI{20}{\percent}$ overlap redundancy before either can distort the summary.
+Upstream, the novel extractor removes the $\approx\SI{20}{\percent}$ per-window redundancy from the \SI{1}{\second} overlap on each \SI{5}{\second} chunk, and the hallucination filter strips \num{22} known artifact phrases, before either distortion can depress $B_i$.
 
 \subsection{Model-Size and Cross-Family Sweep}
 \label{sec:eval:sweep}
@@ -387,6 +384,8 @@ Repeated runs on identical inputs produce $C_i$ values that differ by \num{0.1}-
 Averaging across runs reduces judge noise but not content-driven variance.
 Evaluation covers Rev16 podcast episodes and \gls{ietf}~125 technical sessions (\cref{sec:eval:scoring}); the held-out challenge audio may differ in speaker count, topic complexity, and acoustic conditions; therefore, its ranking is not guaranteed to match.
 \gls{wer} measurement relies on proportional character alignment against untimestamped ground truth, which introduces alignment noise on top of the underlying transcription errors.
+The hallucination filter matches a fixed list of \num{22} patterns, so novel or semantically phrased hallucinations outside it pass through unfiltered.
+Likewise, the novel extractor aligns overlaps by exact suffix--prefix matching with a \texttt{SequenceMatcher} fallback, which can misalign under heavy overlap, noise, or \gls{asr} disfluencies and drop or duplicate boundary words.
 
 % =====================================================================
 \section{Discussion and Conclusion}

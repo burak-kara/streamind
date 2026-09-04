@@ -1,0 +1,56 @@
+Reviewer #1
+Questions
+1. Originality / Novelty
+Good
+2. Technical Quality
+Excellent
+3. Clarity of Presentation
+Excellent
+4. Relevance to Conference Topics
+Excellent
+5. Significance of Results
+Excellent
+6. Paper Summary. In a few sentences, describe the key ideas, results, findings, and significance as claimed by the paper’s authors.
+The paper proposes an eight-node Juturna pipeline for real-time live-audio summarization and keyword extraction in the STREAMIND Grand Challenge. The system combines Janus-based audio ingestion, incremental ASR with faster-whisper, overlap removal, and Qwen3.5-4B-AWQ summarization under vLLM, with additional logic to guarantee the required three keywords per window. The authors report strong challenge-oriented performance, with a cross-episode mean source score of 40.14 ± 0.85 out of 45 on Rev16 podcasts, and argue that the main benefits come from careful streaming deduplication, keyword enforcement, and latency-conscious prompt design.
+7. Strengths. Consider, among others, the significance of critical ideas, validation, writing quality, and data contribution. Explain clearly why these aspects of the paper are valuable.
+notable strength of the paper is the clarity with which the system is designed around the challenge objective. Each pipeline component is linked to a specific scoring term, which makes the overall architecture easy to understand and shows thoughtful engineering. The paper also provides useful implementation details, per-window results, and ablation discussion, which together make the work reasonably reproducible and informative for practitioners.
+
+Moreover, achieving an average processing latency of 0.76s on a 300s context window while keeping the quality score near the maximum (24.4/25) is an impressive technical result. Also, evaluating via a cross-family panel of three distinct LLM judges such as Mistral, Phi-4, and Gemma, demonstrates a rigorous
+approach to mitigating single-model evaluator bias.
+
+As closing note, the writing is clear, structured, and focused. The inclusion of per-window scoring breakdowns provides high transparency into system stability and performance across a continuous stream.
+8. Weaknesses. Clearly explain why these are weak aspects of the paper, e.g., why a specific prior work has already demonstrated the key contributions, why the experiments are insufficient to validate the claims, etc.
+The main limitation I found here is that the experimental validation is also somewhat narrow, although still useful for the target task. The authors rely on offline judge models as proxies for the hidden evaluation process, and they acknowledge some variance across repeated runs. In addition, several ablations
+are discussed quite vaguely rather than through a very detailed quantitative breakdown, which makes it slightly tricky to isolate the exact contribution of every component. Still, the evaluation is coherent and provides good evidence that the system works well in the intended scenario.
+
+As last point, relying on 22 exact regex-style patterns to catch Whisper hallucinations is a rigid heuristic. While it solves the immediate problem, it leaves the pipeline vulnerable to novel or semantic hallucinations that fall outside of this hardcoded list. Similarly, the novel chunk extraction relies on exact suffix-prefix word matching with a basic SequenceMatcher fallback. In scenarios with heavy overlapping speech, background noise, or significant ASR disfluencies across the 1-second overlap, this logic may fail to align the text properly, resulting in either dropped words or duplicated phrases passing into the aggregator.
+10. Justification. Be specific: What are the most critical factors in your rating?
+My rating is based mainly on the paper strong system integration, good empirical performance, and clear and robust implementation. The authors built a resilient, asynchronous graph using the Juturna framework that absorbs backpressure,
+handles overlapping context windows efficiently, and mathematically optimizes for the challenge's specific latency-to-quality threshold.
+
+
+##########################################################################################################################################################
+
+Reviewer #2
+Questions
+1. Originality / Novelty
+Good
+2. Technical Quality
+Excellent
+3. Clarity of Presentation
+Excellent
+4. Relevance to Conference Topics
+Excellent
+5. Significance of Results
+Good
+6. Paper Summary. In a few sentences, describe the key ideas, results, findings, and significance as claimed by the paper’s authors.
+This paper presents an end-to-end real-time audio summarization pipeline to attack the STREAMIND grand challenge, built around Janus ingestion, faster-whisper ASR, and a hosted, LLM-based summarizer with a 300s rolling window. The core system ideas are overlap deduplication, keyword-guarantee post-processing, and prompt/decoding choices to keep processing time low while preserving score-relevant quality.
+7. Strengths. Consider, among others, the significance of critical ideas, validation, writing quality, and data contribution. Explain clearly why these aspects of the paper are valuable.
+- Strong systems focus: the authors map each design choice directly to the challenge scoring terms, which makes the method easy to understand and clearly justified for the grand-challenge setting.
+- Good engineering practices: the implemented nodes and pipeline are well engineered and practical, with explicit handling of warmup, VRAM limits, fallback behavior, JSON/HTTP result delivery, and open-source release, which strengthens reproducibility and deployment value.
+- Evaluation robustness: the evaluation is thorough. It reports repeated runs, cross-family judge aggregation, ASR comparisons, model-family sweeps, per-window scores, and a threats-to-validity section, which together provide more evidence than a single headline score.
+- Final scoring: reported performance is strong and consistent, the submission reaches a mean source score of 40.14 ± 0.85 out of 45 on Rev16, while holding keyword score at the maximum and keeping latency under one second on average.
+8. Weaknesses. Clearly explain why these are weak aspects of the paper, e.g., why a specific prior work has already demonstrated the key contributions, why the experiments are insufficient to validate the claims, etc.
+- Heuristic validation: chunk deduplicatino and keyword guarantee are sensible engineering fixes, but the paper does not provide strong isolated evidence that these are optimal or even necessary beyond qualitative claims and a few supporting numbers. Specifically, the ablation discussion is mostly qualitative, so it is hard to tell how much each component independently contributes to final performance.
+10. Justification. Be specific: What are the most critical factors in your rating?
+I ultimately suggest this paper for acceptance. The authors did a solid implementation and exploration work, and the outcome is a solid grand-challenge systems submission with a clearly implemented pipeline, strong end-to-end performance, and sensible engineering choices that address the actual constraints of streaming summarization. Its main strengths are practicality, clear alignment with the scoring function, and a fairly complete evaluation package for a challenge paper.
