@@ -14,8 +14,6 @@ services:
     depends_on:
       - janus
     environment:
-      SUMMARIZER_PROFILE: "${SUMMARIZER_PROFILE:-vllm-qwen3.5-4b-awq}"
-      WINDOW_SECONDS: "${WINDOW_SECONDS:-300}"
       # Evaluator injects the challenge POST target at runtime; empty = local-only.
       DESTINATION_ENDPOINT: "${DESTINATION_ENDPOINT:-}"
     ports:

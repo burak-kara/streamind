@@ -59,3 +59,5 @@ tools/finetune/data/*
 tools/finetune/runs/
 tools/finetune/llama.cpp/
 tools/finetune/.cache/
+
+streamind/

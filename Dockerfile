@@ -39,8 +39,8 @@ RUN chmod +x tools/fetch_models.sh \
     && ./tools/fetch_models.sh cyankiwi/Qwen3.5-4B-AWQ-BF16-INT4 qwen3.5-4b-awq
 
 # Pre-populate faster-whisper model (submission container has no network).
-# faster-whisper accepts a local dir path as model_name; config-base.json
-# points to this path inside the container.
+# faster-whisper auto-resolves the `large-v3-turbo` model_name in
+# config-submission.json to this local dir inside the container.
 RUN uv run python -c "\
 from huggingface_hub import snapshot_download; \
 snapshot_download('deepdml/faster-whisper-large-v3-turbo-ct2', local_dir='./models/faster-whisper-large-v3-turbo')"
@@ -50,14 +50,11 @@ COPY plugins/ ./plugins/
 COPY pipelines/ ./pipelines/
 COPY tools/ ./tools/
 COPY docker/entrypoint-pipeline.sh /usr/local/bin/entrypoint-pipeline.sh
-RUN chmod +x /usr/local/bin/entrypoint-pipeline.sh tools/run_pipeline.sh
+RUN chmod +x /usr/local/bin/entrypoint-pipeline.sh
 
 RUN mkdir -p /app/tmp /app/results
 
 EXPOSE 8888/udp
-
-ENV SUMMARIZER_PROFILE=vllm-qwen3.5-4b-awq \
-    WINDOW_SECONDS=300
 
 # Weights are baked into the layers above; forbid any runtime network fetch so
 # the image runs fully offline (and fails loud, not hangs, if code ever tries).
